@@ -22,6 +22,7 @@ type CandidateView =
   | "applications" 
   | "application-detail"
   | "documents" 
+  | "links"
   | "notes"
   | "history"
   | "statistics";

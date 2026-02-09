@@ -30,6 +30,56 @@ import NextImage from "next/image";
 import bausenLogo from "@/logos/bausen-logo.png";
 import verticalLogo from "@/logos/Copia_Logo_Vertical_01.png";
 
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  DoughnutController,
+  LineElement,
+  PointElement,
+  CategoryScale,
+  LinearScale,
+  LineController,
+  BarElement,
+  BarController,
+  Filler,
+} from "chart.js";
+
+ChartJS.register(
+  ArcElement, Tooltip, Legend, DoughnutController,
+  LineElement, PointElement, CategoryScale, LinearScale,
+  LineController, BarElement, BarController, Filler
+);
+
+// --- Linear Regression Utility ---
+interface RegressionResult {
+  slope: number;
+  intercept: number;
+  r2: number;
+  predict: (x: number) => number;
+}
+
+function linearRegression(points: { x: number; y: number }[]): RegressionResult {
+  const n = points.length;
+  if (n < 2) return { slope: 0, intercept: 0, r2: 0, predict: () => 0 };
+  const sumX = points.reduce((s, p) => s + p.x, 0);
+  const sumY = points.reduce((s, p) => s + p.y, 0);
+  const sumXY = points.reduce((s, p) => s + p.x * p.y, 0);
+  const sumX2 = points.reduce((s, p) => s + p.x * p.x, 0);
+  const denom = n * sumX2 - sumX * sumX;
+  if (denom === 0) return { slope: 0, intercept: sumY / n, r2: 0, predict: () => sumY / n };
+  const slope = (n * sumXY - sumX * sumY) / denom;
+  const intercept = (sumY - slope * sumX) / n;
+  const meanY = sumY / n;
+  const ssRes = points.reduce((s, p) => s + Math.pow(p.y - (slope * p.x + intercept), 2), 0);
+  const ssTot = points.reduce((s, p) => s + Math.pow(p.y - meanY, 2), 0);
+  const r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+  return { slope, intercept, r2, predict: (x: number) => Math.max(0, slope * x + intercept) };
+}
+
+const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
 
 type Stats = {
   activeProcesses: number;
@@ -362,6 +412,27 @@ export default function Page() {
     success_rate: 0,
     client_satisfaction: 0
   });
+
+  // --- Analytics & Trends State ---
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [trendData, setTrendData] = useState<{ label: string; candidates: number; profiles: number; hired: number }[]>([]);
+  const [funnelData, setFunnelData] = useState<{ label: string; count: number; color: string; pct: number }[]>([]);
+  const [candidatesByStatus, setCandidatesByStatus] = useState<{ status: string; count: number }[]>([]);
+  const [profilesByStatus2, setProfilesByStatus2] = useState<{ status: string; count: number }[]>([]);
+  const [stagnantCandidates, setStagnantCandidates] = useState<any[]>([]);
+  const [sourceEffectiveness, setSourceEffectiveness] = useState<{ source: string; total: number; hired: number; rate: number }[]>([]);
+  const [candidateRegression, setCandidateRegression] = useState<RegressionResult | null>(null);
+  const [hireRegression, setHireRegression] = useState<RegressionResult | null>(null);
+
+  // Chart refs for new charts
+  const trendChartRef = useRef<HTMLCanvasElement | null>(null);
+  const trendChartInstance = useRef<ChartJS | null>(null);
+  const pipelineChartRef = useRef<HTMLCanvasElement | null>(null);
+  const pipelineChartInstance = useRef<ChartJS | null>(null);
+  const distributionChartRef = useRef<HTMLCanvasElement | null>(null);
+  const distributionChartInstance = useRef<ChartJS | null>(null);
+  const sourceBarChartRef = useRef<HTMLCanvasElement | null>(null);
+  const sourceBarChartInstance = useRef<ChartJS | null>(null);
 
 
   // Estado para documentos
@@ -815,6 +886,13 @@ export default function Page() {
   const processChartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<any>(null);
 
+  // Re-render process doughnut when data changes
+  useEffect(() => {
+    if (currentView === 'dashboard' && processesByStatus.length > 0) {
+      setTimeout(() => setupCharts(), 100);
+    }
+  }, [processesByStatus, currentView]);
+
   // ====== Carga inicial ======
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -907,32 +985,147 @@ export default function Page() {
 
 
   function setupCharts() {
-    const anyChart = (window as any).Chart;
-    if (!anyChart || !processChartRef.current) return;
-
+    if (!processChartRef.current) return;
     if (chartInstanceRef.current) {
       chartInstanceRef.current.destroy();
+      chartInstanceRef.current = null;
     }
-
-    chartInstanceRef.current = new anyChart(processChartRef.current, {
-      type: "doughnut",
+    const ctx = processChartRef.current.getContext('2d');
+    if (!ctx) return;
+    const labels = processesByStatus.length > 0
+      ? processesByStatus.map(p => p.label)
+      : ['Sin datos'];
+    const dataValues = processesByStatus.length > 0
+      ? processesByStatus.map(p => p.count)
+      : [1];
+    const colors = processesByStatus.length > 0
+      ? processesByStatus.map(p => p.color)
+      : ['#E5E7EB'];
+    chartInstanceRef.current = new ChartJS(ctx, {
+      type: 'doughnut',
       data: {
-        labels: ["En Proceso", "Completados", "Pausados"],
-        datasets: [
-          {
-            data: [8, 25, 4],
-            backgroundColor: ["#3B82F6", "#10B981", "#F59E0B"],
-            borderWidth: 0,
-          },
-        ],
+        labels,
+        datasets: [{ data: dataValues, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } },
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
+        },
       },
     });
   }
+
+  // --- Render analytics charts when data changes ---
+  useEffect(() => {
+    if (currentView !== 'dashboard') return;
+    // Destroy old instances
+    [trendChartInstance, pipelineChartInstance, distributionChartInstance, sourceBarChartInstance].forEach(ref => {
+      if (ref.current) { ref.current.destroy(); ref.current = null; }
+    });
+
+    // 1. TREND LINE CHART with regression
+    if (trendChartRef.current && trendData.length > 0 && candidateRegression && hireRegression) {
+      const ctx = trendChartRef.current.getContext('2d');
+      if (ctx) {
+        const labels = trendData.map(t => t.label);
+        // Extend 3 months for prediction
+        const now = new Date();
+        const extLabels = [...labels];
+        for (let i = 1; i <= 3; i++) {
+          const fd = new Date(now.getFullYear(), now.getMonth() + i, 1);
+          extLabels.push(`${MONTH_LABELS[fd.getMonth()]} ${fd.getFullYear().toString().slice(-2)}*`);
+        }
+        const padded = (arr: number[]) => [...arr, ...Array(3).fill(null)];
+        const regLine = (reg: RegressionResult) => extLabels.map((_, i) => Math.max(0, Number(reg.predict(i).toFixed(1))));
+
+        trendChartInstance.current = new ChartJS(ctx, {
+          type: 'line',
+          data: {
+            labels: extLabels,
+            datasets: [
+              { label: 'Candidatos', data: padded(trendData.map(t => t.candidates)), borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.4, pointRadius: 3 },
+              { label: 'Contratados', data: padded(trendData.map(t => t.hired)), borderColor: '#059669', backgroundColor: 'rgba(5,150,105,0.08)', fill: true, tension: 0.4, pointRadius: 3 },
+              { label: 'Perfiles', data: padded(trendData.map(t => t.profiles)), borderColor: '#8B5CF6', backgroundColor: 'transparent', tension: 0.4, pointRadius: 2, borderDash: [] },
+              { label: `Reg. Cand. (R\u00B2=${candidateRegression.r2.toFixed(2)})`, data: regLine(candidateRegression), borderColor: 'rgba(59,130,246,0.35)', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false },
+              { label: `Reg. Contr. (R\u00B2=${hireRegression.r2.toFixed(2)})`, data: regLine(hireRegression), borderColor: 'rgba(5,150,105,0.35)', borderDash: [6, 4], borderWidth: 2, pointRadius: 0, fill: false },
+            ],
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { intersect: false, mode: 'index' },
+            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } },
+              x: { grid: { display: false }, ticks: { callback: function(_v: any, i: number) { const l = extLabels[i]; return l?.endsWith('*') ? l.replace('*', ' (P)') : l; } } },
+            },
+          },
+        });
+      }
+    }
+
+    // 2. PIPELINE FUNNEL (horizontal bar)
+    if (pipelineChartRef.current && funnelData.length > 0) {
+      const ctx = pipelineChartRef.current.getContext('2d');
+      if (ctx) {
+        pipelineChartInstance.current = new ChartJS(ctx, {
+          type: 'bar',
+          data: {
+            labels: funnelData.map(f => f.label),
+            datasets: [{ data: funnelData.map(f => f.count), backgroundColor: funnelData.map(f => f.color), borderRadius: 6, barPercentage: 0.65 }],
+          },
+          options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => { const s = funnelData[ctx.dataIndex]; return `${s.count} (${s.pct}%)`; } } } },
+            scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, y: { grid: { display: false } } },
+          },
+        });
+      }
+    }
+
+    // 3. DISTRIBUTION DOUGHNUT (candidates by status)
+    if (distributionChartRef.current && candidatesByStatus.length > 0) {
+      const ctx = distributionChartRef.current.getContext('2d');
+      if (ctx) {
+        const STATUS_COLORS: Record<string, string> = { new: '#3B82F6', screening: '#F59E0B', qualified: '#10B981', interview: '#8B5CF6', offer: '#EC4899', hired: '#059669', rejected: '#EF4444', withdrawn: '#6B7280' };
+        const STATUS_LABELS: Record<string, string> = { new: 'Nuevo', screening: 'En Revision', qualified: 'Calificado', interview: 'Entrevista', offer: 'Oferta', hired: 'Contratado', rejected: 'Rechazado', withdrawn: 'Retirado' };
+        distributionChartInstance.current = new ChartJS(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: candidatesByStatus.map(s => STATUS_LABELS[s.status] || s.status),
+            datasets: [{ data: candidatesByStatus.map(s => s.count), backgroundColor: candidatesByStatus.map(s => STATUS_COLORS[s.status] || '#6B7280'), borderWidth: 2, borderColor: '#fff' }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 10, font: { size: 11 } } } } },
+        });
+      }
+    }
+
+    // 4. SOURCE BAR CHART
+    if (sourceBarChartRef.current && sourceEffectiveness.length > 0) {
+      const ctx = sourceBarChartRef.current.getContext('2d');
+      if (ctx) {
+        sourceBarChartInstance.current = new ChartJS(ctx, {
+          type: 'bar',
+          data: {
+            labels: sourceEffectiveness.map(s => s.source),
+            datasets: [
+              { label: 'Total', data: sourceEffectiveness.map(s => s.total), backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4 },
+              { label: 'Contratados', data: sourceEffectiveness.map(s => s.hired), backgroundColor: 'rgba(5,150,105,0.7)', borderRadius: 4 },
+            ],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true } } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } },
+        });
+      }
+    }
+
+    return () => {
+      [trendChartInstance, pipelineChartInstance, distributionChartInstance, sourceBarChartInstance].forEach(ref => {
+        if (ref.current) { ref.current.destroy(); ref.current = null; }
+      });
+    };
+  }, [currentView, trendData, funnelData, candidatesByStatus, sourceEffectiveness, candidateRegression, hireRegression]);
 
   async function loadDashboardData() {
     setDashboardLoading(true);
@@ -1189,7 +1382,98 @@ export default function Page() {
       // ========================================
       await loadCandidatesData();
 
-      console.log('✅ Dashboard cargado exitosamente');
+      // ========================================
+      // CARGAR APROBACIONES PENDIENTES
+      // ========================================
+      try {
+        const pendingRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/director/pending-approvals/`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        if (pendingRes.ok) {
+          const pendingData = await pendingRes.json();
+          console.log('✅ Aprobaciones pendientes cargadas:', pendingData.length);
+          setPendingApprovals(pendingData);
+        } else {
+          console.warn('⚠️ Error al cargar aprobaciones pendientes:', pendingRes.status);
+        }
+      } catch (pendingErr) {
+        console.warn('Error al cargar aprobaciones pendientes:', pendingErr);
+      }
+
+      // ========================================
+      // CARGAR ANALYTICS Y TENDENCIAS
+      // ========================================
+      try {
+        const analyticsRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/director/analytics/trends/`,
+          { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }
+        );
+        if (analyticsRes.ok) {
+          const aData = await analyticsRes.json();
+          setAnalyticsData(aData);
+          console.log('Analytics cargados:', aData);
+
+          // Build trend data from monthly_candidates
+          const trends: { label: string; candidates: number; profiles: number; hired: number }[] = [];
+          const now = new Date();
+          for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const mc = (aData.monthly_candidates || []).find((m: any) => m.month?.startsWith(key));
+            const mp = (aData.monthly_profiles || []).find((m: any) => m.month?.startsWith(key));
+            const mh = (aData.monthly_hires || []).find((m: any) => m.month?.startsWith(key));
+            trends.push({
+              label: `${MONTH_LABELS[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`,
+              candidates: mc?.total || 0,
+              profiles: mp?.created || 0,
+              hired: mh?.count || mc?.hired || 0,
+            });
+          }
+          setTrendData(trends);
+
+          // Regressions
+          const candPts = trends.map((t, i) => ({ x: i, y: t.candidates }));
+          const hirePts = trends.map((t, i) => ({ x: i, y: t.hired }));
+          setCandidateRegression(linearRegression(candPts));
+          setHireRegression(linearRegression(hirePts));
+
+          // Funnel
+          const funnel = aData.funnel || {};
+          const total = funnel.total || 1;
+          setFunnelData([
+            { label: 'Total Candidatos', count: funnel.total || 0, color: '#3B82F6', pct: 100 },
+            { label: 'En Revision', count: funnel.screening || 0, color: '#F59E0B', pct: Math.round(((funnel.screening || 0) / total) * 100) },
+            { label: 'Entrevista', count: funnel.interview || 0, color: '#8B5CF6', pct: Math.round(((funnel.interview || 0) / total) * 100) },
+            { label: 'Con Oferta', count: funnel.offer || 0, color: '#EC4899', pct: Math.round(((funnel.offer || 0) / total) * 100) },
+            { label: 'Contratados', count: funnel.hired || 0, color: '#059669', pct: Math.round(((funnel.hired || 0) / total) * 100) },
+          ]);
+
+          // Candidates by status
+          setCandidatesByStatus((aData.candidates_by_status || []).sort((a: any, b: any) => b.count - a.count));
+          setProfilesByStatus2((aData.profiles_by_status || []).sort((a: any, b: any) => b.count - a.count));
+
+          // Source effectiveness
+          setSourceEffectiveness(
+            (aData.source_effectiveness || []).filter((s: any) => s.source).map((s: any) => ({
+              source: s.source, total: s.total, hired: s.hired,
+              rate: s.total > 0 ? Math.round((s.hired / s.total) * 100) : 0,
+            }))
+          );
+
+          // Stagnant candidates
+          setStagnantCandidates((aData.stagnant_candidates || []).slice(0, 8));
+        }
+      } catch (analyticsErr) {
+        console.warn('Error al cargar analytics:', analyticsErr);
+      }
+
+      console.log('Dashboard cargado exitosamente');
 
     } catch (err) {
       console.error('❌ Error al cargar dashboard:', err);
@@ -2138,7 +2422,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("profiles")}`}
                     >
                       <i className="fas fa-briefcase mr-3 w-5" />
-                      Perfiles de Reclutamiento
+                      <span className="flex-1 text-left">Perfiles de Reclutamiento</span>
                       {stats.activeProfiles > 0 && (
                         <span className="ml-auto bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
                           {stats.activeProfiles}
@@ -2317,140 +2601,202 @@ export default function Page() {
           }`}>
           {/* DASHBOARD */}
           {currentView === "dashboard" && (
-            <div className="p-6">
+            <div className="p-6 max-w-[1600px] mx-auto">
               {/* Encabezado */}
               <div className="mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900">Panel Directivo</h2>
-                    <p className="text-gray-600 mt-1">Resumen ejecutivo del sistema de reclutamiento</p>
+                    <p className="text-gray-600 mt-1">Resumen ejecutivo con analytics avanzados y predicciones</p>
                   </div>
                   <div className="mt-4 sm:mt-0 flex space-x-3">
-                    <button
-                      onClick={refreshDashboard}
-                      className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <i className="fas fa-sync mr-2" />
-                      Actualizar
+                    <button onClick={refreshDashboard} disabled={dashboardLoading} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                      <i className={`fas fa-sync mr-2 ${dashboardLoading ? 'animate-spin' : ''}`} /> Actualizar
                     </button>
-                    <button
-                      onClick={exportDashboard}
-                      className="px-4 py-2 btn-primary text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <i className="fas fa-download mr-2" />
-                      Exportar
+                    <button onClick={exportDashboard} className="px-4 py-2 btn-primary text-white rounded-lg">
+                      <i className="fas fa-download mr-2" /> Exportar
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* KPIs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div className="card bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Procesos Activos</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">{stats.activeProcesses}</p>
-                      <div className="flex items-center mt-2 text-sm">
-                        <span className="text-green-600 flex items-center">
-                          <i className="fas fa-arrow-up mr-1" /> +15%
-                        </span>
-                        <span className="text-gray-500 ml-1">vs mes anterior</span>
-                      </div>
-                    </div>
-                    <div className="p-3 gradient-primary rounded-lg">
-                      <i className="fas fa-briefcase text-white text-xl" />
-                    </div>
+              {/* ====== 6 KPI CARDS ====== */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+                {/* Procesos Activos */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-blue-50 rounded-lg"><i className="fas fa-briefcase text-blue-600" /></div>
+                    {(() => { const prev = lastMonthData.profiles || 1; const pct = Math.round(((stats.activeProcesses - prev) / prev) * 100); const up = pct >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(pct)}%</span>); })()}
                   </div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activeProcesses}</p>
+                  <p className="text-xs text-gray-500 mt-1">Procesos Activos</p>
                 </div>
-
-                <div className="card bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Candidatos Finalizados</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">{candidates.length}</p>
-                      <div className="flex items-center mt-2 text-sm">
-                        <span className="text-green-600 flex items-center">
-                          <i className="fas fa-arrow-up mr-1" /> +8%
-                        </span>
-                        <span className="text-gray-500 ml-1">vs mes anterior</span>
-                      </div>
-                    </div>
-                    <div className="p-3 gradient-success rounded-lg">
-                      <i className="fas fa-user-check text-white text-xl" />
-                    </div>
+                {/* Total Candidatos */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-green-50 rounded-lg"><i className="fas fa-users text-green-600" /></div>
+                    {(() => { const prev = lastMonthData.candidates || 1; const pct = Math.round(((candidates.length - prev) / prev) * 100); const up = pct >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(pct)}%</span>); })()}
                   </div>
+                  <p className="text-2xl font-bold text-gray-900">{candidates.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Total Candidatos</p>
                 </div>
-
-                <div className="card bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Tasa de Éxito</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">{stats.successRate}%</p>
-                      <div className="flex items-center mt-2 text-sm">
-                        <span className="text-green-600 flex items-center">
-                          <i className="fas fa-arrow-up mr-1" /> +3%
-                        </span>
-                        <span className="text-gray-500 ml-1">vs mes anterior</span>
-                      </div>
-                    </div>
-                    <div className="p-3 gradient-warning rounded-lg">
-                      <i className="fas fa-percentage text-white text-xl" />
-                    </div>
+                {/* Tasa de Exito */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-purple-50 rounded-lg"><i className="fas fa-chart-line text-purple-600" /></div>
+                    {(() => { const prev = lastMonthData.success_rate || 0; const diff = stats.successRate - prev; const up = diff >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(Math.round(diff))}%</span>); })()}
                   </div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.successRate}%</p>
+                  <p className="text-xs text-gray-500 mt-1">Tasa de Exito</p>
                 </div>
-
-                <div className="card bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Satisfacción Cliente</p>
-                      <p className="text-3xl font-bold text-gray-900 mt-2">{stats.clientSatisfaction}/5</p>
-                      <div className="flex items-center mt-2 text-sm">
-                        <span className="text-green-600 flex items-center">
-                          <i className="fas fa-arrow-up mr-1" /> +0.3
-                        </span>
-                        <span className="text-gray-500 ml-1">vs mes anterior</span>
-                      </div>
-                    </div>
-                    <div className="p-3 gradient-purple rounded-lg">
-                      <i className="fas fa-star text-white text-xl" />
-                    </div>
+                {/* Contratados Este Mes */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-emerald-50 rounded-lg"><i className="fas fa-user-check text-emerald-600" /></div>
                   </div>
+                  <p className="text-2xl font-bold text-gray-900">{stats.completedCandidates}</p>
+                  <p className="text-xs text-gray-500 mt-1">Contratados (mes)</p>
+                </div>
+                {/* Aprobaciones Pendientes */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-amber-50 rounded-lg"><i className="fas fa-clock text-amber-600" /></div>
+                    {pendingApprovals.length > 0 && <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendingApprovals.length}</span>}
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{pendingApprovals.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Pend. Aprobacion</p>
+                </div>
+                {/* Candidatos Estancados */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 bg-red-50 rounded-lg"><i className="fas fa-exclamation-triangle text-red-600" /></div>
+                    {stagnantCandidates.length > 0 && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{stagnantCandidates.length}</span>}
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{stagnantCandidates.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">Cand. Estancados</p>
                 </div>
               </div>
 
-              {/* Charts & actividad */}
+              {/* ====== TREND CHART + REGRESSION ====== */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900"><i className="fas fa-chart-line text-blue-600 mr-2" />Tendencia + Regresion Lineal (12 meses)</h3>
+                    <p className="text-sm text-gray-500 mt-1">Lineas punteadas = regresion lineal con prediccion a 3 meses</p>
+                  </div>
+                  {candidateRegression && hireRegression && (
+                    <div className="hidden lg:flex items-center space-x-3 text-xs">
+                      <div className="bg-blue-50 px-3 py-1.5 rounded-lg">
+                        <span className="text-blue-700 font-semibold">Candidatos: {candidateRegression.slope >= 0 ? '+' : ''}{candidateRegression.slope.toFixed(2)}/mes</span>
+                        <span className="text-blue-500 ml-2">R2={candidateRegression.r2.toFixed(3)}</span>
+                      </div>
+                      <div className="bg-green-50 px-3 py-1.5 rounded-lg">
+                        <span className="text-green-700 font-semibold">Contrataciones: {hireRegression.slope >= 0 ? '+' : ''}{hireRegression.slope.toFixed(2)}/mes</span>
+                        <span className="text-green-500 ml-2">R2={hireRegression.r2.toFixed(3)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div style={{ height: 340 }}><canvas ref={trendChartRef} /></div>
+                {candidateRegression && hireRegression && (
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-blue-600 font-medium">Prediccion Candidatos (3 meses)</p>
+                      <p className="text-xl font-bold text-blue-800">~{Math.round(candidateRegression.predict(trendData.length + 2))}</p>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-green-600 font-medium">Prediccion Contrataciones (3 meses)</p>
+                      <p className="text-xl font-bold text-green-800">~{Math.round(hireRegression.predict(trendData.length + 2))}</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-3 text-center">
+                      <p className="text-xs text-purple-600 font-medium">Tendencia General</p>
+                      <p className="text-xl font-bold text-purple-800">{candidateRegression.slope > 0.1 ? 'Creciente' : candidateRegression.slope < -0.1 ? 'Decreciente' : 'Estable'}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ====== ROW: Process Doughnut + Pipeline Funnel ====== */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div className="card bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Procesos por Estado</h3>
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <i className="fas fa-ellipsis-h" />
-                    </button>
-                  </div>
-                  <div className="max-h-64" style={{ height: 256 }}>
-                    <canvas ref={processChartRef} />
-                  </div>
+                {/* Procesos por Estado (Doughnut) */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-chart-pie text-purple-600 mr-2" />Perfiles por Estado</h3>
+                  <div style={{ height: 280 }}><canvas ref={processChartRef} /></div>
+                  {processesByStatus.length > 0 && (
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      {processesByStatus.map(s => (
+                        <div key={s.status} className="flex items-center text-xs">
+                          <div className="w-3 h-3 rounded-full mr-2 shrink-0" style={{ backgroundColor: s.color }} />
+                          <span className="text-gray-600 truncate">{s.label}</span>
+                          <span className="ml-auto font-bold text-gray-800">{s.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
-                <div className="card bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Actividad Reciente</h3>
-                    <a href="#" className="text-sm text-primary-600 hover:text-primary-700">
-                      Ver todo
-                    </a>
+                {/* Pipeline Funnel */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-filter text-blue-600 mr-2" />Embudo de Reclutamiento</h3>
+                  <div style={{ height: 280 }}><canvas ref={pipelineChartRef} /></div>
+                  {funnelData.length >= 2 && (
+                    <div className="mt-3 space-y-2">
+                      {funnelData.slice(1).map((stage, i) => {
+                        const prevCount = funnelData[i].count || 1;
+                        const convRate = Math.round((stage.count / prevCount) * 100);
+                        return (
+                          <div key={stage.label} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">{funnelData[i].label} &rarr; {stage.label}</span>
+                            <div className="flex items-center">
+                              <div className="w-20 bg-gray-200 rounded-full h-1.5 mr-2">
+                                <div className="h-1.5 rounded-full" style={{ width: `${convRate}%`, backgroundColor: stage.color }} />
+                              </div>
+                              <span className="font-semibold text-gray-700 w-8 text-right">{convRate}%</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ====== ROW: Candidate Distribution + Source Effectiveness ====== */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* Candidate Distribution */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-users text-green-600 mr-2" />Distribucion de Candidatos</h3>
+                  <div style={{ height: 280 }}><canvas ref={distributionChartRef} /></div>
+                </div>
+
+                {/* Source Effectiveness */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-bullseye text-orange-600 mr-2" />Efectividad por Fuente</h3>
+                  {sourceEffectiveness.length > 0 ? (
+                    <div style={{ height: 280 }}><canvas ref={sourceBarChartRef} /></div>
+                  ) : (
+                    <div className="flex items-center justify-center h-64 text-gray-400"><div className="text-center"><i className="fas fa-chart-bar text-4xl mb-2" /><p className="text-sm">Sin datos de fuentes</p></div></div>
+                  )}
+                </div>
+              </div>
+
+              {/* ====== ROW: Actividad Reciente + Alertas Estancados ====== */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                {/* Actividad Reciente */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900"><i className="fas fa-bolt text-blue-600 mr-2" />Actividad Reciente</h3>
                   </div>
-                  <div className="space-y-4 max-h-64 overflow-y-auto custom-scrollbar">
+                  <div className="space-y-4 max-h-72 overflow-y-auto">
                     {recentActivity.map((a) => {
-                      const color =
-                        a.type === "success" ? "bg-green-100 text-green-600" : a.type === "info" ? "bg-blue-100 text-blue-600" : "bg-purple-100 text-purple-600";
+                      const color = a.type === 'success' ? 'bg-green-100 text-green-600' : a.type === 'info' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600';
                       return (
                         <div key={a.id} className="flex items-start space-x-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${color.split(" ").slice(0, 1).join(" ")}`}>
-                            <i className={`${a.icon} ${color.split(" ").slice(1).join(" ")}`} />
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${color.split(' ').slice(0, 1).join(' ')}`}>
+                            <i className={`${a.icon} ${color.split(' ').slice(1).join(' ')}`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-900">{a.message}</p>
+                            <p className="text-sm text-gray-900 font-medium">{a.message}</p>
                             <p className="text-xs text-gray-500">{a.details}</p>
                             <p className="text-xs text-gray-400">{a.time}</p>
                           </div>
@@ -2459,84 +2805,109 @@ export default function Page() {
                     })}
                   </div>
                 </div>
-              </div>
 
-              {/* Aprobaciones pendientes */}
-              <div className="card bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">Aprobaciones Pendientes</h3>
-                    <span className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">
-                      {pendingApprovals.length} pendientes
-                    </span>
-                  </div>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        {["Candidato", "Posición", "Cliente", "Score IA", "Supervisor", "Acciones"].map((h) => (
-                          <th key={h} className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${h === "Acciones" ? "text-right" : "text-left"}`}>
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {pendingApprovals.map((a) => (
-                        <tr key={a.id} className="table-row">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <img
-                                className="h-10 w-10 rounded-full border-2 border-gray-200"
-                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(a.candidate)}&background=random`}
-                                alt={a.candidate}
-                              />
-                              <div className="ml-3">
-                                <p className="text-sm font-medium text-gray-900">{a.candidate}</p>
-                                <p className="text-xs text-gray-500">{a.email}</p>
+                {/* Candidatos Estancados */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <i className="fas fa-exclamation-triangle text-amber-600 mr-2" />Candidatos Estancados
+                    {stagnantCandidates.length > 0 && <span className="ml-2 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{stagnantCandidates.length}</span>}
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-3">Sin cambio de estado por mas de 14 dias</p>
+                  {stagnantCandidates.length > 0 ? (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {stagnantCandidates.map((c: any) => {
+                        const name = `${c.first_name || ''} ${c.last_name || ''}`.trim() || 'Sin nombre';
+                        const STATUS_LABELS: Record<string, string> = { new: 'Nuevo', screening: 'En Revision', qualified: 'Calificado', interview: 'Entrevista' };
+                        const days = c.updated_at ? Math.floor((Date.now() - new Date(c.updated_at).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                        return (
+                          <div key={c.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
+                            <div className="flex items-center space-x-3">
+                              <img className="h-8 w-8 rounded-full border-2 border-amber-200" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=F59E0B&color=fff&size=32`} alt={name} />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{name}</p>
+                                <p className="text-xs text-gray-500">{STATUS_LABELS[c.status] || c.status}</p>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <p className="text-sm text-gray-900">{a.position}</p>
-                            <p className="text-xs text-gray-500">{a.department}</p>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{a.client}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${a.score >= 90 ? "bg-green-100 text-green-800" : a.score >= 80 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"
-                                }`}
-                            >
-                              {a.score}%
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{a.supervisor}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end space-x-2">
-                              <button onClick={() => approveCandidate(a.id)} className="text-green-600 hover:text-green-900 p-1 rounded" title="Aprobar">
-                                <i className="fas fa-check" />
-                              </button>
-                              <button onClick={() => rejectCandidate(a.id)} className="text-red-600 hover:text-red-900 p-1 rounded" title="Rechazar">
-                                <i className="fas fa-times" />
-                              </button>
-                              <button onClick={() => viewCandidate(a.id)} className="text-blue-600 hover:text-blue-900 p-1 rounded" title="Ver detalles">
-                                <i className="fas fa-eye" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            <span className="inline-flex items-center px-2 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full"><i className="fas fa-clock mr-1" />{days}d</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-48 text-green-500"><div className="text-center"><i className="fas fa-check-circle text-4xl mb-2" /><p className="text-sm text-gray-500">Sin candidatos estancados</p></div></div>
+                  )}
                 </div>
-                {pendingApprovals.length === 0 && (
-                  <div className="text-center py-12 empty-state">
-                    <i className="fas fa-check-circle text-6xl text-gray-300 mb-4" />
-                    <p className="text-gray-500">No hay aprobaciones pendientes</p>
+              </div>
+
+              {/* ====== APROBACIONES PENDIENTES ====== */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900"><i className="fas fa-user-check text-green-600 mr-2" />Aprobaciones Pendientes</h3>
+                    <span className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">{pendingApprovals.length} pendientes</span>
                   </div>
+                </div>
+                {pendingApprovals.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {['Candidato', 'Posicion', 'Cliente', 'Score IA', 'Supervisor', 'Acciones'].map((h) => (
+                            <th key={h} className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${h === 'Acciones' ? 'text-right' : 'text-left'}`}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {pendingApprovals.map((a) => (
+                          <tr key={a.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <img className="h-9 w-9 rounded-full border-2 border-gray-200" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(a.candidate)}&background=random&size=36`} alt={a.candidate} />
+                                <div className="ml-3"><p className="text-sm font-medium text-gray-900">{a.candidate}</p><p className="text-xs text-gray-500">{a.email}</p></div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap"><p className="text-sm text-gray-900">{a.position}</p>{a.department && <p className="text-xs text-gray-500">{a.department}</p>}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{a.client || '--'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${a.score >= 80 ? 'bg-green-100 text-green-800' : a.score >= 60 ? 'bg-yellow-100 text-yellow-800' : a.score > 0 ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}`}>{a.score > 0 ? `${a.score}%` : '--'}</span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{a.supervisor}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex justify-end space-x-2">
+                                <button onClick={() => approveCandidate(a.id)} className="text-green-600 hover:text-green-900 p-1 rounded" title="Aprobar"><i className="fas fa-check" /></button>
+                                <button onClick={() => rejectCandidate(a.id)} className="text-red-600 hover:text-red-900 p-1 rounded" title="Rechazar"><i className="fas fa-times" /></button>
+                                <button onClick={() => viewCandidate(a.id)} className="text-blue-600 hover:text-blue-900 p-1 rounded" title="Ver detalles"><i className="fas fa-eye" /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12"><i className="fas fa-check-circle text-5xl text-gray-300 mb-3" /><p className="text-gray-500">No hay aprobaciones pendientes</p></div>
                 )}
               </div>
+
+              {/* ====== PROFILES BY STATUS TILES ====== */}
+              {profilesByStatus2.length > 0 && (
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-th-large text-indigo-600 mr-2" />Perfiles por Estado (detalle)</h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {profilesByStatus2.map((s) => {
+                      const PCOLORS: Record<string, string> = { draft: '#9CA3AF', pending: '#F59E0B', approved: '#10B981', in_progress: '#3B82F6', candidates_found: '#06B6D4', in_evaluation: '#F97316', in_interview: '#6366F1', finalists: '#EC4899', completed: '#059669', cancelled: '#EF4444' };
+                      const PLABELS: Record<string, string> = { draft: 'Borrador', pending: 'Pendiente', approved: 'Aprobado', in_progress: 'En Proceso', candidates_found: 'Cand. Encontrados', in_evaluation: 'En Evaluacion', in_interview: 'Entrevistas', finalists: 'Finalistas', completed: 'Completado', cancelled: 'Cancelado' };
+                      const color = PCOLORS[s.status] || '#6B7280';
+                      return (
+                        <div key={s.status} className="rounded-lg p-4 text-center border" style={{ backgroundColor: `${color}10`, borderColor: `${color}30` }}>
+                          <p className="text-2xl font-bold" style={{ color }}>{s.count}</p>
+                          <p className="text-xs text-gray-600 mt-1">{PLABELS[s.status] || s.status}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
