@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient, type User, type AdminDashboardStats, type UserActivity } from '@/lib/api';
 import { useModal } from "@/context/ModalContext";
 import EmailManagement from '@/components/EmailManagement';
+import BackupsView from '@/components/BackupsView';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -2189,11 +2190,7 @@ const getPriorityDisplay = (priority: string) => {
         )}
 
         {currentView === 'backups' && (
-          <div className="text-center py-12">
-            <i className="fas fa-database text-6xl text-gray-300 mb-4"></i>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">Backups</h3>
-            <p className="text-gray-500">Próximamente disponible</p>
-          </div>
+          <BackupsView />
         )}
 
         {currentView === 'monitoring' && (

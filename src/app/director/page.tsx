@@ -2390,7 +2390,7 @@ export default function Page() {
                       }
                     }} className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("dashboard")}`}>
                       <i className="fas fa-chart-line mr-3 w-5" />
-                      Dashboard
+                      <span className="flex-1 text-left">Dashboard</span>
                     </button>
                   </li>
 
@@ -2406,7 +2406,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("clients")}`}
                     >
                       <i className="fas fa-building mr-3 w-5" />
-                      Clientes
+                      <span className="flex-1 text-left">Clientes</span>
                     </button>
                   </li>
 
@@ -2443,7 +2443,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("candidates")}`}
                     >
                       <i className="fas fa-user-tie mr-3 w-5" />
-                      Candidatos
+                      <span className="flex-1 text-left">Candidatos</span>
                     </button>
                   </li>
 
@@ -2459,7 +2459,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("evaluations")}`}
                     >
                       <i className="fas fa-clipboard-check mr-3 w-5" />
-                      Sistema de Evaluaciones
+                      <span className="flex-1 text-left">Sistema de Evaluaciones</span>
                     </button>
                   </li>
 
@@ -2475,7 +2475,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("client-progress")}`}
                     >
                       <i className="fas fa-chart-area mr-3 w-5" />
-                      Avance de Cliente
+                      <span className="flex-1 text-left">Avance de Cliente</span>
                     </button>
                   </li>
 
@@ -2491,7 +2491,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("reports")}`}
                     >
                       <i className="fas fa-chart-bar mr-3 w-5" />
-                      Reportes
+                      <span className="flex-1 text-left">Reportes</span>
                     </button>
                   </li>
 
@@ -2507,7 +2507,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("profiles-status")}`}
                     >
                       <i className="fas fa-tasks mr-3 w-5" />
-                      Estado de Perfiles
+                      <span className="flex-1 text-left">Estado de Perfiles</span>
                     </button>
                   </li>
 
@@ -2523,7 +2523,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("candidates-status")}`}
                     >
                       <i className="fas fa-user-check mr-3 w-5" />
-                      Estado de Candidatos
+                      <span className="flex-1 text-left">Estado de Candidatos</span>
                     </button>
                   </li>
 
@@ -2539,7 +2539,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("shortlisted-candidates")}`}
                     >
                       <i className="fas fa-star mr-3 w-5" />
-                      Preseleccionados
+                      <span className="flex-1 text-left">Preseleccionados</span>
                     </button>
                   </li>
 
@@ -2555,7 +2555,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("selected-candidates")}`}
                     >
                       <i className="fas fa-user-check mr-3 w-5" />
-                      Candidatos Seleccionados
+                      <span className="flex-1 text-left">Candidatos Seleccionados</span>
                     </button>
                   </li>
 
@@ -2571,7 +2571,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("individual-reports")}`}
                     >
                       <i className="fas fa-file-alt mr-3 w-5" />
-                      Reportes Individuales
+                      <span className="flex-1 text-left">Reportes Individuales</span>
                     </button>
                   </li>
                   <li>
@@ -2586,7 +2586,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("email-management")}`}
                     >
                       <i className="fas fa-envelope mr-3 w-5" />
-                      Gestión de Correos
+                      <span className="flex-1 text-left">Gestión de Correos</span>
                     </button>
                   </li>
 

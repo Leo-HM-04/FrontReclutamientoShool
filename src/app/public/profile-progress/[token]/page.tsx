@@ -108,9 +108,11 @@ export default function PublicProfileProgressPage() {
 
   const fetchProgress = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/public/profile-progress/${token}/`
-      );
+      // Use configured API base or fallback to local backend in development
+      const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:8000';
+      const url = `${apiBase}/api/public/profile-progress/${token}/`;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error('No se pudo cargar la información del perfil');
