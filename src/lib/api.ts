@@ -131,7 +131,7 @@ class ApiClient {
    * Login user with email and password
    */
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    return this.makeRequest<LoginResponse>('/api/auth/token/', {
+    return this.makeRequest<LoginResponse>('/auth/token/', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
@@ -141,7 +141,7 @@ class ApiClient {
    * Refresh authentication token
    */
   async refreshToken(refreshToken: string): Promise<{ access: string }> {
-    return this.makeRequest<{ access: string }>('/api/auth/token/refresh/', {
+    return this.makeRequest<{ access: string }>('/auth/token/refresh/', {
       method: 'POST',
       body: JSON.stringify({ refresh: refreshToken }),
     });
