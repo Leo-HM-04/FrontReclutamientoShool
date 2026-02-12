@@ -30,7 +30,7 @@ function getAuthHeaders() {
 export async function getProfileReport(profileId: number) {
   try {
     const response = await fetch(
-      `${API_URL}/api/director/reports/profile/${profileId}/`,
+      `${API_URL}/director/reports/profile/${profileId}/`,
       {
         method: 'GET',
         headers: getAuthHeaders(),
@@ -54,7 +54,7 @@ export async function getProfileReport(profileId: number) {
 
 export async function getProfileCandidates(profileId: number, statusFilter?: string) {
   try {
-    let url = `${API_URL}/api/director/reports/profile/${profileId}/candidates/`;
+    let url = `${API_URL}/director/reports/profile/${profileId}/candidates/`;
     
     if (statusFilter) {
       url += `?status=${statusFilter}`;
@@ -83,7 +83,7 @@ export async function getProfileCandidates(profileId: number, statusFilter?: str
 export async function getProfileTimeline(profileId: number) {
   try {
     const response = await fetch(
-      `${API_URL}/api/director/reports/profile/${profileId}/timeline/`,
+      `${API_URL}/director/reports/profile/${profileId}/timeline/`,
       {
         method: 'GET',
         headers: getAuthHeaders(),
@@ -108,7 +108,7 @@ export async function getProfileTimeline(profileId: number) {
 export async function getCandidateFullReport(candidateId: number) {
   try {
     const response = await fetch(
-      `${API_URL}/api/director/reports/candidate/${candidateId}/`,
+      `${API_URL}/director/reports/candidate/${candidateId}/`,
       {
         method: 'GET',
         headers: getAuthHeaders(),
@@ -133,7 +133,7 @@ export async function getCandidateFullReport(candidateId: number) {
 export async function getClientFullReport(clientId: number) {
   try {
     const response = await fetch(
-      `${API_URL}/api/director/reports/client/${clientId}/`,
+      `${API_URL}/director/reports/client/${clientId}/`,
       {
         method: 'GET',
         headers: getAuthHeaders(),
@@ -524,7 +524,7 @@ export interface ClientFullReportData {
 export async function getCombinedMetrics() {
   try {
     const response = await fetch(
-      `${API_URL}/api/director/reports/combined-metrics/`,
+      `${API_URL}/director/reports/combined-metrics/`,
       {
         method: 'GET',
         headers: getAuthHeaders(),

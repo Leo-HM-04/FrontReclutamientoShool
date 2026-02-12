@@ -15,7 +15,7 @@ const getAuthHeaders = () => {
 // ============================================
 
 export const getEvaluationTemplates = async () => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching templates");
@@ -23,7 +23,7 @@ export const getEvaluationTemplates = async () => {
 };
 
 export const getEvaluationTemplate = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/${id}/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching template");
@@ -31,7 +31,7 @@ export const getEvaluationTemplate = async (id: number) => {
 };
 
 export const createEvaluationTemplate = async (data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -41,7 +41,7 @@ export const createEvaluationTemplate = async (data: any) => {
 };
 
 export const updateEvaluationTemplate = async (id: number, data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -51,7 +51,7 @@ export const updateEvaluationTemplate = async (id: number, data: any) => {
 };
 
 export const deleteEvaluationTemplate = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/${id}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -60,7 +60,7 @@ export const deleteEvaluationTemplate = async (id: number) => {
 };
 
 export const duplicateEvaluationTemplate = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/${id}/duplicate/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/${id}/duplicate/`, {
     method: "POST",
     headers: getAuthHeaders(),
   });
@@ -69,7 +69,7 @@ export const duplicateEvaluationTemplate = async (id: number) => {
 };
 
 export const getTemplateStatistics = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/templates/${id}/statistics/`, {
+  const response = await fetch(`${API_URL}/evaluations/templates/${id}/statistics/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching statistics");
@@ -82,7 +82,7 @@ export const getTemplateStatistics = async (id: number) => {
 
 export const getEvaluationQuestions = async (params?: { template_id?: number }) => {
   const queryParams = params?.template_id ? `?template=${params.template_id}` : "";
-  const response = await fetch(`${API_URL}/api/evaluations/questions/${queryParams}`, {
+  const response = await fetch(`${API_URL}/evaluations/questions/${queryParams}`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching questions");
@@ -90,7 +90,7 @@ export const getEvaluationQuestions = async (params?: { template_id?: number }) 
 };
 
 export const getEvaluationQuestion = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/questions/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/questions/${id}/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching question");
@@ -98,7 +98,7 @@ export const getEvaluationQuestion = async (id: number) => {
 };
 
 export const createEvaluationQuestion = async (data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/questions/`, {
+  const response = await fetch(`${API_URL}/evaluations/questions/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -108,7 +108,7 @@ export const createEvaluationQuestion = async (data: any) => {
 };
 
 export const updateEvaluationQuestion = async (id: number, data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/questions/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/questions/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -118,7 +118,7 @@ export const updateEvaluationQuestion = async (id: number, data: any) => {
 };
 
 export const deleteEvaluationQuestion = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/questions/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/questions/${id}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -127,7 +127,7 @@ export const deleteEvaluationQuestion = async (id: number) => {
 };
 
 export const bulkCreateQuestions = async (templateId: number, questions: any[]) => {
-  const response = await fetch(`${API_URL}/api/evaluations/questions/bulk_create/`, {
+  const response = await fetch(`${API_URL}/evaluations/questions/bulk_create/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({
@@ -155,7 +155,7 @@ export const getCandidateEvaluations = async (params?: {
 
   const queryString = queryParams.toString();
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/${queryString ? `?${queryString}` : ""}`,
+    `${API_URL}/evaluations/candidate-evaluations/${queryString ? `?${queryString}` : ""}`,
     { headers: getAuthHeaders() }
   );
   if (!response.ok) throw new Error("Error fetching evaluations");
@@ -163,7 +163,7 @@ export const getCandidateEvaluations = async (params?: {
 };
 
 export const getCandidateEvaluation = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/candidate-evaluations/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/candidate-evaluations/${id}/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching evaluation");
@@ -171,7 +171,7 @@ export const getCandidateEvaluation = async (id: number) => {
 };
 
 export const createCandidateEvaluation = async (data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/candidate-evaluations/`, {
+  const response = await fetch(`${API_URL}/evaluations/candidate-evaluations/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -181,7 +181,7 @@ export const createCandidateEvaluation = async (data: any) => {
 };
 
 export const updateCandidateEvaluation = async (id: number, data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/candidate-evaluations/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/candidate-evaluations/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -191,7 +191,7 @@ export const updateCandidateEvaluation = async (id: number, data: any) => {
 };
 
 export const deleteCandidateEvaluation = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/candidate-evaluations/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/candidate-evaluations/${id}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -201,7 +201,7 @@ export const deleteCandidateEvaluation = async (id: number) => {
 
 export const startEvaluation = async (id: number) => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/${id}/start/`,
+    `${API_URL}/evaluations/candidate-evaluations/${id}/start/`,
     {
       method: "POST",
       headers: getAuthHeaders(),
@@ -213,7 +213,7 @@ export const startEvaluation = async (id: number) => {
 
 export const submitEvaluationAnswers = async (id: number, answers: any[]) => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/${id}/submit/`,
+    `${API_URL}/evaluations/candidate-evaluations/${id}/submit/`,
     {
       method: "POST",
       headers: getAuthHeaders(),
@@ -226,7 +226,7 @@ export const submitEvaluationAnswers = async (id: number, answers: any[]) => {
 
 export const reviewEvaluation = async (id: number, reviewData: any) => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/${id}/review/`,
+    `${API_URL}/evaluations/candidate-evaluations/${id}/review/`,
     {
       method: "POST",
       headers: getAuthHeaders(),
@@ -239,7 +239,7 @@ export const reviewEvaluation = async (id: number, reviewData: any) => {
 
 export const completeEvaluation = async (id: number) => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/${id}/complete/`,
+    `${API_URL}/evaluations/candidate-evaluations/${id}/complete/`,
     {
       method: "POST",
       headers: getAuthHeaders(),
@@ -251,7 +251,7 @@ export const completeEvaluation = async (id: number) => {
 
 export const getMyEvaluations = async () => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/my_evaluations/`,
+    `${API_URL}/evaluations/candidate-evaluations/my_evaluations/`,
     { headers: getAuthHeaders() }
   );
   if (!response.ok) throw new Error("Error fetching my evaluations");
@@ -260,7 +260,7 @@ export const getMyEvaluations = async () => {
 
 export const getPendingReviews = async () => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/pending_reviews/`,
+    `${API_URL}/evaluations/candidate-evaluations/pending_reviews/`,
     { headers: getAuthHeaders() }
   );
   if (!response.ok) throw new Error("Error fetching pending reviews");
@@ -269,7 +269,7 @@ export const getPendingReviews = async () => {
 
 export const getEvaluationStatistics = async () => {
   const response = await fetch(
-    `${API_URL}/api/evaluations/candidate-evaluations/statistics/`,
+    `${API_URL}/evaluations/candidate-evaluations/statistics/`,
     { headers: getAuthHeaders() }
   );
   if (!response.ok) throw new Error("Error fetching statistics");
@@ -282,7 +282,7 @@ export const getEvaluationStatistics = async () => {
 
 export const getEvaluationAnswers = async (params?: { evaluation?: number }) => {
   const queryParams = params?.evaluation ? `?evaluation=${params.evaluation}` : "";
-  const response = await fetch(`${API_URL}/api/evaluations/answers/${queryParams}`, {
+  const response = await fetch(`${API_URL}/evaluations/answers/${queryParams}`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching answers");
@@ -290,7 +290,7 @@ export const getEvaluationAnswers = async (params?: { evaluation?: number }) => 
 };
 
 export const getEvaluationAnswer = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/answers/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/answers/${id}/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching answer");
@@ -298,7 +298,7 @@ export const getEvaluationAnswer = async (id: number) => {
 };
 
 export const createEvaluationAnswer = async (data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/answers/`, {
+  const response = await fetch(`${API_URL}/evaluations/answers/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -308,7 +308,7 @@ export const createEvaluationAnswer = async (data: any) => {
 };
 
 export const updateEvaluationAnswer = async (id: number, data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/answers/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/answers/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -318,7 +318,7 @@ export const updateEvaluationAnswer = async (id: number, data: any) => {
 };
 
 export const deleteEvaluationAnswer = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/answers/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/answers/${id}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -332,7 +332,7 @@ export const deleteEvaluationAnswer = async (id: number) => {
 
 export const getEvaluationComments = async (params?: { evaluation?: number }) => {
   const queryParams = params?.evaluation ? `?evaluation=${params.evaluation}` : "";
-  const response = await fetch(`${API_URL}/api/evaluations/comments/${queryParams}`, {
+  const response = await fetch(`${API_URL}/evaluations/comments/${queryParams}`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching comments");
@@ -340,7 +340,7 @@ export const getEvaluationComments = async (params?: { evaluation?: number }) =>
 };
 
 export const getEvaluationComment = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/comments/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/comments/${id}/`, {
     headers: getAuthHeaders(),
   });
   if (!response.ok) throw new Error("Error fetching comment");
@@ -348,7 +348,7 @@ export const getEvaluationComment = async (id: number) => {
 };
 
 export const createEvaluationComment = async (data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/comments/`, {
+  const response = await fetch(`${API_URL}/evaluations/comments/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -358,7 +358,7 @@ export const createEvaluationComment = async (data: any) => {
 };
 
 export const updateEvaluationComment = async (id: number, data: any) => {
-  const response = await fetch(`${API_URL}/api/evaluations/comments/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/comments/${id}/`, {
     method: "PUT",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -368,7 +368,7 @@ export const updateEvaluationComment = async (id: number, data: any) => {
 };
 
 export const deleteEvaluationComment = async (id: number) => {
-  const response = await fetch(`${API_URL}/api/evaluations/comments/${id}/`, {
+  const response = await fetch(`${API_URL}/evaluations/comments/${id}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
