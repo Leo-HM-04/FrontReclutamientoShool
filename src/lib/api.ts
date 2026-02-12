@@ -151,7 +151,7 @@ class ApiClient {
    * Get current user information
    */
   async getCurrentUser() {
-    return this.makeRequest('/api/accounts/users/me/');
+    return this.makeRequest('/accounts/users/me/');
   }
 
   /**
@@ -182,24 +182,24 @@ class ApiClient {
         ? '?' + new URLSearchParams(filteredParams).toString()
         : '';
       
-      return this.makeRequest(`/api/candidates/candidates/${queryString}`);
+      return this.makeRequest(`/candidates/candidates/${queryString}`);
     }
     
-    return this.makeRequest('/api/candidates/candidates/');
+    return this.makeRequest('/candidates/candidates/');
   }
 
   /**
    * Get candidate by ID
    */
   async getCandidate(id: number) {
-    return this.makeRequest(`/api/candidates/candidates/${id}/`);
+    return this.makeRequest(`/candidates/candidates/${id}/`);
   }
 
   /**
    * Create new candidate
    */
   async createCandidate(candidateData: any) {
-    return this.makeRequest('/api/candidates/candidates/', {
+    return this.makeRequest('/candidates/candidates/', {
       method: 'POST',
       body: JSON.stringify(candidateData),
     });
@@ -209,7 +209,7 @@ class ApiClient {
    * Update candidate
    */
   async updateCandidate(id: number, candidateData: any) {
-    return this.makeRequest(`/api/candidates/candidates/${id}/`, {
+    return this.makeRequest(`/candidates/candidates/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(candidateData),
     });
@@ -219,7 +219,7 @@ class ApiClient {
    * Delete candidate
    */
   async deleteCandidate(id: number) {
-    return this.makeRequest(`/api/candidates/candidates/${id}/`, {
+    return this.makeRequest(`/candidates/candidates/${id}/`, {
       method: 'DELETE',
     });
 
@@ -230,27 +230,27 @@ class ApiClient {
   // ====== NOTIFICATIONS ======
   async getNotifications(params?: any) {
     const qs = params ? `?${new URLSearchParams(params).toString()}` : '';
-    return this.makeRequest(`/api/notifications/${qs}`);
+    return this.makeRequest(`/notifications/${qs}`);
   }
 
   async getUnreadNotifications() {
-    return this.makeRequest(`/api/notifications/unread/`);
+    return this.makeRequest(`/notifications/unread/`);
   }
 
   async markNotificationRead(id: number) {
-    return this.makeRequest(`/api/notifications/${id}/mark_as_read/`, { method: 'POST' });
+    return this.makeRequest(`/notifications/${id}/mark_as_read/`, { method: 'POST' });
   }
 
   async markNotificationUnread(id: number) {
-    return this.makeRequest(`/api/notifications/${id}/mark_as_unread/`, { method: 'POST' });
+    return this.makeRequest(`/notifications/${id}/mark_as_unread/`, { method: 'POST' });
   }
 
   async markAllNotificationsRead() {
-    return this.makeRequest(`/api/notifications/mark_all_as_read/`, { method: 'POST' });
+    return this.makeRequest(`/notifications/mark_all_as_read/`, { method: 'POST' });
   }
 
   async clearReadNotifications() {
-    return this.makeRequest(`/api/notifications/clear_read/`, { method: 'DELETE' });
+    return this.makeRequest(`/notifications/clear_read/`, { method: 'DELETE' });
   }
 
   /**
@@ -258,8 +258,8 @@ class ApiClient {
    */
   async getCandidateApplications(candidateId?: number) {
     const endpoint = candidateId 
-      ? `/api/candidates/applications/?candidate=${candidateId}` 
-      : '/api/candidates/applications/';
+      ? `/candidates/applications/?candidate=${candidateId}` 
+      : '/candidates/applications/';
     return this.makeRequest(endpoint);
   }
 
@@ -267,14 +267,14 @@ class ApiClient {
    * Get application by ID
    */
   async getCandidateApplication(id: number) {
-    return this.makeRequest(`/api/candidates/applications/${id}/`);
+    return this.makeRequest(`/candidates/applications/${id}/`);
   }
 
   /**
    * Create candidate application
    */
   async createCandidateApplication(applicationData: any) {
-    return this.makeRequest('/api/candidates/applications/', {
+    return this.makeRequest('/candidates/applications/', {
       method: 'POST',
       body: JSON.stringify(applicationData),
     });
@@ -284,7 +284,7 @@ class ApiClient {
    * Update candidate application
    */
   async updateCandidateApplication(id: number, applicationData: any) {
-    return this.makeRequest(`/api/candidates/applications/${id}/`, {
+    return this.makeRequest(`/candidates/applications/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(applicationData),
     });
@@ -294,7 +294,7 @@ class ApiClient {
    * Delete candidate application
    */
   async deleteCandidateApplication(id: number) {
-    return this.makeRequest(`/api/candidates/applications/${id}/`, {
+    return this.makeRequest(`/candidates/applications/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -306,8 +306,8 @@ class ApiClient {
    */
   async getCandidateDocuments(candidateId?: number) {
     const endpoint = candidateId 
-      ? `/api/candidates/documents/?candidate=${candidateId}` 
-      : '/api/candidates/documents/';
+      ? `/candidates/documents/?candidate=${candidateId}` 
+      : '/candidates/documents/';
     return this.makeRequest(endpoint);
   }
 
@@ -315,7 +315,7 @@ class ApiClient {
    * Get document by ID
    */
   async getCandidateDocument(id: number) {
-    return this.makeRequest(`/api/candidates/documents/${id}/`);
+    return this.makeRequest(`/candidates/documents/${id}/`);
   }
 
   /**
@@ -323,7 +323,7 @@ class ApiClient {
    */
   async uploadCandidateDocument(formData: FormData) {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`${this.baseURL}/api/candidates/documents/`, {
+    const response = await fetch(`${this.baseURL}/candidates/documents/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -347,7 +347,7 @@ class ApiClient {
    * Delete candidate document
    */
   async deleteCandidateDocument(id: number) {
-    return this.makeRequest(`/api/candidates/documents/${id}/`, {
+    return this.makeRequest(`/candidates/documents/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -364,8 +364,8 @@ class ApiClient {
     
     // Si no hay token de autenticación, usar el endpoint público
     const endpoint = token 
-      ? `${this.baseURL}/api/documents/validate/`
-      : `${this.baseURL}/api/public/documents/validate/`;
+      ? `${this.baseURL}/documents/validate/`
+      : `${this.baseURL}/public/documents/validate/`;
     
     const headers: Record<string, string> = {};
     if (token) {
@@ -395,7 +395,7 @@ class ApiClient {
    * Useful for showing which documents require validation.
    */
   async getValidationRules() {
-    return this.makeRequest('/api/documents/validation-rules/');
+    return this.makeRequest('/documents/validation-rules/');
   }
 
   // ====== NOTES ENDPOINTS ======
@@ -405,8 +405,8 @@ class ApiClient {
    */
   async getCandidateNotes(candidateId?: number) {
     const endpoint = candidateId 
-      ? `/api/candidates/notes/?candidate=${candidateId}` 
-      : '/api/candidates/notes/';
+      ? `/candidates/notes/?candidate=${candidateId}` 
+      : '/candidates/notes/';
     return this.makeRequest(endpoint);
   }
 
@@ -414,14 +414,14 @@ class ApiClient {
    * Get note by ID
    */
   async getCandidateNote(id: number) {
-    return this.makeRequest(`/api/candidates/notes/${id}/`);
+    return this.makeRequest(`/candidates/notes/${id}/`);
   }
 
   /**
    * Create candidate note
    */
   async createCandidateNote(noteData: any) {
-    return this.makeRequest('/api/candidates/notes/', {
+    return this.makeRequest('/candidates/notes/', {
       method: 'POST',
       body: JSON.stringify(noteData),
     });
@@ -431,7 +431,7 @@ class ApiClient {
    * Update candidate note
    */
   async updateCandidateNote(id: number, noteData: any) {
-    return this.makeRequest(`/api/candidates/notes/${id}/`, {
+    return this.makeRequest(`/candidates/notes/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(noteData),
     });
@@ -441,7 +441,7 @@ class ApiClient {
    * Delete candidate note
    */
   async deleteCandidateNote(id: number) {
-    return this.makeRequest(`/api/candidates/notes/${id}/`, {
+    return this.makeRequest(`/candidates/notes/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -452,14 +452,14 @@ class ApiClient {
    * Get Celery tasks status and statistics
    */
   async getCeleryTasksStatus(): Promise<any> {
-    return this.makeRequest<any>('/api/director/celery-tasks/');
+    return this.makeRequest<any>('/director/celery-tasks/');
   }
 
   /**
    * Get Celery task groups information
    */
   async getCeleryTaskGroups(): Promise<any> {
-    return this.makeRequest<any>('/api/director/celery-groups/');
+    return this.makeRequest<any>('/director/celery-groups/');
   }
 
   // ====== CONTACTS ENDPOINTS ======
@@ -469,21 +469,21 @@ class ApiClient {
    */
   async getContacts(params?: any): Promise<any> {
     const queryString = params ? `?${new URLSearchParams(params)}` : '';
-    return this.makeRequest<any>(`/api/clients/contacts${queryString}`);
+    return this.makeRequest<any>(`/clients/contacts${queryString}`);
   }
 
   /**
    * Get single contact by ID
    */
   async getContact(id: number): Promise<any> {
-    return this.makeRequest<any>(`/api/clients/contacts/${id}/`);
+    return this.makeRequest<any>(`/clients/contacts/${id}/`);
   }
 
   /**
    * Create new contact
    */
   async createContact(contactData: any): Promise<any> {
-    return this.makeRequest<any>('/api/contacts/', {
+    return this.makeRequest<any>('/contacts/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -496,7 +496,7 @@ class ApiClient {
    * Update contact
    */
   async updateContact(id: number, contactData: any): Promise<any> {
-    return this.makeRequest<any>(`/api/clients/contacts/${id}/`, {
+    return this.makeRequest<any>(`/clients/contacts/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(contactData),
     });
@@ -506,7 +506,7 @@ class ApiClient {
    * Delete contact
    */
   async deleteContact(id: number): Promise<any> {
-    return this.makeRequest<any>(`/api/clients/contacts/${id}/`, {
+    return this.makeRequest<any>(`/clients/contacts/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -535,21 +535,21 @@ class ApiClient {
       ? '?' + new URLSearchParams(cleanParams).toString()
       : '';
     
-    return this.makeRequest<any>(`/api/profiles/profiles/${queryString}`);
+    return this.makeRequest<any>(`/profiles/profiles/${queryString}`);
   }
 
   /**
    * Get single profile by ID
    */
   async getProfile(id: number): Promise<any> {
-    return this.makeRequest<any>(`/api/profiles/profiles/${id}/`);
+    return this.makeRequest<any>(`/profiles/profiles/${id}/`);
   }
 
   /**
    * Create new profile
    */
   async createProfile(profileData: Partial<Profile>): Promise<Profile> {
-    return this.makeRequest<Profile>('/api/profiles/profiles/', {
+    return this.makeRequest<Profile>('/profiles/profiles/', {
       method: 'POST',
       body: JSON.stringify(profileData),
     });
@@ -559,7 +559,7 @@ class ApiClient {
    * Update profile
    */
   async updateProfile(id: number, profileData: Partial<Profile>): Promise<Profile> {
-    return this.makeRequest<Profile>(`/api/profiles/profiles/${id}/`, {
+    return this.makeRequest<Profile>(`/profiles/profiles/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(profileData),
     });
@@ -569,7 +569,7 @@ class ApiClient {
    * Delete profile
    */
   async deleteProfile(id: number): Promise<void> {
-    return this.makeRequest<void>(`/api/profiles/profiles/${id}/`, {
+    return this.makeRequest<void>(`/profiles/profiles/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -581,7 +581,7 @@ class ApiClient {
     id: number,
     data: { approved: boolean; feedback?: string }
   ): Promise<any> {
-    return this.makeRequest<any>(`/api/profiles/profiles/${id}/approve/`, {
+    return this.makeRequest<any>(`/profiles/profiles/${id}/approve/`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -594,7 +594,7 @@ class ApiClient {
     id: number,
     data: { status: string; notes?: string }
   ): Promise<any> {
-    return this.makeRequest<any>(`/api/profiles/profiles/${id}/change_status/`, {
+    return this.makeRequest<any>(`/profiles/profiles/${id}/change_status/`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -604,7 +604,7 @@ class ApiClient {
    * Get profile statistics
    */
  async getProfileStats(): Promise<any> {
-    return this.makeRequest<any>('/api/profiles/profiles/stats/');
+    return this.makeRequest<any>('/profiles/profiles/stats/');
   }
 
   /**
@@ -651,7 +651,7 @@ class ApiClient {
     params.append('use_ai', useAI.toString());
     
     return this.makeRequest<any>(
-      `/api/profiles/profiles/${profileId}/auto_recommend/?${params.toString()}`,
+      `/profiles/profiles/${profileId}/auto_recommend/?${params.toString()}`,
       { method: 'POST' }
     );
   }
@@ -660,7 +660,7 @@ class ApiClient {
    * Get profile status history for a given profile
    */
   async getProfileHistory(profileId: number): Promise<any> {
-    return this.makeRequest<any>(`/api/profiles/profiles/${profileId}/history/`);
+    return this.makeRequest<any>(`/profiles/profiles/${profileId}/history/`);
   }
 
   /**
@@ -669,10 +669,10 @@ class ApiClient {
   async getProfileDocuments(profileId?: number): Promise<any> {
     if (profileId) {
       // Si hay un profileId específico, usar la acción del perfil
-      return this.makeRequest<any>(`/api/profiles/profiles/${profileId}/documents/`);
+      return this.makeRequest<any>(`/profiles/profiles/${profileId}/documents/`);
     }
     // Si no hay profileId, usar el endpoint general
-    return this.makeRequest<any>('/api/profiles/documents/');
+    return this.makeRequest<any>('/profiles/documents/');
   }
 
   /**
@@ -682,7 +682,7 @@ class ApiClient {
     const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
     
     const response = await fetch(
-      `${this.baseURL}/api/profiles/profiles/${profileId}/upload_document/`,
+      `${this.baseURL}/profiles/profiles/${profileId}/upload_document/`,
       {
         method: 'POST',
         headers: {
@@ -705,7 +705,7 @@ class ApiClient {
    * Delete profile document
    */
   async deleteProfileDocument(id: number) {
-    return this.makeRequest(`/api/profiles/documents/${id}/`, {
+    return this.makeRequest(`/profiles/documents/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -715,7 +715,7 @@ class ApiClient {
    */
   async generateShareLink(profileId: number, options?: { duration_hours?: number }): Promise<any> {
     const body = options ? JSON.stringify(options) : '{}';
-    return this.makeRequest<any>(`/api/profiles/profiles/${profileId}/generate_share_link/`, {
+    return this.makeRequest<any>(`/profiles/profiles/${profileId}/generate_share_link/`, {
       method: 'POST',
       body: body,
     });
@@ -725,7 +725,7 @@ class ApiClient {
    * Get shared links for profiles
    */
   async getSharedLinks(): Promise<any> {
-    return this.makeRequest<any>('/api/profiles/shared-links/');
+    return this.makeRequest<any>('/profiles/shared-links/');
   }
 
 
@@ -754,21 +754,21 @@ class ApiClient {
       ? '?' + new URLSearchParams(cleanParams).toString()
       : '';
     
-    return this.makeRequest<any>(`/api/clients/${queryString}`);
+    return this.makeRequest<any>(`/clients/${queryString}`);
   }
 
   /**
    * Get single client by ID
    */
   async getClient(id: number): Promise<any> {
-    return this.makeRequest<any>(`/api/clients/${id}/`);
+    return this.makeRequest<any>(`/clients/${id}/`);
   }
 
   /**
    * Create new client
    */
   async createClient(clientData: Partial<Client>): Promise<Client> {
-    return this.makeRequest<Client>('/api/clients/', {
+    return this.makeRequest<Client>('/clients/', {
       method: 'POST',
       body: JSON.stringify(clientData),
     });
@@ -778,7 +778,7 @@ class ApiClient {
    * Update client
    */
   async updateClient(id: number, clientData: Partial<Client>): Promise<Client> {
-    return this.makeRequest<Client>(`/api/clients/${id}/`, {
+    return this.makeRequest<Client>(`/clients/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(clientData),
     });
@@ -788,7 +788,7 @@ class ApiClient {
    * Delete client
    */
   async deleteClient(id: number): Promise<void> {
-    return this.makeRequest<void>(`/api/clients/${id}/`, {
+    return this.makeRequest<void>(`/clients/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -798,7 +798,7 @@ class ApiClient {
    */
   async generateClientShareLink(clientId: number, options?: { duration_hours?: number }): Promise<any> {
     const body = options ? JSON.stringify(options) : '{}';
-    return this.makeRequest<any>(`/api/clients/${clientId}/generate_share_link/`, {
+    return this.makeRequest<any>(`/clients/${clientId}/generate_share_link/`, {
       method: 'POST',
       body: body,
     });
@@ -808,14 +808,14 @@ class ApiClient {
    * Get shared links for clients (list of clients with active share tokens and status)
    */
   async getClientSharedLinks(): Promise<any> {
-    return this.makeRequest<any>(`/api/clients/shared_links/`);
+    return this.makeRequest<any>(`/clients/shared_links/`);
   }
 
   /**
    * Revoke a specific shared link for a client
    */
   async revokeClientSharedLink(clientId: number, token: string): Promise<any> {
-    return this.makeRequest<any>(`/api/clients/${clientId}/revoke_shared_link/`, {
+    return this.makeRequest<any>(`/clients/${clientId}/revoke_shared_link/`, {
       method: 'POST',
       body: JSON.stringify({ token }),
     });
@@ -830,21 +830,21 @@ class ApiClient {
    */
   async getUsers(params?: Record<string, string>): Promise<any> {
     const queryString = params ? `?${new URLSearchParams(params)}` : '';
-    return this.makeRequest<any>(`/api/accounts/users/${queryString}`);
+    return this.makeRequest<any>(`/accounts/users/${queryString}`);
   }
 
   /**
    * Get single user by ID
    */
   async getUser(id: number): Promise<User> {
-    return this.makeRequest<User>(`/api/accounts/users/${id}/`);
+    return this.makeRequest<User>(`/accounts/users/${id}/`);
   }
 
   /**
    * Create new user
    */
   async createUser(userData: CreateUserData): Promise<User> {
-    return this.makeRequest<User>('/api/accounts/users/', {
+    return this.makeRequest<User>('/accounts/users/', {
       method: 'POST',
       body: JSON.stringify(userData),
     });
@@ -854,7 +854,7 @@ class ApiClient {
    * Update user
    */
   async updateUser(id: number, userData: UpdateUserData): Promise<User> {
-    return this.makeRequest<User>(`/api/accounts/users/${id}/`, {
+    return this.makeRequest<User>(`/accounts/users/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(userData),
     });
@@ -864,7 +864,7 @@ class ApiClient {
    * Delete user (soft delete - set inactive)
    */
   async deleteUser(id: number): Promise<void> {
-    return this.makeRequest<void>(`/api/accounts/users/${id}/`, {
+    return this.makeRequest<void>(`/accounts/users/${id}/`, {
       method: 'DELETE',
     });
   }
@@ -881,21 +881,21 @@ class ApiClient {
    */
   async getUserActivities(params?: Record<string, any>): Promise<any> {
     const queryParams = params ? `?${new URLSearchParams(params)}` : '';
-    return this.makeRequest<any>(`/api/accounts/activities/${queryParams}`);
+    return this.makeRequest<any>(`/accounts/activities/${queryParams}`);
   }
 
   /**
    * Get activities for specific user
    */
   async getUserActivityById(userId: number): Promise<UserActivity[]> {
-    return this.makeRequest<UserActivity[]>(`/api/accounts/users/${userId}/activities/`);
+    return this.makeRequest<UserActivity[]>(`/accounts/users/${userId}/activities/`);
   }
 
   /**
    * Get system statistics
    */
   async getSystemStats(): Promise<any> {
-    return this.makeRequest<any>('/api/accounts/users/stats/');
+    return this.makeRequest<any>('/accounts/users/stats/');
   }
 
   // ====== ADMIN DASHBOARD ======
@@ -971,7 +971,7 @@ class ApiClient {
    */
   async analyzeCVWithAI(formData: FormData): Promise<any> {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`${this.baseURL}/api/ai-services/cv-analysis/analyze/`, {
+    const response = await fetch(`${this.baseURL}/ai-services/cv-analysis/analyze/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -996,14 +996,14 @@ class ApiClient {
    */
   async getCVAnalyses(params?: Record<string, string>): Promise<any> {
     const queryString = params ? `?${new URLSearchParams(params)}` : '';
-    return this.makeRequest<any>(`/api/ai-services/cv-analysis/${queryString}`);
+    return this.makeRequest<any>(`/ai-services/cv-analysis/${queryString}`);
   }
 
   /**
    * Get single CV analysis by ID
    */
   async getCVAnalysis(id: number): Promise<any> {
-    return this.makeRequest<any>(`/api/ai-services/cv-analysis/${id}/`);
+    return this.makeRequest<any>(`/ai-services/cv-analysis/${id}/`);
   }
 
   /**
@@ -1014,7 +1014,7 @@ class ApiClient {
     client_id?: number;
     additional_notes?: string;
   }): Promise<any> {
-    return this.makeRequest<any>('/api/ai-services/profile-generation/generate/', {
+    return this.makeRequest<any>('/ai-services/profile-generation/generate/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -1025,14 +1025,14 @@ class ApiClient {
    */
   async getProfileGenerations(params?: Record<string, string>): Promise<any> {
     const queryString = params ? `?${new URLSearchParams(params)}` : '';
-    return this.makeRequest<any>(`/api/ai-services/profile-generation/${queryString}`);
+    return this.makeRequest<any>(`/ai-services/profile-generation/${queryString}`);
   }
 
   /**
    * Get single profile generation by ID
    */
   async getProfileGeneration(id: number): Promise<any> {
-    return this.makeRequest<any>(`/api/ai-services/profile-generation/${id}/`);
+    return this.makeRequest<any>(`/ai-services/profile-generation/${id}/`);
   }
 
   /**
@@ -1042,7 +1042,7 @@ class ApiClient {
     candidate_id: number;
     profile_id: number;
   }): Promise<any> {
-    return this.makeRequest<any>('/api/ai-services/matching/calculate/', {
+    return this.makeRequest<any>('/ai-services/matching/calculate/', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -1053,7 +1053,7 @@ class ApiClient {
    */
   async getMatchings(params?: Record<string, string>): Promise<any> {
     const queryString = params ? `?${new URLSearchParams(params)}` : '';
-    return this.makeRequest<any>(`/api/ai-services/matching/${queryString}`);
+    return this.makeRequest<any>(`/ai-services/matching/${queryString}`);
   }
 
   /**
@@ -1061,7 +1061,7 @@ class ApiClient {
    */
   async bulkUploadCVs(formData: FormData): Promise<any> {
     const token = localStorage.getItem('authToken');
-    const response = await fetch(`${this.baseURL}/api/candidates/candidates/bulk_upload_cvs/`, {
+    const response = await fetch(`${this.baseURL}/candidates/candidates/bulk_upload_cvs/`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -1085,7 +1085,7 @@ class ApiClient {
    * Check bulk upload status
    */
   async getBulkUploadStatus(taskId: string): Promise<any> {
-    return this.makeRequest<any>(`/api/candidates/candidates/bulk_upload_status/?task_id=${taskId}`);
+    return this.makeRequest<any>(`/candidates/candidates/bulk_upload_status/?task_id=${taskId}`);
   }
 
   
@@ -1399,7 +1399,7 @@ export interface PublicDocumentShareLink {
  */
 export const getDocumentShareLinks = async (params?: Record<string, string>): Promise<DocumentShareLink[]> => {
   const queryString = params ? '?' + new URLSearchParams(params).toString() : '';
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/${queryString}`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/${queryString}`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
     },
@@ -1412,7 +1412,7 @@ export const getDocumentShareLinks = async (params?: Record<string, string>): Pr
  * Obtiene un document share link por ID
  */
 export const getDocumentShareLink = async (id: number): Promise<DocumentShareLink> => {
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/${id}/`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/${id}/`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
     },
@@ -1425,7 +1425,7 @@ export const getDocumentShareLink = async (id: number): Promise<DocumentShareLin
  * Crea un nuevo document share link
  */
 export const createDocumentShareLink = async (data: DocumentShareLinkCreate): Promise<DocumentShareLink> => {
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1444,7 +1444,7 @@ export const createDocumentShareLink = async (data: DocumentShareLinkCreate): Pr
  * Revoca un document share link
  */
 export const revokeDocumentShareLink = async (id: number): Promise<{ message: string; link: DocumentShareLink }> => {
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/${id}/revoke/`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/${id}/revoke/`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
@@ -1458,7 +1458,7 @@ export const revokeDocumentShareLink = async (id: number): Promise<{ message: st
  * Elimina un document share link
  */
 export const deleteDocumentShareLink = async (id: number): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/${id}/`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/${id}/`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
@@ -1471,7 +1471,7 @@ export const deleteDocumentShareLink = async (id: number): Promise<void> => {
  * Obtiene links de un candidato específico
  */
 export const getDocumentShareLinksByCandidate = async (candidateId: number): Promise<DocumentShareLink[]> => {
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/by_candidate/${candidateId}/`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/by_candidate/${candidateId}/`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
     },
@@ -1490,7 +1490,7 @@ export const getDocumentShareLinksStats = async (): Promise<{
   expired: number;
   revoked: number;
 }> => {
-  const response = await fetch(`${API_BASE_URL}/api/documents/share-links/stats/`, {
+  const response = await fetch(`${API_BASE_URL}/documents/share-links/stats/`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
     },
@@ -1507,7 +1507,7 @@ export const getDocumentShareLinksStats = async (): Promise<{
  * Obtiene información pública de un share link (sin auth)
  */
 export const getPublicDocumentShareLink = async (token: string): Promise<PublicDocumentShareLink> => {
-  const response = await fetch(`${API_BASE_URL}/api/public/documents/${token}/`);
+  const response = await fetch(`${API_BASE_URL}/public/documents/${token}/`);
   if (response.status === 410) {
     const error = await response.json();
     throw new Error(error.error || 'Link no disponible');
@@ -1534,7 +1534,7 @@ export const uploadPublicDocument = async (
   formData.append('document_type', documentType);
   formData.append('file', file);
 
-  const response = await fetch(`${API_BASE_URL}/api/public/documents/${token}/`, {
+  const response = await fetch(`${API_BASE_URL}/public/documents/${token}/`, {
     method: 'POST',
     body: formData,
   });
