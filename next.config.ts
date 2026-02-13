@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Static export for production
+  output: 'export',
+  
   // Production: deploy under /reclutamiento subpath
   basePath: process.env.NODE_ENV === 'production' ? '/reclutamiento' : '',
   assetPrefix: process.env.NODE_ENV === 'production' ? '/reclutamiento' : '',
