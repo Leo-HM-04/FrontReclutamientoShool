@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface CandidateEvaluation {
   id: number;
   candidate: number;
@@ -47,7 +49,7 @@ export default function EvaluationAnswers() {
     setLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch("http://localhost:8000/api/evaluations/candidate-evaluations/", {
+      const response = await fetch(`${API_URL}/evaluations/candidate-evaluations/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +78,7 @@ export default function EvaluationAnswers() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `http://localhost:8000/api/evaluations/answers/?evaluation=${evaluationId}`,
+        `${API_URL}/evaluations/answers/?evaluation=${evaluationId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

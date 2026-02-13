@@ -26,9 +26,9 @@ El formulario de "Agregar Aplicación de Candidato" ahora está completamente co
 ### Endpoints Utilizados:
 
 ```
-GET  /api/candidates/candidates/     - Listar candidatos
-POST /api/candidates/applications/   - Crear aplicación
-GET  /api/profiles/profiles/         - Listar perfiles
+GET  /candidates/candidates/     - Listar candidatos
+POST /candidates/applications/   - Crear aplicación
+GET  /profiles/profiles/         - Listar perfiles
 ```
 
 ### Mapeo de Estados:

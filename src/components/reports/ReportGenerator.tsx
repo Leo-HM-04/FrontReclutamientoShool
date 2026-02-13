@@ -49,7 +49,7 @@ export default function ReportGenerator({ onGenerate }: ReportGeneratorProps) {
       if (selectedType === 'monthly') {
         const now = new Date();
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/director/reports/monthly/?month=${now.getMonth() + 1}&year=${now.getFullYear()}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/director/reports/monthly/?month=${now.getMonth() + 1}&year=${now.getFullYear()}`,
           {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('authToken')}`,

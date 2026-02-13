@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useModal } from '@/context/ModalContext';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface EvaluationQuestion {
   id: number;
   template: number;
@@ -44,7 +46,7 @@ export default function EvaluationQuestions() {
     const token = localStorage.getItem("authToken");
 
     // Fetch templates
-    const templatesRes = await fetch("http://localhost:8000/api/evaluations/templates/", {
+    const templatesRes = await fetch(`${API_URL}/evaluations/templates/`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const templatesData: any = await templatesRes.json();
@@ -60,7 +62,7 @@ export default function EvaluationQuestions() {
     console.log("Templates cargados:", normalizedTemplates); // Para debug
 
     // Fetch questions
-    const questionsRes = await fetch("http://localhost:8000/api/evaluations/questions/", {
+    const questionsRes = await fetch(`${API_URL}/evaluations/questions/`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const questionsData: any = await questionsRes.json();
@@ -91,7 +93,7 @@ export default function EvaluationQuestions() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `http://localhost:8000/api/evaluations/questions/${id}/`,
+        `${API_URL}/evaluations/questions/${id}/`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -324,8 +326,8 @@ export default function EvaluationQuestions() {
                 try {
                   const token = localStorage.getItem("authToken");
                   const url = selectedQuestion
-                    ? `http://localhost:8000/api/evaluations/questions/${selectedQuestion.id}/`
-                    : "http://localhost:8000/api/evaluations/questions/";
+                    ? `${API_URL}/evaluations/questions/${selectedQuestion.id}/`
+                    : `${API_URL}/evaluations/questions/`;
                   
                   const method = selectedQuestion ? "PUT" : "POST";
 

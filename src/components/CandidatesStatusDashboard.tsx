@@ -143,7 +143,7 @@ export default function CandidatesStatusDashboard() {
       console.log('🔑 Token:', token ? 'Presente' : 'NO PRESENTE');
       
       // Primero intentar sin filtro para ver qué hay
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -197,7 +197,7 @@ export default function CandidatesStatusDashboard() {
     
     try {
       const token = localStorage.getItem('authToken');
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/?profile=${profileId}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/?profile=${profileId}`;
       console.log('📡 URL:', url);
       
       const response = await fetch(url, {
@@ -228,7 +228,7 @@ export default function CandidatesStatusDashboard() {
         const enrichedApps = await Promise.all(
           apps.map(async (app: CandidateApplication) => {
             console.log(`  📥 Cargando candidato ${app.candidate}...`);
-            const candidateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${app.candidate}/`, {
+            const candidateResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${app.candidate}/`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -266,7 +266,7 @@ export default function CandidatesStatusDashboard() {
   const loadCandidateDetail = async (candidateId: number) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${candidateId}/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${candidateId}/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -286,7 +286,7 @@ export default function CandidatesStatusDashboard() {
   const loadCandidateDocuments = async (candidateId: number) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${candidateId}/documents/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${candidateId}/documents/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -316,7 +316,7 @@ export default function CandidatesStatusDashboard() {
     
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${selectedProfile.id}/change_status/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${selectedProfile.id}/change_status/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -409,7 +409,7 @@ export default function CandidatesStatusDashboard() {
     try {
       const token = localStorage.getItem('authToken');
       const promises = appsToUpdate.map(appId =>
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/${appId}/`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/${appId}/`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,

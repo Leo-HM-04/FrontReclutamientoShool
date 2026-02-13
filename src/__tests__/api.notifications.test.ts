@@ -20,7 +20,7 @@ describe('ApiClient - notifications', () => {
     await apiClient.markNotificationRead(42);
 
     // @ts-ignore
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/notifications/42/mark_as_read/'), expect.objectContaining({ method: 'POST' }));
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/notifications/42/mark_as_read/'), expect.objectContaining({ method: 'POST' }));
   });
 
   it('calls getNotifications without params', async () => {
@@ -35,6 +35,6 @@ describe('ApiClient - notifications', () => {
     await apiClient.getNotifications();
 
     // @ts-ignore
-    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/notifications/'), expect.any(Object));
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/notifications/'), expect.any(Object));
   });
 });

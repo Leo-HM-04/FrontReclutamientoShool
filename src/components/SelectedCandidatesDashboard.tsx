@@ -169,7 +169,7 @@ export default function SelectedCandidatesDashboard() {
       const token = localStorage.getItem('authToken');
       console.log('🟢 Cargando perfiles...');
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ export default function SelectedCandidatesDashboard() {
       try {
         // Buscar candidatos con oferta extendida o aceptada
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/?profile=${profile.id}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/?profile=${profile.id}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -248,7 +248,7 @@ export default function SelectedCandidatesDashboard() {
       
       // Cargar aplicaciones con oferta extendida o aceptada
       const appsResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/?profile=${profileId}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/?profile=${profileId}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -279,7 +279,7 @@ export default function SelectedCandidatesDashboard() {
           applications.map(async (app: CandidateApplication) => {
             // Cargar candidato
             const candidateResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${app.candidate}/`,
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${app.candidate}/`,
               {
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -290,7 +290,7 @@ export default function SelectedCandidatesDashboard() {
             
             // Cargar documentos
             const docsResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${app.candidate}/documents/`,
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${app.candidate}/documents/`,
               {
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -380,7 +380,7 @@ export default function SelectedCandidatesDashboard() {
     try {
       const token = localStorage.getItem('authToken');
       const promises = appsToUpdate.map(appId =>
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/${appId}/`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/${appId}/`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -444,7 +444,7 @@ export default function SelectedCandidatesDashboard() {
       formData.append('description', uploadForm.description);
       
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${selectedCandidateForUpload}/upload_document/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${selectedCandidateForUpload}/upload_document/`,
         {
           method: 'POST',
           headers: {

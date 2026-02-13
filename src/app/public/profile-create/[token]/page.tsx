@@ -47,7 +47,7 @@ export default function PublicProfileCreatePage() {
       setLoading(true);
       try {
         const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-        const res = await fetch(`${apiBase}/api/public/profile-create/${token}/`);
+        const res = await fetch(`${apiBase}/public/profile-create/${token}/`);
         if (!res.ok) throw new Error('Token inválido o expirado');
         const data = await res.json();
         setTemplate(data);
@@ -89,7 +89,7 @@ export default function PublicProfileCreatePage() {
     setSubmitting(true);
     try {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const res = await fetch(`${apiBase}/api/public/profile-create/${token}/`, {
+      const res = await fetch(`${apiBase}/public/profile-create/${token}/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

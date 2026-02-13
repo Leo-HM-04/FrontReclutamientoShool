@@ -110,7 +110,7 @@ export default function PublicProfileProgressPage() {
     try {
       // Use configured API base or fallback to local backend in development
       const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') || 'http://localhost:8000';
-      const url = `${apiBase}/api/public/profile-progress/${token}/`;
+      const url = `${apiBase}/public/profile-progress/${token}/`;
 
       const response = await fetch(url);
 

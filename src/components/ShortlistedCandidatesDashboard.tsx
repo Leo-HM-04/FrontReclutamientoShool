@@ -165,7 +165,7 @@ export default function ShortlistedCandidatesDashboard() {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -202,7 +202,7 @@ export default function ShortlistedCandidatesDashboard() {
     for (const profile of profiles) {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/?profile=${profile.id}&status=shortlisted`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/?profile=${profile.id}&status=shortlisted`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -235,7 +235,7 @@ export default function ShortlistedCandidatesDashboard() {
       
       // Cargar aplicaciones preseleccionadas
       const appsResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/?profile=${profileId}&status=shortlisted`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/?profile=${profileId}&status=shortlisted`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -253,7 +253,7 @@ export default function ShortlistedCandidatesDashboard() {
           applications.map(async (app: CandidateApplication) => {
             // Cargar candidato
             const candidateResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${app.candidate}/`,
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${app.candidate}/`,
               {
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -264,7 +264,7 @@ export default function ShortlistedCandidatesDashboard() {
             
             // Cargar documentos
             const docsResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${app.candidate}/documents/`,
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${app.candidate}/documents/`,
               {
                 headers: {
                   'Authorization': `Bearer ${token}`,
@@ -353,7 +353,7 @@ export default function ShortlistedCandidatesDashboard() {
     try {
       const token = localStorage.getItem('authToken');
       const promises = appsToUpdate.map(appId =>
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/applications/${appId}/`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/applications/${appId}/`, {
           method: 'PATCH',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -417,7 +417,7 @@ export default function ShortlistedCandidatesDashboard() {
       formData.append('description', uploadForm.description);
       
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${selectedCandidateForUpload}/upload_document/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${selectedCandidateForUpload}/upload_document/`,
         {
           method: 'POST',
           headers: {

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useModal } from '@/context/ModalContext';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface CandidateEvaluation {
   id: number;
   candidate: number;
@@ -65,7 +67,7 @@ export default function CandidateEvaluations() {
 
       // Fetch evaluations
       const evalRes = await fetch(
-        "http://localhost:8000/api/evaluations/candidate-evaluations/",
+        `${API_URL}/evaluations/candidate-evaluations/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (evalRes.ok) {
@@ -75,7 +77,7 @@ export default function CandidateEvaluations() {
 
       // Fetch templates
       const templatesRes = await fetch(
-        "http://localhost:8000/api/evaluations/templates/",
+        `${API_URL}/evaluations/templates/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (templatesRes.ok) {
@@ -85,7 +87,7 @@ export default function CandidateEvaluations() {
 
       // Fetch candidates
       const candidatesRes = await fetch(
-        "http://localhost:8000/api/candidates/candidates/",
+        `${API_URL}/candidates/candidates/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (candidatesRes.ok) {
@@ -106,7 +108,7 @@ export default function CandidateEvaluations() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `http://localhost:8000/api/evaluations/candidate-evaluations/${id}/`,
+        `${API_URL}/evaluations/candidate-evaluations/${id}/`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -351,7 +353,7 @@ export default function CandidateEvaluations() {
                   try {
                     const token = localStorage.getItem("authToken");
                     const response = await fetch(
-                      "http://localhost:8000/api/evaluations/candidate-evaluations/",
+                      `${API_URL}/evaluations/candidate-evaluations/`,
                       {
                         method: "POST",
                         headers: {

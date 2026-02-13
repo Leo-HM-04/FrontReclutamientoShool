@@ -5,7 +5,7 @@
  * REPORTS DASHBOARD
  * ============================================================
  * Dashboard completo de reportes con datos reales del backend
- * - Conexión con /api/director/reports/monthly/
+ * - Conexión con /director/reports/monthly/
  * - Selector de mes y año
  * - Visualización de métricas
  * - Exportación de reportes
@@ -77,7 +77,7 @@ export default function ReportsDashboard() {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/director/reports/monthly/?month=${selectedMonth}&year=${selectedYear}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/director/reports/monthly/?month=${selectedMonth}&year=${selectedYear}`;
       
       console.log('🔵 Cargando reporte...');
       console.log('🔑 Token presente:', !!token);

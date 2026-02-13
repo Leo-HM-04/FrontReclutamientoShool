@@ -462,7 +462,7 @@ ${formData.benefits || 'No especificados'}
       const token = localStorage.getItem('authToken');
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-      const response = await fetch(`${apiBase}/api/profiles/profiles/${id}/generate_share_link/`, {
+      const response = await fetch(`${apiBase}/profiles/profiles/${id}/generate_share_link/`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useModal } from '@/context/ModalContext';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface EvaluationComment {
   id: number;
   evaluation: number;
@@ -40,7 +42,7 @@ export default function EvaluationComments() {
       const token = localStorage.getItem("authToken");
 
       // Fetch comments
-      const commentsRes = await fetch("http://localhost:8000/api/evaluations/comments/", {
+      const commentsRes = await fetch(`${API_URL}/evaluations/comments/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (commentsRes.ok) {
@@ -50,7 +52,7 @@ export default function EvaluationComments() {
 
       // Fetch evaluations
       const evalRes = await fetch(
-        "http://localhost:8000/api/evaluations/candidate-evaluations/",
+        `${API_URL}/evaluations/candidate-evaluations/`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (evalRes.ok) {
@@ -71,7 +73,7 @@ export default function EvaluationComments() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await fetch(
-        `http://localhost:8000/api/evaluations/comments/${id}/`,
+        `${API_URL}/evaluations/comments/${id}/`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -277,8 +279,8 @@ export default function EvaluationComments() {
                   try {
                     const token = localStorage.getItem("authToken");
                     const url = selectedComment
-                      ? `http://localhost:8000/api/evaluations/comments/${selectedComment.id}/`
-                      : "http://localhost:8000/api/evaluations/comments/";
+                      ? `${API_URL}/evaluations/comments/${selectedComment.id}/`
+                      : `${API_URL}/evaluations/comments/`;
 
                     const method = selectedComment ? "PUT" : "POST";
 

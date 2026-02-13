@@ -108,7 +108,7 @@ export default function EmailManagement() {
   const loadTemplates = async () => {
     try {
       const data: any = await apiClient['makeRequest'](
-        '/api/notifications/email-templates/',
+        '/notifications/email-templates/',
         { method: 'GET' }
       );
       
@@ -127,7 +127,7 @@ export default function EmailManagement() {
     setPreviewLoading(true);
     try {
       const data: any = await apiClient['makeRequest'](
-        `/api/notifications/email-templates/${templateId}/preview/`,
+        `/notifications/email-templates/${templateId}/preview/`,
         { method: 'POST' }
       );
       
@@ -142,7 +142,7 @@ export default function EmailManagement() {
   const loadStatistics = async () => {
     try {
       const data: any = await apiClient['makeRequest'](
-        '/api/notifications/email-templates/statistics/',
+        '/notifications/email-templates/statistics/',
         { method: 'GET' }
       );
       

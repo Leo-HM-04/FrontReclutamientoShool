@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useModal } from "@/context/ModalContext";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface EvaluationTemplate {
   id: number;
   title: string;
@@ -78,7 +80,7 @@ export default function EvaluationTemplates() {
     try {
       const token = localStorage.getItem("authToken");
       // Agregar parámetro para traer todas (activas e inactivas)
-      const response = await fetch("http://localhost:8000/api/evaluations/templates/?all=true", {
+      const response = await fetch(`${API_URL}/evaluations/templates/?all=true`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -96,7 +98,7 @@ export default function EvaluationTemplates() {
   const fetchTemplateQuestions = async (templateId: number) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/questions/?template=${templateId}`, {
+      const response = await fetch(`${API_URL}/evaluations/questions/?template=${templateId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -128,7 +130,7 @@ export default function EvaluationTemplates() {
     
     try {
       const token = localStorage.getItem("authToken");
-      const url = `http://localhost:8000/api/evaluations/templates/${id}/`;
+      const url = `${API_URL}/evaluations/templates/${id}/`;
       
       console.log("🌐 Llamando a:", url);
       
@@ -166,7 +168,7 @@ export default function EvaluationTemplates() {
     
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/templates/${id}/duplicate/`, {
+      const response = await fetch(`${API_URL}/evaluations/templates/${id}/duplicate/`, {
         method: "POST",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -190,7 +192,7 @@ export default function EvaluationTemplates() {
   const handleToggleActive = async (id: number, currentStatus: boolean) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/templates/${id}/`, {
+      const response = await fetch(`${API_URL}/evaluations/templates/${id}/`, {
         method: "PATCH",
         headers: { 
           "Authorization": `Bearer ${token}`,
@@ -221,7 +223,7 @@ export default function EvaluationTemplates() {
     if (!confirmed) return;
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/questions/${questionId}/`, {
+      const response = await fetch(`${API_URL}/evaluations/questions/${questionId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -237,7 +239,7 @@ export default function EvaluationTemplates() {
   const handleUpdateQuestion = async (questionId: number, data: Question) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/questions/${questionId}/`, {
+      const response = await fetch(`${API_URL}/evaluations/questions/${questionId}/`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -261,7 +263,7 @@ export default function EvaluationTemplates() {
     setShareLoading(true);
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/templates/${templateId}/generate_share_link/`, {
+      const response = await fetch(`${API_URL}/evaluations/templates/${templateId}/generate_share_link/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -389,7 +391,7 @@ export default function EvaluationTemplates() {
   const updateExistingQuestion = async (questionId: number, updatedData: Partial<Question>) => {
     try {
       const token = localStorage.getItem("authToken");
-      const response = await fetch(`http://localhost:8000/api/evaluations/questions/${questionId}/`, {
+      const response = await fetch(`${API_URL}/evaluations/questions/${questionId}/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -593,7 +595,7 @@ export default function EvaluationTemplates() {
 
                 try {
                   const token = localStorage.getItem("authToken");
-                  const url = selectedTemplate ? `http://localhost:8000/api/evaluations/templates/${selectedTemplate.id}/` : "http://localhost:8000/api/evaluations/templates/";
+                  const url = selectedTemplate ? `${API_URL}/evaluations/templates/${selectedTemplate.id}/` : `${API_URL}/evaluations/templates/`;
                   const response = await fetch(url, { method: selectedTemplate ? "PUT" : "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(data) });
 
                   if (response.ok) {
@@ -613,7 +615,7 @@ export default function EvaluationTemplates() {
                       }));
 
                       if (questions.length > 0 && questions.every(q => q.question_text)) {
-                        const questionsResponse = await fetch("http://localhost:8000/api/evaluations/questions/bulk_create/", {
+                        const questionsResponse = await fetch(`${API_URL}/evaluations/questions/bulk_create/`, {
                           method: "POST",
                           headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                           body: JSON.stringify({ template_id: selectedTemplate.id, questions }),
@@ -673,7 +675,7 @@ export default function EvaluationTemplates() {
                         console.log('Preguntas a crear:', questions);
 
                         if (questions.length > 0) {
-                          const questionsResponse = await fetch("http://localhost:8000/api/evaluations/questions/bulk_create/", {
+                          const questionsResponse = await fetch(`${API_URL}/evaluations/questions/bulk_create/`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                             body: JSON.stringify({ template_id: createdTemplate.id, questions: questions }),

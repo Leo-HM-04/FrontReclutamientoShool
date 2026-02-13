@@ -127,7 +127,7 @@ export default function ProfilesStatusDashboard() {
     setLoading(true);
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ export default function ProfilesStatusDashboard() {
   const loadProfileDetail = async (profileId: number) => {
     try {
       const token = localStorage.getItem('authToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${profileId}/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${profileId}/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -225,7 +225,7 @@ export default function ProfilesStatusDashboard() {
       if (newStatus === 'in_progress' && platformForm.platform) {
         const promises = profilesToUpdate.map(async (profileId) => {
           // Primero cambiar el estado
-          const statusResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${profileId}/change_status/`, {
+          const statusResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${profileId}/change_status/`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -252,7 +252,7 @@ export default function ProfilesStatusDashboard() {
           const currentPlatforms = profile?.published_platforms || [];
           const updatedPlatforms = [...currentPlatforms, newPlatform];
           
-          return fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${profileId}/`, {
+          return fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${profileId}/`, {
             method: 'PATCH',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -281,7 +281,7 @@ export default function ProfilesStatusDashboard() {
       } else {
         // Solo cambiar el estado
         const promises = profilesToUpdate.map(profileId =>
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${profileId}/change_status/`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${profileId}/change_status/`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -332,7 +332,7 @@ export default function ProfilesStatusDashboard() {
     try {
       const token = localStorage.getItem('authToken');
       const promises = profilesToUpdate.map(async (id) => {
-        return fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${id}/approve/`, {
+        return fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${id}/approve/`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -393,7 +393,7 @@ export default function ProfilesStatusDashboard() {
       const currentPlatforms = profile?.published_platforms || [];
       const updatedPlatforms = [...currentPlatforms, newPlatform];
       
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${selectedProfileForPlatform}/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${selectedProfileForPlatform}/`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -189,7 +189,7 @@ export default function BackupsView() {
       if (filterStatus) params.set('status', filterStatus);
       if (searchTerm) params.set('search', searchTerm);
 
-      const res = await apiFetch(`/api/backups/?${params}`);
+      const res = await apiFetch(`/backups/?${params}`);
       const data = await res.json();
       setBackups(data.results || []);
       setTotal(data.total || 0);
@@ -203,7 +203,7 @@ export default function BackupsView() {
 
   const loadStats = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/backups/stats/');
+      const res = await apiFetch('/backups/stats/');
       const data = await res.json();
       setStats(data);
     } catch {
@@ -234,7 +234,7 @@ export default function BackupsView() {
   const handleCreate = async () => {
     try {
       setActionLoading('create');
-      const res = await apiFetch('/api/backups/create/', {
+      const res = await apiFetch('/backups/create/', {
         method: 'POST',
         body: JSON.stringify({
           backup_type: createType,
@@ -259,7 +259,7 @@ export default function BackupsView() {
     if (!window.confirm('Estas seguro de eliminar este respaldo? Esta accion no se puede deshacer.')) return;
     try {
       setActionLoading(`delete-${id}`);
-      await apiFetch(`/api/backups/${id}/delete/`, { method: 'DELETE' });
+      await apiFetch(`/backups/${id}/delete/`, { method: 'DELETE' });
       showToast('Respaldo eliminado correctamente.', 'success');
       loadBackups();
       loadStats();
@@ -273,7 +273,7 @@ export default function BackupsView() {
   const handleVerify = async (backup: BackupItem) => {
     try {
       setActionLoading(`verify-${backup.id}`);
-      const res = await apiFetch(`/api/backups/${backup.id}/verify/`, { method: 'POST' });
+      const res = await apiFetch(`/backups/${backup.id}/verify/`, { method: 'POST' });
       const data = await res.json();
       setVerifyResult(data);
       setSelectedBackup(backup);
@@ -294,9 +294,9 @@ export default function BackupsView() {
   const handleDownload = (id: number, format: 'sql' | 'excel' | 'pdf') => {
     const token = localStorage.getItem('authToken');
     let url = '';
-    if (format === 'sql') url = `${API_BASE}/api/backups/${id}/download/`;
-    else if (format === 'excel') url = `${API_BASE}/api/backups/${id}/export/excel/`;
-    else if (format === 'pdf') url = `${API_BASE}/api/backups/${id}/export/pdf/`;
+    if (format === 'sql') url = `${API_BASE}/backups/${id}/download/`;
+    else if (format === 'excel') url = `${API_BASE}/backups/${id}/export/excel/`;
+    else if (format === 'pdf') url = `${API_BASE}/backups/${id}/export/pdf/`;
 
     // Crear un formulario invisible para la descarga con token en el header
     const iframe = document.createElement('iframe');
@@ -348,7 +348,7 @@ export default function BackupsView() {
     if (!selectedBackup) return;
     try {
       setActionLoading('restore');
-      const res = await apiFetch('/api/backups/restore/', {
+      const res = await apiFetch('/backups/restore/', {
         method: 'POST',
         body: JSON.stringify({
           backup_id: selectedBackup.id,

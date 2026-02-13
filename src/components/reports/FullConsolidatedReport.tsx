@@ -342,8 +342,8 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
 
     // 1) Listas base (perfiles + clientes) para filtros UI
     const [profilesRes, clientsRes] = await Promise.all([
-      fetch(`${API_URL}/api/profiles/profiles/`, { headers: { Authorization: `Bearer ${token}` } }),
-      fetch(`${API_URL}/api/clients/`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_URL}/profiles/profiles/`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_URL}/clients/`, { headers: { Authorization: `Bearer ${token}` } }),
     ]);
 
     const profilesJson = profilesRes.ok ? await profilesRes.json() : [];

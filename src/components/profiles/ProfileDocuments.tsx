@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { getProfiles, getProfileDocuments, uploadProfileDocument, apiClient } from "@/lib/api";
 import { useModal } from "@/context/ModalContext";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface ProfileDocument {
   id: number;
   profile: number;
@@ -118,7 +120,7 @@ export default function ProfileDocuments() {
     // Construir URL completa del backend
     const fileUrl = doc.file.startsWith('http') 
       ? doc.file 
-      : `http://localhost:8000${doc.file}`;
+      : `${API_URL}${doc.file}`;
     
     window.open(fileUrl, '_blank');
   };
@@ -382,7 +384,7 @@ export default function ProfileDocuments() {
                   onClick={() => {
                     const fileUrl = selectedDocument.file.startsWith('http') 
                       ? selectedDocument.file 
-                      : `http://localhost:8000${selectedDocument.file}`;
+                      : `${API_URL}${selectedDocument.file}`;
                     window.open(fileUrl, '_blank');
                   }}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -409,7 +411,7 @@ export default function ProfileDocuments() {
                   <object
                     data={selectedDocument.file.startsWith('http') 
                       ? selectedDocument.file 
-                      : `http://localhost:8000${selectedDocument.file}`}
+                      : `${API_URL}${selectedDocument.file}`}
                     type="application/pdf"
                     className="w-full h-full min-h-[600px]"
                   >
@@ -422,7 +424,7 @@ export default function ProfileDocuments() {
                         onClick={() => {
                           const fileUrl = selectedDocument.file.startsWith('http') 
                             ? selectedDocument.file 
-                            : `http://localhost:8000${selectedDocument.file}`;
+                            : `${API_URL}${selectedDocument.file}`;
                           window.open(fileUrl, '_blank');
                         }}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -436,7 +438,7 @@ export default function ProfileDocuments() {
                 <img
                   src={selectedDocument.file.startsWith('http') 
                     ? selectedDocument.file 
-                    : `http://localhost:8000${selectedDocument.file}`}
+                    : `${API_URL}${selectedDocument.file}`}
                   alt="Vista previa"
                   className="max-w-full h-auto mx-auto"
                 />

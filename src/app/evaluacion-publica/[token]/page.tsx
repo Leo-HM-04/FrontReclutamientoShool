@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useModal } from '@/context/ModalContext';
 import { useParams } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface Question {
   id: number;
   question_text: string;
@@ -48,7 +50,7 @@ export default function PublicEvaluationPage() {
 
   const fetchEvaluation = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/evaluations/public/${token}/`);
+      const response = await fetch(`${API_URL}/evaluations/public/${token}/`);
       
       if (response.ok) {
         const data = await response.json();
@@ -90,7 +92,7 @@ export default function PublicEvaluationPage() {
 
     setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/evaluations/public/${token}/submit/`, {
+      const response = await fetch(`${API_URL}/evaluations/public/${token}/submit/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -20,7 +20,7 @@ export default function CandidateNotes({ candidateId }: CandidateNotesProps) {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/${candidateId}/notes/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/${candidateId}/notes/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,

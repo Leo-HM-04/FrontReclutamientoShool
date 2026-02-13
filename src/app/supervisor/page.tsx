@@ -1146,7 +1146,7 @@ export default function Page() {
 
       // Llamada al endpoint del backend (supervisor)
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/supervisor/dashboard/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/supervisor/dashboard/`,
         {
           method: 'GET',
           headers: {
@@ -1379,7 +1379,7 @@ export default function Page() {
       // ========================================
       // Nota: Los procesos individuales requieren otro endpoint
       // Por ahora mantenemos los datos de ejemplo o los cargamos desde otro endpoint
-      console.log('⚠️ Los procesos individuales requieren cargar desde /api/supervisor/profiles/overview/');
+      console.log('⚠️ Los procesos individuales requieren cargar desde /supervisor/profiles/overview/');
 
       // ========================================
       // CARGAR CANDIDATOS
@@ -1391,7 +1391,7 @@ export default function Page() {
       // ========================================
       try {
         const pendingRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/supervisor/pending-approvals/`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/supervisor/pending-approvals/`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -1415,7 +1415,7 @@ export default function Page() {
       // ========================================
       try {
         const analyticsRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/supervisor/analytics/trends/`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/supervisor/analytics/trends/`,
           { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } }
         );
         if (analyticsRes.ok) {
@@ -1549,7 +1549,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${profileId}/generate_share_link/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${profileId}/generate_share_link/`,
         {
           method: 'POST',
           headers: {
@@ -1579,7 +1579,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/${profileId}/generate_share_link/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/${profileId}/generate_share_link/`,
         {
           method: 'POST',
           headers: {
@@ -1605,7 +1605,7 @@ export default function Page() {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1720,7 +1720,7 @@ export default function Page() {
       // Cargar candidatos y overview en paralelo
       const [candidatesResponse, overviewResponse] = await Promise.all([
         apiClient.getCandidates({ search: searchQuery }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/supervisor/candidates/overview/`, {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/supervisor/candidates/overview/`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
             'Content-Type': 'application/json',
@@ -2847,7 +2847,7 @@ export default function Page() {
                         return (
                           <div key={c.id} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                             <div className="flex items-center space-x-3">
-                              <img className="h-8 w-8 rounded-full border-2 border-amber-200" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=F59E0B&color=fff&size=32`} alt={name} />
+                              <img className="h-8 w-8 rounded-full border-2 border-amber-200" src={`https://ui-avatars.com/?name=${encodeURIComponent(name)}&background=F59E0B&color=fff&size=32`} alt={name} />
                               <div>
                                 <p className="text-sm font-medium text-gray-900">{name}</p>
                                 <p className="text-xs text-gray-500">{STATUS_LABELS[c.status] || c.status}</p>
@@ -2887,7 +2887,7 @@ export default function Page() {
                           <tr key={a.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="flex items-center">
-                                <img className="h-9 w-9 rounded-full border-2 border-gray-200" src={`https://ui-avatars.com/api/?name=${encodeURIComponent(a.candidate)}&background=random&size=36`} alt={a.candidate} />
+                                <img className="h-9 w-9 rounded-full border-2 border-gray-200" src={`https://ui-avatars.com/?name=${encodeURIComponent(a.candidate)}&background=random&size=36`} alt={a.candidate} />
                                 <div className="ml-3"><p className="text-sm font-medium text-gray-900">{a.candidate}</p><p className="text-xs text-gray-500">{a.email}</p></div>
                               </div>
                             </td>
@@ -3202,7 +3202,7 @@ export default function Page() {
                         <div className="flex items-center">
                           <img
                             className="h-12 w-12 rounded-full border-2 border-gray-200"
-                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(c.full_name || `${c.first_name} ${c.last_name}`)}&background=3b82f6&color=fff`}
+                            src={`https://ui-avatars.com/?name=${encodeURIComponent(c.full_name || `${c.first_name} ${c.last_name}`)}&background=3b82f6&color=fff`}
                             alt={c.full_name || `${c.first_name} ${c.last_name}`}
                           />
                           <div className="ml-3">
@@ -4034,7 +4034,7 @@ export default function Page() {
                       <div className="flex items-center mb-4">
                         <img
                           className="h-16 w-16 rounded-full border-2 border-primary-200"
-                          src={`https://ui-avatars.com/api/?name=${m.avatar}&background=3b82f6&color=fff`}
+                          src={`https://ui-avatars.com/?name=${m.avatar}&background=3b82f6&color=fff`}
                           alt={m.name}
                         />
                         <div className="ml-4">
@@ -4131,7 +4131,7 @@ export default function Page() {
                         <div className="flex items-start space-x-4">
                           <img
                             className="h-12 w-12 rounded-full border-2 border-gray-200"
-                            src="https://ui-avatars.com/api/?name=Carlos+Lopez&background=random"
+                            src="https://ui-avatars.com/?name=Carlos+Lopez&background=random"
                             alt="Carlos López"
                           />
                           <div>

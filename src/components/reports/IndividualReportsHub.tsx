@@ -70,7 +70,7 @@ export default function IndividualReportsHub() {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/profiles/profiles/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/profiles/profiles/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -91,7 +91,7 @@ export default function IndividualReportsHub() {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/candidates/candidates/`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/candidates/candidates/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -112,7 +112,7 @@ export default function IndividualReportsHub() {
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/clients/`,  // ✅ CORRECTO
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/clients/`,  // ✅ CORRECTO
         {
           headers: {
             'Authorization': `Bearer ${token}`,

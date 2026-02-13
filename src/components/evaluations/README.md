@@ -135,11 +135,11 @@ http://localhost:8000
 ```
 
 Y que los siguientes endpoints estén disponibles:
-- `/api/evaluations/templates/`
-- `/api/evaluations/questions/`
-- `/api/evaluations/candidate-evaluations/`
-- `/api/evaluations/answers/`
-- `/api/evaluations/comments/`
+- `/evaluations/templates/`
+- `/evaluations/questions/`
+- `/evaluations/candidate-evaluations/`
+- `/evaluations/answers/`
+- `/evaluations/comments/`
 
 ## 🎨 Personalización
 
