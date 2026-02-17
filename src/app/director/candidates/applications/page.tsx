@@ -178,12 +178,12 @@ export default function ApplicationsPage() {
 
   const handleViewProfile = (profileId: number) => {
     // Navegar a la vista de perfiles
-    window.location.href = `/director?view=profiles&profile=${profileId}`;
+    window.location.href = `/reclutamiento/director?view=profiles&profile=${profileId}`;
   };
 
   const handleEditProfile = (profileId: number) => {
     // Navegar a editar el perfil
-    window.location.href = `/director?view=profiles&edit=${profileId}`;
+    window.location.href = `/reclutamiento/director?view=profiles&edit=${profileId}`;
   };
 
   const showToast = (message: string, type: 'success' | 'error') => {
@@ -651,12 +651,12 @@ function EditApplicationModal({ application, onClose, onSave }: EditApplicationM
 
   const handleViewProfile = (profileId: number) => {
     // Navegar a la vista de perfiles
-    window.location.href = `/director?view=profiles&profile=${profileId}`;
+    window.location.href = `/reclutamiento/director?view=profiles&profile=${profileId}`;
   };
 
   const handleEditProfile = (profileId: number) => {
     // Navegar a editar el perfil
-    window.location.href = `/director?view=profiles&edit=${profileId}`;
+    window.location.href = `/reclutamiento/director?view=profiles&edit=${profileId}`;
   };
 
   return (

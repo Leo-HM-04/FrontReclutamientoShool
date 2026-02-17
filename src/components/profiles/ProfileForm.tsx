@@ -474,7 +474,7 @@ ${formData.benefits || 'No especificados'}
 
       const data = await response.json();
       // Usar la ruta pública de formulario en lugar de la vista de avance
-      const createLink = `${window.location.origin}/public/profile-create/${data.token}`;
+      const createLink = `${window.location.origin}/reclutamiento/public/profile-create/${data.token}`;
       setShareLink(createLink);
       setShareProfileTitle(data.position_title || formData.position_title);
       setShareClientName(data.client_name || '');

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+<<<<<<< Updated upstream
   // Standalone output for production server
   output: 'standalone',
   
@@ -15,6 +16,9 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+=======
+  basePath: '/reclutamiento',
+>>>>>>> Stashed changes
 };
 
 export default nextConfig;

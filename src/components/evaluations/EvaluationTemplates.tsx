@@ -263,14 +263,19 @@ export default function EvaluationTemplates() {
     setShareLoading(true);
     try {
       const token = localStorage.getItem("authToken");
+<<<<<<< Updated upstream
       const response = await fetch(`${API_URL}/evaluations/templates/${templateId}/generate_share_link/`, {
+=======
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${API_URL}/api/evaluations/templates/${templateId}/generate_share_link/`, {
+>>>>>>> Stashed changes
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (response.ok) {
         const data = await response.json();
-        const publicLink = `${window.location.origin}/evaluacion-publica/${data.share_token}`;
+        const publicLink = `${window.location.origin}/reclutamiento/evaluacion-publica/${data.share_token}`;
         setShareLink(publicLink);
         setShowShareModal(true);
       } else {

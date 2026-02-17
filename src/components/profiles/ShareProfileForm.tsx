@@ -77,7 +77,7 @@ export default function ShareProfileForm() {
         duration_hours: parseInt(duration)
       });
 
-      const linkUrl = response.share_url || `${window.location.origin}/public/profile-create/${response.token}`;
+      const linkUrl = response.share_url || `${window.location.origin}/reclutamiento/public/profile-create/${response.token}`;
 
       // Copiar al portapapeles
       await navigator.clipboard.writeText(linkUrl);
@@ -109,7 +109,7 @@ export default function ShareProfileForm() {
   };
 
   const copyLink = async (token: string) => {
-    const linkUrl = `${window.location.origin}/public/profile-create/${token}`;
+    const linkUrl = `${window.location.origin}/reclutamiento/public/profile-create/${token}`;
     try {
       await navigator.clipboard.writeText(linkUrl);
       await showAlert('Link copiado al portapapeles');

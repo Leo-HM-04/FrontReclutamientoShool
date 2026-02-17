@@ -49,7 +49,7 @@ export default function LoginPage() {
 
       // Play success tone (tonoalegre.mp3 in /public)
       if (!audioRef.current) {
-        audioRef.current = new Audio('/tonoalegre.mp3');
+        audioRef.current = new Audio('/reclutamiento/tonoalegre.mp3');
         audioRef.current.volume = 0.85;
         // Try to avoid playing twice
         audioRef.current.preload = 'auto';
@@ -218,12 +218,12 @@ export default function LoginPage() {
         {/* Logo Bausen */}
         <div className="text-center">
           <img 
-            src="/bausen-logo.png" 
+            src="/reclutamiento/bausen-logo.png" 
             alt="Bausen Logo" 
             className="mx-auto h-16 w-auto mb-3"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
-              console.log('Error loading logo from /bausen-logo.png');
+              console.log('Error loading logo from /reclutamiento/bausen-logo.png');
             }}
           />
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Sistema de Reclutamiento</h2>
