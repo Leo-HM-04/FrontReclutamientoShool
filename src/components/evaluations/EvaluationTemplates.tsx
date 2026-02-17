@@ -259,35 +259,31 @@ export default function EvaluationTemplates() {
     }
   };
 
-  const handleShare = async (templateId: number) => {
-    setShareLoading(true);
-    try {
-      const token = localStorage.getItem("authToken");
-<<<<<<< Updated upstream
-      const response = await fetch(`${API_URL}/evaluations/templates/${templateId}/generate_share_link/`, {
-=======
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${API_URL}/api/evaluations/templates/${templateId}/generate_share_link/`, {
->>>>>>> Stashed changes
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+const handleShare = async (templateId: number) => {
+  setShareLoading(true);
+  try {
+    const token = localStorage.getItem("authToken");
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_URL}/api/evaluations/templates/${templateId}/generate_share_link/`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        const publicLink = `${window.location.origin}/reclutamiento/evaluacion-publica/${data.share_token}`;
-        setShareLink(publicLink);
-        setShowShareModal(true);
-      } else {
-        await showAlert("Error al generar link de compartir");
-      }
-    } catch (error) {
-      console.error("Error:", error);
+    if (response.ok) {
+      const data = await response.json();
+      const publicLink = `${window.location.origin}/reclutamiento/evaluacion-publica/${data.share_token}`;
+      setShareLink(publicLink);
+      setShowShareModal(true);
+    } else {
       await showAlert("Error al generar link de compartir");
-    } finally {
-      setShareLoading(false);
     }
-  };
+  } catch (error) {
+    console.error("Error:", error);
+    await showAlert("Error al generar link de compartir");
+  } finally {
+    setShareLoading(false);
+  }
+};
 
   const copyToClipboard = async () => {("✅ Link copiado al portapapeles!");
   };
