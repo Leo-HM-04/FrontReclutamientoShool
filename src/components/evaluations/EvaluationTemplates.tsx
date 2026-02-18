@@ -263,7 +263,6 @@ const handleShare = async (templateId: number) => {
   setShareLoading(true);
   try {
     const token = localStorage.getItem("authToken");
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     const response = await fetch(`${API_URL}/evaluations/templates/${templateId}/generate_share_link/`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
