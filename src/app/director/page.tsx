@@ -2620,7 +2620,7 @@ export default function Page() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-3xl font-bold text-gray-900">Panel Directivo</h2>
-                    <p className="text-gray-600 mt-1">Resumen ejecutivo con analytics avanzados y predicciones</p>
+                    <p className="text-gray-600 mt-1">Resumen ejecutivo</p>
                   </div>
                   <div className="mt-4 sm:mt-0 flex space-x-3">
                     <button onClick={refreshDashboard} disabled={dashboardLoading} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50">
