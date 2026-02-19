@@ -462,6 +462,13 @@ class ApiClient {
     return this.makeRequest<any>('/director/celery-groups/');
   }
 
+  /**
+   * Get AI services stats with hybrid metrics
+   */
+  async getAIHybridStats(): Promise<any> {
+    return this.makeRequest<any>('/api/ai-services/logs/stats/');
+  }
+
   // ====== CONTACTS ENDPOINTS ======
   
   /**

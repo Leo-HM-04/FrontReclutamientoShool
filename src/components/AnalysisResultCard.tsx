@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTimesCircle, faExclamationTriangle, faInfoCircle, faCheck } from '@fortawesome/free-solid-svg-icons';
+import AIMethodBadge from './ui/AIMethodBadge';
 
 export type Variant = "success" | "error" | "warning" | "info";
 
@@ -33,7 +34,10 @@ export interface AnalysisResultCardProps {
   metrics?: Metrics;
   primaryAction?: ActionProps;
   secondaryAction?: ActionProps;
-  show?: boolean; // controla la visibilidad para animaciones de entrada/salida
+  show?: boolean;
+  analysisMethod?: string;
+  methodDisplay?: string;
+  confidenceScore?: number;
 }
 
 const VARIANT_STYLES: Record<Variant, any> = {
@@ -88,6 +92,9 @@ export default function AnalysisResultCard({
   primaryAction,
   secondaryAction,
   show = true,
+  analysisMethod,
+  methodDisplay,
+  confidenceScore,
 }: AnalysisResultCardProps) {
   const s = VARIANT_STYLES[variant];
 
@@ -122,6 +129,16 @@ export default function AnalysisResultCard({
           </div>
           <h4 className="text-lg font-semibold text-gray-900">{title}</h4>
           {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
+          {analysisMethod && (
+            <div className="mt-2">
+              <AIMethodBadge 
+                method={analysisMethod} 
+                methodDisplay={methodDisplay}
+                confidenceScore={confidenceScore} 
+                size="sm" 
+              />
+            </div>
+          )}
         </div>
         <div className={clsx("flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center", {
           "bg-white": true,

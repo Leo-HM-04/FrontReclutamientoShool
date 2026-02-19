@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { apiClient } from '@/lib/api';
+import AIMethodBadge from '@/components/ui/AIMethodBadge';
 
 interface DirectorCandidateFormModalProps {
   isOpen: boolean;
@@ -689,6 +690,9 @@ export default function DirectorCandidateFormModal({ isOpen, onClose, onSuccess 
                 <h3 className="text-lg font-bold text-violet-800 tracking-wide flex items-center">
                   <i className="fas fa-brain mr-2" />
                   ANÁLISIS DE IA
+                  <span className="ml-3">
+                    <AIMethodBadge method="claude_ai" size="sm" showConfidence={false} />
+                  </span>
                 </h3>
                 <button
                   type="button"

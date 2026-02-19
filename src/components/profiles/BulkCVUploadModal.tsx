@@ -24,7 +24,21 @@ interface UploadResult {
   candidate_id?: number;
   error?: string;
   created?: boolean;
-  matching_score?: number;
+  matching_score?: number | null;
+  matching_details?: {
+    overall: number;
+    technical: number;
+    experience: number;
+    education: number;
+    method: string;
+  } | null;
+  analysis_method?: string;
+  method_label?: string;
+  confidence_score?: number;
+  summary?: string;
+  strengths?: string[];
+  recommended_positions?: string[];
+  processing_time?: number;
 }
 
 export default function BulkCVUploadModal({ 
@@ -57,28 +71,32 @@ export default function BulkCVUploadModal({
       const interval = setInterval(async () => {
         try {
           const response = await getBulkUploadStatus(taskId);
-          console.log('📊 Bulk upload status:', response);
+          console.log('Bulk upload status:', response);
           
           // El backend devuelve 'status' no 'state' cuando la tarea termina
           if (response.status === 'completed') {
-            setResults(response.result?.successful_details || []);
-            setUploadProgress(`✅ Procesamiento completado: ${response.result?.successful || 0} exitosos, ${response.result?.failed || 0} fallidos`);
+            const allResults = [
+              ...(response.result?.successful_details || []),
+              ...(response.result?.failed_details || [])
+            ];
+            setResults(allResults);
+            setUploadProgress(`Procesamiento completado: ${response.result?.successful || 0} exitosos, ${response.result?.failed || 0} fallidos`);
             setIsAsyncProcessing(false);
             setLoading(false);
             clearInterval(interval);
             
             if (onSuccess) {
-              onSuccess(`✅ ${response.result?.successful || 0} candidatos procesados exitosamente`);
+              onSuccess(`${response.result?.successful || 0} candidatos procesados exitosamente`);
             }
           } else if (response.status === 'failed') {
-            setUploadProgress(`❌ Error en el procesamiento: ${response.error || 'Error desconocido'}`);
+            setUploadProgress(`Error en el procesamiento: ${response.error || 'Error desconocido'}`);
             setIsAsyncProcessing(false);
             setLoading(false);
             clearInterval(interval);
           } else if (response.status === 'processing') {
             // Mientras está en proceso, mostrar el estado de Celery
             const celeryState = response.state || 'PENDING';
-            setUploadProgress(`⏳ Procesando CVs... Estado: ${celeryState}`);
+            setUploadProgress(`Procesando CVs... Estado: ${celeryState}`);
           }
         } catch (error) {
           console.error('Error checking status:', error);
@@ -155,7 +173,7 @@ export default function BulkCVUploadModal({
     }
 
     setLoading(true);
-    setUploadProgress(`⏳ Subiendo ${cvFiles.length} CVs...`);
+    setUploadProgress(`Subiendo ${cvFiles.length} CVs...`);
     setResults(null);
 
     try {
@@ -175,30 +193,34 @@ export default function BulkCVUploadModal({
 
       // Procesamiento síncrono (≤3 archivos)
       if (result.status === undefined || result.total_processed !== undefined) {
-        setResults(result.results?.successful || []);
+        const allResults = [
+          ...(result.results?.successful || []),
+          ...(result.results?.failed || [])
+        ];
+        setResults(allResults);
         setUploadProgress(
-          `✅ ${result.message || 'Procesamiento completado'}\n` +
-          `📊 Total: ${result.total_processed} | ✅ Exitosos: ${result.successful} | ❌ Fallidos: ${result.failed}`
+          `${result.message || 'Procesamiento completado'}\n` +
+          `Total: ${result.total_processed} | Exitosos: ${result.successful} | Fallidos: ${result.failed}`
         );
         setLoading(false);
         
         if (onSuccess) {
-          onSuccess(`✅ ${result.successful} candidatos creados exitosamente`);
+          onSuccess(`${result.successful} candidatos creados exitosamente`);
         }
       } 
       // Procesamiento asíncrono (3 archivos)
       else if (result.task_id) {
         setTaskId(result.task_id);
         setIsAsyncProcessing(true);
-        setUploadProgress(`⏳ Procesando ${result.total_files} CVs en segundo plano...`);
+        setUploadProgress(`Procesando ${result.total_files} CVs en segundo plano...`);
       }
     } catch (error: any) {
       console.error('Error uploading CVs:', error);
-      setUploadProgress(`❌ Error: ${error.message || 'Error al subir los CVs'}`);
+      setUploadProgress(`Error: ${error.message || 'Error al subir los CVs'}`);
       setLoading(false);
       
       if (onSuccess) {
-        onSuccess(`⚠️ Error: ${error.message}`);
+        onSuccess(`Error: ${error.message}`);
       }
     }
   };
@@ -217,7 +239,7 @@ export default function BulkCVUploadModal({
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full my-8">
         <div className="sticky top-0 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-6 flex justify-between items-center rounded-t-2xl">
           <div>
-            <h2 className="text-2xl font-bold">📤 Carga Masiva de CVs con IA</h2>
+            <h2 className="text-2xl font-bold">Carga Masiva de CVs con IA</h2>
             <p className="text-green-100 text-sm mt-1">Analiza múltiples CVs automáticamente y crea candidatos</p>
           </div>
           <button
@@ -378,63 +400,202 @@ export default function BulkCVUploadModal({
               </div>
             </form>
           ) : (
-            /* Results View */
+            /* Results View - Enhanced */
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                <i className="fas fa-check-circle text-green-600 mr-2"></i>
-                Resultados del Procesamiento
+              {/* Summary Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <div className="bg-green-50 rounded-xl p-4 text-center border border-green-200">
+                  <div className="text-2xl font-bold text-green-700">{results.filter(r => r.success).length}</div>
+                  <div className="text-xs text-green-600 font-medium">Exitosos</div>
+                </div>
+                <div className="bg-red-50 rounded-xl p-4 text-center border border-red-200">
+                  <div className="text-2xl font-bold text-red-700">{results.filter(r => !r.success).length}</div>
+                  <div className="text-xs text-red-600 font-medium">Fallidos</div>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-200">
+                  <div className="text-2xl font-bold text-blue-700">{results.filter(r => r.created).length}</div>
+                  <div className="text-xs text-blue-600 font-medium">Nuevos Candidatos</div>
+                </div>
+                <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-200">
+                  <div className="text-2xl font-bold text-purple-700">
+                    {results.filter(r => r.matching_score != null && r.matching_score > 0).length}
+                  </div>
+                  <div className="text-xs text-purple-600 font-medium">Con Matching</div>
+                </div>
+              </div>
+
+              <h3 className="text-lg font-bold text-gray-900 mb-3">
+                <i className="fas fa-list-check text-green-600 mr-2"></i>
+                Detalle por CV
               </h3>
 
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-[28rem] overflow-y-auto pr-1">
                 {results.map((result, index) => (
                   <div
                     key={index}
-                    className={`p-4 rounded-lg border-l-4 ${
+                    className={`rounded-xl border shadow-sm overflow-hidden ${
                       result.success
-                        ? 'bg-green-50 border-green-500'
-                        : 'bg-red-50 border-red-500'
+                        ? 'bg-white border-green-200'
+                        : 'bg-red-50 border-red-300'
                     }`}
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">
-                          {result.success ? (
-                            <i className="fas fa-check-circle text-green-600 mr-2"></i>
-                          ) : (
-                            <i className="fas fa-times-circle text-red-600 mr-2"></i>
-                          )}
-                          {result.filename}
-                        </p>
+                    {/* Header */}
+                    <div className={`px-4 py-3 flex items-center justify-between ${
+                      result.success ? 'bg-green-50' : 'bg-red-100'
+                    }`}>
+                      <div className="flex items-center gap-2">
                         {result.success ? (
-                          <div className="mt-2 text-sm text-gray-700">
-                            <p>
-                              <strong>Candidato:</strong> {result.candidate_name || 'N/A'}
-                            </p>
-                            <p>
-                              <strong>Email:</strong> {result.candidate_email || 'N/A'}
-                            </p>
-                            {result.matching_score !== undefined && (
-                              <p>
-                                <strong>Matching:</strong>{' '}
-                                <span className="font-bold text-green-600">
-                                  {result.matching_score}%
-                                </span>
-                              </p>
-                            )}
-                            <p className="text-xs text-gray-500 mt-1">
-                              {result.created ? '✨ Nuevo candidato creado' : '🔄 Candidato actualizado'}
-                            </p>
-                          </div>
+                          <i className="fas fa-check-circle text-green-600"></i>
                         ) : (
-                          <p className="mt-1 text-sm text-red-700">{result.error}</p>
+                          <i className="fas fa-times-circle text-red-600"></i>
+                        )}
+                        <span className="font-semibold text-gray-900 text-sm">{result.filename}</span>
+                        {result.created !== undefined && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            result.created
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {result.created ? 'Nuevo' : 'Actualizado'}
+                          </span>
                         )}
                       </div>
+                      {result.analysis_method && (
+                        <span className={`text-xs px-2 py-1 rounded-lg font-medium ${
+                          result.analysis_method === 'claude_ai'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {result.analysis_method === 'claude_ai' ? 'Claude AI' : 'Reglas+OCR'}
+                          {result.confidence_score ? ` ${result.confidence_score}%` : ''}
+                        </span>
+                      )}
                     </div>
+
+                    {result.success ? (
+                      <div className="px-4 py-3">
+                        {/* Candidate Info */}
+                        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-700 mb-2">
+                          <span>
+                            <i className="fas fa-user text-gray-400 mr-1"></i>
+                            <strong>{result.candidate_name || 'N/A'}</strong>
+                          </span>
+                          {result.candidate_email && (
+                            <span>
+                              <i className="fas fa-envelope text-gray-400 mr-1"></i>
+                              {result.candidate_email}
+                            </span>
+                          )}
+                          {result.processing_time !== undefined && (
+                            <span className="text-gray-400 text-xs">
+                              <i className="fas fa-clock mr-1"></i>
+                              {result.processing_time.toFixed(1)}s
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Matching Score */}
+                        {result.matching_score != null && result.matching_score > 0 && (
+                          <div className="mt-2 p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-blue-100">
+                            <div className="flex items-center gap-3 mb-2">
+                              <span className="text-sm font-semibold text-gray-700">
+                                <i className="fas fa-chart-bar text-blue-500 mr-1"></i>
+                                Matching:
+                              </span>
+                              <span className={`text-lg font-bold ${
+                                result.matching_score >= 80 ? 'text-green-600' :
+                                result.matching_score >= 60 ? 'text-yellow-600' :
+                                result.matching_score >= 40 ? 'text-orange-600' :
+                                'text-red-600'
+                              }`}>
+                                {result.matching_score}%
+                              </span>
+                              <div className="flex-1">
+                                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                                  <div
+                                    className={`h-2.5 rounded-full transition-all ${
+                                      result.matching_score >= 80 ? 'bg-green-500' :
+                                      result.matching_score >= 60 ? 'bg-yellow-500' :
+                                      result.matching_score >= 40 ? 'bg-orange-500' :
+                                      'bg-red-500'
+                                    }`}
+                                    style={{ width: `${result.matching_score}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            </div>
+                            {result.matching_details && (
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                <div className="text-center">
+                                  <div className="font-bold text-blue-700">{result.matching_details.technical}%</div>
+                                  <div className="text-gray-500">Técnico</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-bold text-purple-700">{result.matching_details.experience}%</div>
+                                  <div className="text-gray-500">Experiencia</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-bold text-teal-700">{result.matching_details.education}%</div>
+                                  <div className="text-gray-500">Educación</div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="font-bold text-indigo-700">{result.matching_details.overall}%</div>
+                                  <div className="text-gray-500">General</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Summary */}
+                        {result.summary && (
+                          <p className="text-xs text-gray-600 mt-2 italic line-clamp-2">
+                            <i className="fas fa-quote-left text-gray-300 mr-1"></i>
+                            {result.summary}
+                          </p>
+                        )}
+
+                        {/* Strengths + Positions */}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {result.strengths?.map((s, i) => (
+                            <span key={`s-${i}`} className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                              {s}
+                            </span>
+                          ))}
+                          {result.recommended_positions?.map((p, i) => (
+                            <span key={`p-${i}`} className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3">
+                        <p className="text-sm text-red-700">
+                          <i className="fas fa-exclamation-triangle mr-1"></i>
+                          {result.error}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
 
+              {results.length === 0 && (
+                <div className="text-center py-12 text-gray-400">
+                  <i className="fas fa-inbox text-4xl mb-3"></i>
+                  <p>No se obtuvieron resultados del procesamiento</p>
+                </div>
+              )}
+
               <div className="mt-6 flex gap-4">
+                <button
+                  onClick={() => { setResults(null); setCvFiles([]); }}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition"
+                >
+                  <i className="fas fa-redo mr-2"></i>
+                  Cargar más CVs
+                </button>
                 <button
                   onClick={handleClose}
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 font-semibold shadow-lg transition"

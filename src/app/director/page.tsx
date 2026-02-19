@@ -26,6 +26,7 @@ import ShareDocumentLinkModal from '@/components/ShareDocumentLinkModal';
 import EmailManagement from '@/components/EmailManagement';
 import DocumentShareLinksDashboard from '@/components/DocumentShareLinksDashboard';
 import NextImage from "next/image";
+import { HybridMetricsDashboard } from "@/components/ui/AIMethodBadge";
 
 import bausenLogo from "@/logos/bausen-logo.png";
 import verticalLogo from "@/logos/Copia_Logo_Vertical_01.png";
@@ -390,6 +391,7 @@ export default function Page() {
   // Estado para tareas de Celery
   const [celeryData, setCeleryData] = useState<any>(null);
   const [celeryGroups, setCeleryGroups] = useState<any>(null);
+  const [hybridMetrics, setHybridMetrics] = useState<any>(null);
 
   // Estado para clientes
   const [clientsData, setClientsData] = useState<Client[]>([]);
@@ -1678,6 +1680,17 @@ export default function Page() {
 
       setCeleryData(tasksData);
       setCeleryGroups(groupsData);
+
+      // Cargar métricas híbridas IA
+      try {
+        const aiStats = await apiClient.getAIHybridStats();
+        if (aiStats?.hybrid_metrics) {
+          setHybridMetrics(aiStats.hybrid_metrics);
+        }
+      } catch (aiErr: any) {
+        console.warn('Error cargando métricas híbridas IA:', aiErr);
+      }
+
       success('Datos de sistema actualizados');
     } catch (err: any) {
       console.error('Error general loading Celery data:', err);
@@ -4722,6 +4735,13 @@ export default function Page() {
                     </div>
                   </div>
                 </div>
+
+                {/* Métricas del Sistema Híbrido IA */}
+                {hybridMetrics && (
+                  <div className="mb-8">
+                    <HybridMetricsDashboard metrics={hybridMetrics} />
+                  </div>
+                )}
 
                 {/* Tareas recientes */}
                 <div className="mb-8">
