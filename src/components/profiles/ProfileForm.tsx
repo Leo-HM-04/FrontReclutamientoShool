@@ -353,23 +353,27 @@ ${formData.benefits || 'No especificados'}
         // Buscar cliente temporal existente
         const clientsRes: any = await getClients();
         const clientsList = clientsRes?.results || clientsRes || [];
-        const existing = clientsList.find((c: any) => c.name && c.name === 'Cliente Público (Formulario)');
+        const existing = clientsList.find((c: any) => c.company_name && c.company_name === 'Cliente Público (Formulario)');
         if (existing) {
           clientId = existing.id;
         } else {
-          // Crear cliente temporal con campos que coinciden con la interfaz Client
+          // Crear cliente temporal con campos del modelo Django real
         const placeholder = await apiClient.createClient({
-          name: 'Cliente Público (Formulario)',
+          company_name: 'Cliente Público (Formulario)',
+          rfc: 'XAXX010101000',
           industry: 'No especificado',
-          size: 'N/A',
-          country: 'México',
+          contact_name: 'Formulario Público',
+          contact_email: 'no-reply@publico.example',
+          contact_phone: '0000000000',
+          contact_position: 'N/A',
+          address_street: 'No especificado',
+          address_city: 'No especificado',
+          address_state: 'No especificado',
+          address_zip: '00000',
+          address_country: 'México',
           is_active: true,
-          website: '',
-          address: 'No especificado',
-          phone: '0000000000',
-          email: 'no-reply@publico.example',
           notes: 'Cliente generado automáticamente para formularios públicos',
-        });
+        } as any);
         clientId = placeholder.id;
         await showAlert('🔔 Se creó un cliente temporal "Cliente Público (Formulario)" para asociar los envíos públicos.');
         }

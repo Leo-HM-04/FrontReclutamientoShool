@@ -1128,22 +1128,29 @@ export interface UserActivity {
 
 export interface Client {
   id: number;
-  name: string;
+  company_name: string;
+  rfc: string;
   industry: string;
-  size: string;
   website?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country: string;
-  phone?: string;
-  email?: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+  contact_position: string;
+  address_street: string;
+  address_city: string;
+  address_state: string;
+  address_zip: string;
+  address_country?: string;
   assigned_to?: number;
   assigned_to_name?: string;
+  is_active?: boolean;
   notes?: string;
-  is_active: boolean;
   created_at: string;
   updated_at: string;
+  created_by?: number;
+  created_by_name?: string;
+  full_address?: string;
+  active_profiles_count?: number;
 }
 
 export interface Profile {
