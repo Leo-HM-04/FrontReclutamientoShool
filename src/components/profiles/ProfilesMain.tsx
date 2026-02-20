@@ -257,7 +257,8 @@ const handleDeleteProfile = async (profileId: number) => {
            {currentView === "profile-create" && (
               <ProfileForm 
                 profileId={selectedProfileId || undefined}
-                onSuccess={handleBackToList} 
+                onSuccess={handleBackToList}
+                onNavigateToShareForm={() => setCurrentView("share-profile-form")}
               />
             )}
             {currentView === "profile-detail" && selectedProfileId && (

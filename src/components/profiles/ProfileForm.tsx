@@ -7,6 +7,7 @@ import ShareLinkModal from '@/components/ShareLinkModal';
 interface ProfileFormProps {
   profileId?: number;
   onSuccess?: () => void;
+  onNavigateToShareForm?: () => void;
 }
 
 interface Client {
@@ -22,7 +23,7 @@ interface User {
   role: string;
 }
 
-export default function ProfileForm({ profileId, onSuccess }: ProfileFormProps) {
+export default function ProfileForm({ profileId, onSuccess, onNavigateToShareForm }: ProfileFormProps) {
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -583,22 +584,12 @@ ${formData.benefits || 'No especificados'}
         <div className="ml-4 flex items-center">
           <button
             type="button"
-            onClick={handleShareForm}
-            disabled={shareLoading}
-            className="inline-flex items-center px-4 py-2 rounded-md border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
-            title="Compartir formulario"
+            onClick={onNavigateToShareForm}
+            className="inline-flex items-center px-4 py-2 rounded-md border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 focus:outline-none transition-colors"
+            title="Ir a Enviar Formulario de Perfil"
           >
-            {shareLoading ? (
-              <>
-                <i className="fas fa-spinner fa-spin mr-2"></i>
-                Generando enlace...
-              </>
-            ) : (
-              <>
-                <i className="fas fa-share-alt mr-2"></i>
-                Compartir formulario
-              </>
-            )}
+            <i className="fas fa-share-alt mr-2"></i>
+            Compartir formulario
           </button>
         </div>
       </div>
