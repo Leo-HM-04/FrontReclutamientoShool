@@ -504,6 +504,22 @@ export default function Page() {
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [showClientForm, setShowClientForm] = useState(false);
 
+  // Helper function for priority badge styling
+  const priorityBadge = (priority: string) => {
+    switch (priority) {
+      case 'low':
+        return 'bg-blue-100 text-blue-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'high':
+        return 'bg-orange-100 text-orange-800';
+      case 'urgent':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   // Estado para manejar navegación desde aplicaciones a perfiles
   const [profileToOpen, setProfileToOpen] = useState<{ id: number | null, action: 'view' | 'edit' | null }>({
     id: null,
@@ -3189,7 +3205,7 @@ export default function Page() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {p.candidates.current} / {p.candidates.target}
+                            {p.candidates?.current ?? 0} / {p.candidates?.target ?? 0}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="w-full bg-gray-200 rounded-full h-2">
