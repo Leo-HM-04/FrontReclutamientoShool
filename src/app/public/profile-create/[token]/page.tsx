@@ -34,6 +34,7 @@ export default function PublicProfileCreatePage() {
     location_state: '',
     is_remote: false,
     is_hybrid: false,
+    is_onsite: false,
     technical_skills: '',
     soft_skills: '',
     languages: '',
@@ -111,6 +112,7 @@ export default function PublicProfileCreatePage() {
           location_state: formData.location_state,
           is_remote: formData.is_remote,
           is_hybrid: formData.is_hybrid,
+          is_onsite: formData.is_onsite,
           technical_skills: formData.technical_skills ? formData.technical_skills.split(',').map(s => s.trim()).filter(s => s) : [],
           soft_skills: formData.soft_skills ? formData.soft_skills.split(',').map(s => s.trim()).filter(s => s) : [],
           languages: formData.languages ? formData.languages.split(',').map(s => s.trim()).filter(s => s) : [],
@@ -487,7 +489,7 @@ export default function PublicProfileCreatePage() {
                     type="checkbox"
                     name="is_remote"
                     checked={formData.is_remote}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_remote: e.target.checked }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_remote: e.target.checked, is_onsite: false }))}
                     className="mr-2"
                   />
                   Trabajo Remoto
@@ -497,10 +499,20 @@ export default function PublicProfileCreatePage() {
                     type="checkbox"
                     name="is_hybrid"
                     checked={formData.is_hybrid}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_hybrid: e.target.checked }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_hybrid: e.target.checked, is_onsite: false }))}
                     className="mr-2"
                   />
                   Trabajo Híbrido
+                </label>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="is_onsite"
+                    checked={formData.is_onsite}
+                    onChange={(e) => setFormData(prev => ({ ...prev, is_onsite: e.target.checked, is_remote: false, is_hybrid: false }))}
+                    className="mr-2"
+                  />
+                  Trabajo Presencial
                 </label>
               </div>
             </div>
