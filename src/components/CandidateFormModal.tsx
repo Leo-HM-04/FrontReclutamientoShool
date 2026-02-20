@@ -252,14 +252,14 @@ export default function CandidateFormModal({
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       <i className="fas fa-map text-purple-500 mr-1.5" />
-                      Estado
+                      Estatus
                     </label>
                     <input
                       type="text"
                       value={formData.state || ''}
                       onChange={(e) => handleChange('state', e.target.value)}
                       className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-purple-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
-                      placeholder="Estado"
+                      placeholder="Estatus"
                     />
                   </div>
                 </div>

@@ -107,7 +107,7 @@ export default function ProfileReportDemo() {
               <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-600 mb-1">
-                    Estado
+                    Estatus
                   </label>
                   <select
                     value={formData.estado}

@@ -386,7 +386,7 @@ const [profileForm, setProfileForm] = useState({
       await refreshData();
     } catch (error) {
       console.error('Error toggling user status:', error);
-      showError(' al cambiar estado del usuario');
+      showError(' al cambiar estatus del usuario');
     } finally {
       setLoading(false);
     }
@@ -1393,7 +1393,7 @@ const getPriorityDisplay = (priority: string) => {
                       onChange={(e) => setUserFilters({...userFilters, status: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="all">Todos los estados</option>
+                      <option value="all">Todos los estatus</option>
                       <option value="active">Activos</option>
                       <option value="inactive">Inactivos</option>
                     </select>
@@ -1428,7 +1428,7 @@ const getPriorityDisplay = (priority: string) => {
                           Rol
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Estado
+                          Estatus
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Registro
@@ -1588,7 +1588,7 @@ const getPriorityDisplay = (priority: string) => {
                     onChange={(e) => setClientFilters({...clientFilters, status: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="all">Todos los estados</option>
+                    <option value="all">Todos los estatus</option>
                     <option value="active">Activos</option>
                     <option value="inactive">Inactivos</option>
                   </select>
@@ -1626,7 +1626,7 @@ const getPriorityDisplay = (priority: string) => {
                         Tamaño
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Estado
+                        Estatus
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Registro
@@ -1793,7 +1793,7 @@ const getPriorityDisplay = (priority: string) => {
                     onChange={(e) => setProfileFilters({...profileFilters, status: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   >
-                    <option value="all">Todos los estados</option>
+                    <option value="all">Todos los estatus</option>
                     <option value="draft">Borrador</option>
                     <option value="open">Abierto</option>
                     <option value="in_progress">En Proceso</option>
@@ -1849,7 +1849,7 @@ const getPriorityDisplay = (priority: string) => {
                         Prioridad
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Estado
+                        Estatus
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Creado
@@ -2004,7 +2004,7 @@ const getPriorityDisplay = (priority: string) => {
                     onChange={(e) => setCandidateFilters({...candidateFilters, status: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="all">Todos los estados</option>
+                    <option value="all">Todos los estatus</option>
                     <option value="new">Nuevo</option>
                     <option value="screening">En Revisión</option>
                     <option value="qualified">Calificado</option>
@@ -2972,7 +2972,7 @@ const getPriorityDisplay = (priority: string) => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Estado
+                            Estatus
                           </label>
                           <select
                             value={profileForm.status}

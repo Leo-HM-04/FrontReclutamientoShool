@@ -137,12 +137,12 @@ export default function ReportsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Estado de Candidatos</CardTitle>
+            <CardTitle>Estatus de Candidatos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-80">
               <DoughnutChart 
-                data={candidateStatusData}
+                data={candidateStatusData}    
                 options={{
                   maintainAspectRatio: false,
                   plugins: {

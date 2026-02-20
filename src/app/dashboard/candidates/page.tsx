@@ -157,7 +157,7 @@ export default function CandidatesPage() {
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Posición</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Experiencia</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Habilidades</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-700">Estado</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Estatus</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Fecha</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Acciones</th>
                 </tr>

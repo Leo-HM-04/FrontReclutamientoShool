@@ -378,14 +378,14 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                   <div>
                     <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                       <i className="fas fa-filter mr-2"></i>
-                      Estado
+                      Estatus
                     </label>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="all">Seleccionar estado...</option>
+                      <option value="all">Seleccionar estatus...</option>
                       <option value="applied">Aplicó</option>
                       <option value="screening">En Revisión</option>
                       <option value="shortlisted">Pre-seleccionado</option>
@@ -468,7 +468,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                               EMAIL
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              ESTADO
+                              ESTATUS
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               POSICIÓN ACTUAL
@@ -639,7 +639,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                           <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidato</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Perfil</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estatus</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                           </tr>

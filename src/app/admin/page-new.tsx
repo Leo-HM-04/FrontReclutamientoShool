@@ -253,7 +253,7 @@ export default function AdminDashboard() {
       await refreshData();
     } catch (error) {
       console.error('Error toggling user status:', error);
-      await showAlert('Error al cambiar estado del usuario');
+      await showAlert('Error al cambiar estatus del usuario');
     } finally {
       setLoading(false);
     }
@@ -752,7 +752,7 @@ export default function AdminDashboard() {
                       onChange={(e) => setUserFilters({...userFilters, status: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
-                      <option value="all">Todos los estados</option>
+                      <option value="all">Todos los estatus</option>
                       <option value="active">Activos</option>
                       <option value="inactive">Inactivos</option>
                     </select>
@@ -788,7 +788,7 @@ export default function AdminDashboard() {
                           Rol
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Estado
+                          Estatus
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Registro
