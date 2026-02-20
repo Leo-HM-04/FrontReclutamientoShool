@@ -1360,7 +1360,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                           <i className="fas fa-bolt mr-1"></i>{getPriorityLabel(profile.priority)}
                         </span>
                         <span className="px-2 py-1 bg-white/20 text-white rounded-full text-xs">
-                          <i className="fas fa-calendar mr-1"></i>{profile.days_open} días abierto
+                          <i className="fas fa-calendar mr-1"></i>{formatNumber(profile.days_open)} días abierto
                         </span>
                       </div>
                     </div>
