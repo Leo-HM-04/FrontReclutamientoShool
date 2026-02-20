@@ -468,26 +468,37 @@ ${formData.benefits || 'No especificados'}
   const handleShareForm = async () => {
     setShareLoading(true);
     try {
-      const id = await ensureProfileExists();
+      // Asegurarse de que el perfil existe y obtener su ID
+      const profileId = await ensureProfileExists();
+      
+      // Validar que hay un cliente seleccionado
+      if (!formData.client) {
+        await showAlert('⚠️ Debes seleccionar un cliente antes de compartir');
+        setShareLoading(false);
+        return;
+      }
+
       const token = localStorage.getItem('authToken');
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-      const response = await fetch(`${apiBase}/profiles/profiles/${id}/generate_share_link/`, {
+      // Generar token del CLIENTE para crear perfiles (no token del perfil)
+      const response = await fetch(`${apiBase}/clients/${formData.client}/generate_share_link/`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ duration_hours: 168 }) // 7 días por defecto
       });
 
       if (!response.ok) throw new Error('Error al generar enlace');
 
       const data = await response.json();
-      // Usar la ruta pública para ver el avance del perfil
-      const progressLink = `${window.location.origin}/reclutamiento/public/profile-progress/${data.token}`;
-      setShareLink(progressLink);
-      setShareProfileTitle(data.position_title || formData.position_title);
-      setShareClientName(data.client_name || '');
+      // Usar la ruta pública para que el cliente CREE nuevos perfiles
+      const createLink = `${window.location.origin}/reclutamiento/public/profile-create/${data.token}`;
+      setShareLink(createLink);
+      setShareProfileTitle(formData.position_title || 'Formulario de Perfil');
+      setShareClientName(data.company_name || data.client_name || '');
       setShareModalOpen(true);
     } catch (err) {
       console.error('Error generando link de compartir:', err);
