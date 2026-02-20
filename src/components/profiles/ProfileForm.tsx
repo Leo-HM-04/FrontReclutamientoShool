@@ -36,6 +36,9 @@ export default function ProfileForm({ profileId, onSuccess }: ProfileFormProps) 
   const [shareLoading, setShareLoading] = useState(false);
   const [shareProfileTitle, setShareProfileTitle] = useState("");
   const [shareClientName, setShareClientName] = useState("");
+  
+  // Estado separado para el texto de plataformas (permite escribir libremente)
+  const [platformsText, setPlatformsText] = useState("");
 
   useEffect(() => {
     setCreatedProfileId(profileId);
@@ -223,6 +226,10 @@ export default function ProfileForm({ profileId, onSuccess }: ProfileFormProps) 
         modality: modality,
         published_platforms: profile.published_platforms || [],
         work_schedule: profile.work_schedule || "",
+      });
+      
+      // Actualizar el texto de plataformas
+      setPlatformsText(profile.published_platforms?.join(', ') || '');
         technical_skills: technicalSkills,
         soft_skills: softSkills,
         languages_required: languages,
@@ -231,7 +238,6 @@ export default function ProfileForm({ profileId, onSuccess }: ProfileFormProps) 
         expected_start_date: profile.desired_start_date || "",
         assigned_to: profile.assigned_to?.toString() || "",
         internal_notes: profile.internal_notes || "",
-      });
     } catch (error) {
       console.error("Error loading profile:", error);
       await showAlert("Error al cargar el perfil");
@@ -306,7 +312,10 @@ ${formData.benefits || 'No especificados'}
       desired_start_date: formData.expected_start_date || null,
       assigned_to: formData.assigned_to ? parseInt(formData.assigned_to as any) : undefined,
       internal_notes: formData.internal_notes || '',
-      published_platforms: formData.published_platforms || [],
+      published_platforms: platformsText
+        .split(',')
+        .map(p => p.trim())
+        .filter(p => p.length > 0),
     };
 
     console.log('📤 Datos a enviar al backend:', submitData);
@@ -691,17 +700,8 @@ ${formData.benefits || 'No especificados'}
               </label>
               <input
                 type="text"
-                value={formData.published_platforms.join(', ')}
-                onChange={(e) => {
-                  const platforms = e.target.value
-                    .split(',')
-                    .map(p => p.trim())
-                    .filter(p => p.length > 0);
-                  setFormData(prev => ({
-                    ...prev,
-                    published_platforms: platforms
-                  }));
-                }}
+                value={platformsText}
+                onChange={(e) => setPlatformsText(e.target.value)}
                 placeholder="Ej: LinkedIn, Indeed, OCC, CompuTrabajo"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
               />
