@@ -689,33 +689,23 @@ ${formData.benefits || 'No especificados'}
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Plataformas de Publicación
               </label>
-              <div className="space-y-2 border border-gray-300 rounded-lg p-4">
-                {['LinkedIn', 'Indeed', 'OCC', 'CompuTrabajo'].map((platform) => (
-                  <label key={platform} className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      value={platform}
-                      checked={formData.published_platforms.includes(platform)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData(prev => ({
-                            ...prev,
-                            published_platforms: [...prev.published_platforms, platform]
-                          }));
-                        } else {
-                          setFormData(prev => ({
-                            ...prev,
-                            published_platforms: prev.published_platforms.filter(p => p !== platform)
-                          }));
-                        }
-                      }}
-                      className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                    />
-                    <span className="text-sm text-gray-700">{platform}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-1">Selecciona las plataformas donde se publicará</p>
+              <input
+                type="text"
+                value={formData.published_platforms.join(', ')}
+                onChange={(e) => {
+                  const platforms = e.target.value
+                    .split(',')
+                    .map(p => p.trim())
+                    .filter(p => p.length > 0);
+                  setFormData(prev => ({
+                    ...prev,
+                    published_platforms: platforms
+                  }));
+                }}
+                placeholder="Ej: LinkedIn, Indeed, OCC, CompuTrabajo"
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+              />
+              <p className="text-xs text-gray-500 mt-1">Ingresa las plataformas separadas por comas</p>
             </div>
           </div>
         </div>

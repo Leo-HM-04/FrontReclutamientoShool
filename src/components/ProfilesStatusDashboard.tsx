@@ -37,7 +37,7 @@ interface Profile {
   salary_currency: string;
   number_of_positions: number;
   client_approved: boolean;
-  published_platforms: PublishedPlatform[];
+  published_platforms: (string | PublishedPlatform)[];
   assigned_to?: number;
   assigned_to_name?: string;
   created_at: string;
@@ -832,21 +832,15 @@ export default function ProfilesStatusDashboard() {
                             {profile.status === 'in_progress' && profile.published_platforms.length > 0 && (
                               <div>
                                 <h4 className="font-semibold text-gray-900 mb-2">Plataformas de Publicación</h4>
-                                <div className="space-y-2">
+                                <div className="flex flex-wrap gap-2">
                                   {profile.published_platforms.map((platform, idx) => (
-                                    <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200">
-                                      <div>
-                                        <p className="font-medium text-gray-900">{platform.platform}</p>
-                                        {platform.url && (
-                                          <a href={platform.url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">
-                                            {platform.url}
-                                          </a>
-                                        )}
-                                      </div>
-                                      <span className="text-xs text-gray-500">
-                                        {new Date(platform.published_date).toLocaleDateString()}
-                                      </span>
-                                    </div>
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-600 text-white"
+                                    >
+                                      <i className="fas fa-check-circle mr-1.5"></i>
+                                      {typeof platform === 'string' ? platform : platform.platform}
+                                    </span>
                                   ))}
                                 </div>
                               </div>
