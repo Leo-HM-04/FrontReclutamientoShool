@@ -127,16 +127,28 @@ type Activity = {
   time: string;
 };
 
-type Process = {
+// shared constants for status badges used throughout this page
+const STATUS_COLORS: Record<string, string> = { new: '#3B82F6', screening: '#F59E0B', qualified: '#10B981', interview: '#8B5CF6', offer: '#EC4899', hired: '#059669', rejected: '#EF4444', withdrawn: '#6B7280' };
+const STATUS_LABELS: Record<string, string> = { new: 'Nuevo', screening: 'En Revision', qualified: 'Calificado', interview: 'Entrevista', offer: 'Oferta', hired: 'Contratado', rejected: 'Rechazado', withdrawn: 'Retirado' };
+
+// process model returned by API, aligned with backend response for supervisors
+// we keep a loose index signature to avoid future TS mismatches
+interface Process {
   id: number;
-  title: string;
-  processId: string;
-  client: string;
-  status: "active" | "paused" | "completed";
-  candidates: { current: number; target: number };
-  progress: number;
-  responsible: string;
-  priority: "high" | "medium" | "low";
+  position_title?: string;
+  client_name?: string;
+  status: string;
+  priority: string;
+  candidates_count?: number;
+  deadline?: string;
+  // existing legacy props (may or may not be present)
+  title?: string;
+  processId?: string;
+  client?: string;
+  candidates?: { current: number; target: number };
+  progress?: number;
+  responsible?: string;
+  [key: string]: any;
 };
 
 type Candidate = {
@@ -3044,7 +3056,7 @@ export default function Page() {
               </div>
 
               {/* ═══════ PROFILES BY STATUS ═══════ */}
-              {profilesByStatus.length > 0 && (
+              {profilesByStatus2.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     <i className="fas fa-th-large text-indigo-600 mr-2" />
