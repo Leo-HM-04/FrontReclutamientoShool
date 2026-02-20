@@ -353,21 +353,21 @@ ${formData.benefits || 'No especificados'}
         // Buscar cliente temporal existente
         const clientsRes: any = await getClients();
         const clientsList = clientsRes?.results || clientsRes || [];
-        const existing = clientsList.find((c: any) => c.company_name && c.company_name === 'Cliente Público (Formulario)');
+        const existing = clientsList.find((c: any) => c.name && c.name === 'Cliente Público (Formulario)');
         if (existing) {
           clientId = existing.id;
         } else {
-          // Crear cliente temporal
-          // Crear cliente temporal con todos los campos requeridos (placeholders válidos)
+          // Crear cliente temporal con campos que coinciden con la interfaz Client
         const placeholder = await apiClient.createClient({
-          company_name: 'Cliente Público (Formulario)',
-          rfc: 'XAXX010101000',
-          contact_name: 'Cliente Público',
-          contact_email: 'no-reply@publico.example',
-          contact_phone: '0000000000',
+          name: 'Cliente Público (Formulario)',
           industry: 'No especificado',
+          size: 'N/A',
+          country: 'México',
+          is_active: true,
           website: '',
           address: 'No especificado',
+          phone: '0000000000',
+          email: 'no-reply@publico.example',
           notes: 'Cliente generado automáticamente para formularios públicos',
         });
         clientId = placeholder.id;
