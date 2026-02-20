@@ -283,9 +283,6 @@ export default function ProfilesList({ filterStatus, onViewProfile, onEditProfil
                 <tr key={profile.id} id={`profile-row-${profile.id}`} className={`hover:bg-gray-50 ${activeHighlight === profile.id ? 'ring-2 ring-orange-400 bg-orange-50' : ''}`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="font-medium text-gray-900">{profile.position_title}</div>
-                    <div className="text-sm text-gray-500">
-                      {profile.positions_available} {profile.positions_available === 1 ? 'posición' : 'posiciones'}
-                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{profile.client_name || `Cliente #${profile.client}`}</div>

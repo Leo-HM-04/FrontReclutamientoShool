@@ -360,18 +360,15 @@ ${formData.benefits || 'No especificados'}
           // Crear cliente temporal
           // Crear cliente temporal con todos los campos requeridos (placeholders válidos)
         const placeholder = await apiClient.createClient({
-          name: 'Cliente Público (Formulario)',
+          company_name: 'Cliente Público (Formulario)',
+          rfc: 'XAXX010101000',
+          contact_name: 'Cliente Público',
+          contact_email: 'no-reply@publico.example',
+          contact_phone: '0000000000',
           industry: 'No especificado',
-          size: 'medium',
-          country: 'México',
           website: '',
           address: 'No especificado',
-          city: 'Sin especificar',
-          state: 'Sin especificar',
-          phone: '0000000000',
-          email: 'no-reply@publico.example',
           notes: 'Cliente generado automáticamente para formularios públicos',
-          is_active: true,
         });
         clientId = placeholder.id;
         await showAlert('🔔 Se creó un cliente temporal "Cliente Público (Formulario)" para asociar los envíos públicos.');
