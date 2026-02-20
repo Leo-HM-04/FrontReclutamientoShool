@@ -1208,13 +1208,13 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
               </div>
             </div>
 
-            {/* Distribución por Estado */}
+            {/* Distribución por Estatus */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Perfiles por Estado */}
+              {/* Perfiles por Estatus */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   <i className="fas fa-briefcase text-blue-600 mr-2"></i>
-                  Perfiles por Estado
+                  Perfiles por Estatus
                 </h3>
                 <div className="space-y-3">
                   {Object.entries(data.summary.profiles_by_status).map(([status, count]) => (
@@ -1238,11 +1238,11 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 </div>
               </div>
 
-              {/* Candidatos por Estado */}
+              {/* Candidatos por Estatus */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
                   <i className="fas fa-users text-purple-600 mr-2"></i>
-                  Candidatos por Estado
+                  Candidatos por Estatus
                 </h3>
                 <div className="space-y-3">
                   {Object.entries(data.summary.candidates_by_status).map(([status, count]) => (
@@ -1279,7 +1279,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Posición</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Cliente</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Estado</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Estatus</th>
                       <th className="text-left py-3 px-4 text-sm font-semibold text-gray-600">Creado</th>
                     </tr>
                   </thead>
@@ -1454,11 +1454,11 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                       </div>
                     </div>
 
-                    {/* Candidatos por Estado */}
+                    {/* Candidatos por Estatus */}
                     <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
                       <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                         <i className="fas fa-users text-blue-600 mr-2"></i>
-                        Candidatos por Estado
+                        Candidatos por Estatus
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
@@ -1633,12 +1633,12 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                       </div>
                     </div>
 
-                    {/* Distribución de Perfiles por Estado */}
+                    {/* Distribución de Perfiles por Estatus */}
                     {Object.keys(client.profiles_by_status).length > 0 && (
                       <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100">
                         <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
                           <i className="fas fa-chart-pie text-green-600 mr-2"></i>
-                          Distribución de Perfiles por Estado
+                          Distribución de Perfiles por Estatus
                         </h4>
                         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                           {Object.entries(client.profiles_by_status).map(([status, count]) => (
@@ -1734,7 +1734,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                             <thead className="bg-gray-50">
                               <tr>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Posición</th>
-                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estatus</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prioridad</th>
                                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Candidatos</th>
                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Creado</th>

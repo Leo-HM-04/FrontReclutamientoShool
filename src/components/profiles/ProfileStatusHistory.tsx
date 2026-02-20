@@ -93,10 +93,10 @@ export default function ProfileStatusHistory() {
     <div>
       <div className="mb-6">
         <h3 className="text-xl font-semibold text-gray-900 mb-4">
-          Historial de Cambios de Estado
+          Historial de Cambios de Estatus
         </h3>
         <p className="text-gray-600">
-          Consulta el historial completo de cambios de estado de los perfiles
+          Consulta el historial completo de cambios de estatus de los perfiles
         </p>
       </div>
 

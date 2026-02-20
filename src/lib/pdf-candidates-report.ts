@@ -596,7 +596,7 @@ export class CandidatesReportPDF {
     this.pdf.text('NOMBRE', cols.nombre.x + 2, this.yPos + 5);
     this.pdf.text('EMAIL', cols.email.x + 2, this.yPos + 5);
     this.pdf.text('APLICÓ', cols.fecha.x + 2, this.yPos + 5);
-    this.pdf.text('ESTADO', cols.estado.x + 2, this.yPos + 5);
+    this.pdf.text('ESTATUS', cols.estado.x + 2, this.yPos + 5);
     this.pdf.text('MATCH', cols.match.x + 2, this.yPos + 5);
     
     this.yPos += headerHeight;
@@ -782,7 +782,7 @@ export class CandidatesReportPDF {
       this.pdf.text(label.text, chartStartX + label.x, headerY + 5);
     });
     
-    this.pdf.text('ESTADO', chartEndX + 2, headerY + 5);
+    this.pdf.text('ESTATUS', chartEndX + 2, headerY + 5);
     this.pdf.text('DIAS', chartEndX + statusColWidth + 2, headerY + 5);
     
     // Línea inferior del header

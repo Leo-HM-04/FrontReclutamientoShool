@@ -2731,9 +2731,9 @@ export default function Page() {
 
               {/* ====== ROW: Process Doughnut + Pipeline Funnel ====== */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                {/* Procesos por Estado (Doughnut) */}
+                {/* Procesos por Estatus (Doughnut) */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-chart-pie text-purple-600 mr-2" />Perfiles por Estado</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-chart-pie text-purple-600 mr-2" />Perfiles por Estatus</h3>
                   <div style={{ height: 280 }}><canvas ref={processChartRef} /></div>
                   {processesByStatus.length > 0 && (
                     <div className="mt-3 grid grid-cols-2 gap-2">
@@ -2905,7 +2905,7 @@ export default function Page() {
               {/* ====== PROFILES BY STATUS TILES ====== */}
               {profilesByStatus2.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-th-large text-indigo-600 mr-2" />Perfiles por Estado (detalle)</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-th-large text-indigo-600 mr-2" />Perfiles por Estatus (detalle)</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     {profilesByStatus2.map((s) => {
                       const PCOLORS: Record<string, string> = { draft: '#9CA3AF', pending: '#F59E0B', approved: '#10B981', in_progress: '#3B82F6', candidates_found: '#06B6D4', in_evaluation: '#F97316', in_interview: '#6366F1', finalists: '#EC4899', completed: '#059669', cancelled: '#EF4444' };
@@ -2950,7 +2950,7 @@ export default function Page() {
               {/* Filtros (visual) */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {["Estado", "Cliente", "Prioridad"].map((label, i) => (
+                  {["Estatus", "Cliente", "Prioridad"].map((label, i) => (
                     <div key={label}>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
                       <select className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500">
@@ -3354,7 +3354,7 @@ export default function Page() {
                     <h3 className="text-lg font-semibold text-gray-900">Aplicaciones Recientes</h3>
                     <div className="flex space-x-3">
                       <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option>Todos los estados</option>
+                        <option>Todos los estatus</option>
                         <option>En Revisión</option>
                         <option>Preseleccionado</option>
                         <option>Rechazado</option>
@@ -3369,7 +3369,7 @@ export default function Page() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Posición</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Compatibilidad</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estatus</th>
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Acciones</th>
                         </tr>
                       </thead>

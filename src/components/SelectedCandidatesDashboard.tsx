@@ -704,7 +704,7 @@ export default function SelectedCandidatesDashboard() {
                     onChange={(e) => setStatusFilter(e.target.value as 'all' | 'offered' | 'accepted')}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="all">Todos los estados</option>
+                    <option value="all">Todos los estatus</option>
                     <option value="offered">Oferta Extendida</option>
                     <option value="accepted">Oferta Aceptada</option>
                   </select>
@@ -1106,13 +1106,13 @@ export default function SelectedCandidatesDashboard() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Estado</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Estatus</label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   >
-                    <option value="">Seleccionar estado...</option>
+                    <option value="">Seleccionar estatus...</option>
                     <option value="offered">Oferta Extendida</option>
                     <option value="accepted">Oferta Aceptada</option>
                     <option value="rejected">Rechazado</option>

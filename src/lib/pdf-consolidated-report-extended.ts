@@ -866,8 +866,8 @@ class ExtendedConsolidatedReportPDF {
     const cardWidth = (this.contentWidth - 4) / 2;
     const cardHeight = 35;
 
-    this.drawStatusCard(this.margin, startY, cardWidth, cardHeight, 'Perfiles por Estado', this.data.summary.profiles_by_status, this.data.summary.total_profiles, COLORS.primary);
-    this.drawStatusCard(this.margin + cardWidth + 4, startY, cardWidth, cardHeight, 'Candidatos por Estado', this.data.summary.candidates_by_status, this.data.summary.total_candidates, COLORS.purple);
+    this.drawStatusCard(this.margin, startY, cardWidth, cardHeight, 'Perfiles por Estatus', this.data.summary.profiles_by_status, this.data.summary.total_profiles, COLORS.primary);
+    this.drawStatusCard(this.margin + cardWidth + 4, startY, cardWidth, cardHeight, 'Candidatos por Estatus', this.data.summary.candidates_by_status, this.data.summary.total_candidates, COLORS.purple);
 
     this.currentY = startY + cardHeight + 5;
   }
@@ -1760,7 +1760,7 @@ class ExtendedConsolidatedReportPDF {
     this.doc.setFont('helvetica', 'bold');
     this.doc.setFontSize(7);
     this.doc.setTextColor(COLORS.gray700.r, COLORS.gray700.g, COLORS.gray700.b);
-    this.doc.text('Resumen de Candidatos por Estado', this.margin + 4, this.currentY + 6);
+    this.doc.text('Resumen de Candidatos por Estatus', this.margin + 4, this.currentY + 6);
 
     const statuses = profile.candidates_by_status;
     const items = [
@@ -2583,7 +2583,7 @@ this.drawTimelineKPIs(daysOpen, hoursOpen, eventsCount, poolMatchAvg, efficiency
 
     this.doc.text('POSICION', cols.title.x + 2, this.currentY + 4);
     this.doc.text('FECHA', cols.dates.x + 2, this.currentY + 4);
-    this.doc.text('ESTADO', cols.status.x + 2, this.currentY + 4);
+    this.doc.text('ESTATUS', cols.status.x + 2, this.currentY + 4);
     this.doc.text('PRIOR.', cols.priority.x + 2, this.currentY + 4);
     this.doc.text('CAND.', cols.candidates.x + 2, this.currentY + 4);
 
@@ -2712,7 +2712,7 @@ this.drawTimelineKPIs(daysOpen, hoursOpen, eventsCount, poolMatchAvg, efficiency
     this.doc.text('NOMBRE', cols.name.x + 2, this.currentY + 4);
     this.doc.text('EMAIL', cols.email.x + 2, this.currentY + 4);
     this.doc.text('PERFIL', cols.profile.x + 2, this.currentY + 4);
-    this.doc.text('ESTADO', cols.status.x + 2, this.currentY + 4);
+    this.doc.text('ESTATUS', cols.status.x + 2, this.currentY + 4);
     this.doc.text('MATCH', cols.match.x + 2, this.currentY + 4);
 
     this.currentY += headerHeight;

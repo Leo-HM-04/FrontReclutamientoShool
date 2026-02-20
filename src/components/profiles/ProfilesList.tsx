@@ -171,14 +171,14 @@ export default function ProfilesList({ filterStatus, onViewProfile, onEditProfil
         {!filterStatus && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              <i className="fas fa-filter mr-2"></i>Estado
+              <i className="fas fa-filter mr-2"></i>Estatus
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             >
-              <option value="">Todos los estados</option>
+              <option value="">Todos los estatus</option>
               <option value="draft">Borrador</option>
               <option value="pending">Pendiente</option>
               <option value="approved">Aprobado</option>
@@ -260,7 +260,7 @@ export default function ProfilesList({ filterStatus, onViewProfile, onEditProfil
                     Cliente
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                    Estatus
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Prioridad

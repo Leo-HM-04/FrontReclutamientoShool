@@ -184,12 +184,12 @@ export default function ProfileReport({ profileId, onBack }: Props) {
       XLSX.utils.book_append_sheet(wb, ws2, 'Estadísticas');
 
       // ============================================
-      // HOJA 3: Historial de Estados
+      // HOJA 3: Historial de Estatus
       // ============================================
       const historyData = [
-        ['HISTORIAL DE CAMBIOS DE ESTADO'],
+        ['HISTORIAL DE CAMBIOS DE ESTATUS'],
         [''],
-        ['Fecha', 'Estado Anterior', 'Estado Nuevo', 'Usuario', 'Notas'],
+        ['Fecha', 'Estatus Anterior', 'Estatus Nuevo', 'Usuario', 'Notas'],
         ...status_history.map(h => [
           formatDate(h.timestamp),
           h.from_status_display,
@@ -422,12 +422,12 @@ export default function ProfileReport({ profileId, onBack }: Props) {
       </div>
 
       {/* ═══════════════════════════════════════════════ */}
-      {/* CANDIDATOS POR ESTADO */}
+      {/* CANDIDATOS POR ESTATUS */}
       {/* ═══════════════════════════════════════════════ */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
           <i className="fas fa-chart-pie text-blue-600 mr-2"></i>
-          Candidatos por Estado
+          Candidatos por Estatus
         </h2>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

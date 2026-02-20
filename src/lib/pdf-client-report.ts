@@ -714,7 +714,7 @@ class ClientReportPDF {
     
     this.doc.text('POSICIÓN', cols.title.x + 2, this.currentY + 5);
     this.doc.text('FECHAS', cols.dates.x + 2, this.currentY + 5);
-    this.doc.text('ESTADO', cols.status.x + 2, this.currentY + 5);
+    this.doc.text('ESTATUS', cols.status.x + 2, this.currentY + 5);
     this.doc.text('PRIOR.', cols.priority.x + 2, this.currentY + 5);
     this.doc.text('CAND.', cols.candidates.x + 2, this.currentY + 5);
     

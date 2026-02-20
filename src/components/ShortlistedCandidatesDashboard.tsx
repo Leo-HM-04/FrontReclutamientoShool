@@ -1051,13 +1051,13 @@ export default function ShortlistedCandidatesDashboard() {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Estado</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Estatus</label>
                   <select
                     value={newStatus}
                     onChange={(e) => setNewStatus(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   >
-                    <option value="">Seleccionar estado...</option>
+                    <option value="">Seleccionar estatus...</option>
                     <option value="applied">Aplicó</option>
                     <option value="screening">En Revisión</option>
                     <option value="shortlisted">Pre-seleccionado</option>

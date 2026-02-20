@@ -310,7 +310,7 @@ export default function ApplicationsPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
-            <option value="">Todos los estados</option>
+            <option value="">Todos los estatus</option>
             {STATUS_OPTIONS.map(status => (
               <option key={status.value} value={status.value}>
                 {status.label}
@@ -432,7 +432,7 @@ export default function ApplicationsPage() {
                     onClick={() => handleSort('status')}
                   >
                     <div className="flex items-center gap-2">
-                      Estado
+                      Estatus
                       <FontAwesomeIcon icon={getSortIcon('status')} className="text-gray-400" />
                     </div>
                   </th>
@@ -677,10 +677,10 @@ function EditApplicationModal({ application, onClose, onSave }: EditApplicationM
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Estado */}
+          {/* Estatus */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Estado de la Aplicación
+              Estatus de la Aplicación
             </label>
             <select
               value={formData.status}

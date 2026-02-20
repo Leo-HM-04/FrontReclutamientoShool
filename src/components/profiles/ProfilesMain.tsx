@@ -103,9 +103,9 @@ export default function ProfilesMain({ onClose, initialProfileId, initialAction,
     },
     {
       id: "profile-history",
-      label: "Historial de Estados",
+      label: "Historial de Estatus",
       icon: "fa-history",
-      description: "Ver cambios de estado de perfiles"
+      description: "Ver cambios de estatus de perfiles"
     },
     {
       id: "profile-documents",

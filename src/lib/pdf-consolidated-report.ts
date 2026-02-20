@@ -625,8 +625,8 @@ class ConsolidatedReportPDF {
     const cardWidth = (this.contentWidth - 4) / 2;
     const cardHeight = 35;
 
-    this.drawStatusCard(this.margin, startY, cardWidth, cardHeight, 'Perfiles por Estado', this.data.summary.profiles_by_status, this.data.summary.total_profiles);
-    this.drawStatusCard(this.margin + cardWidth + 4, startY, cardWidth, cardHeight, 'Candidatos por Estado', this.data.summary.candidates_by_status, this.data.summary.total_candidates);
+    this.drawStatusCard(this.margin, startY, cardWidth, cardHeight, 'Perfiles por Estatus', this.data.summary.profiles_by_status, this.data.summary.total_profiles);
+    this.drawStatusCard(this.margin + cardWidth + 4, startY, cardWidth, cardHeight, 'Candidatos por Estatus', this.data.summary.candidates_by_status, this.data.summary.total_candidates);
 
     this.currentY = startY + cardHeight + 5;
   }
@@ -932,7 +932,7 @@ class ConsolidatedReportPDF {
       this.doc.text('NOMBRE', cols.name.x + 2, this.currentY + 4);
       this.doc.text('EMAIL', cols.email.x + 2, this.currentY + 4);
       this.doc.text('PERFIL', cols.profile.x + 2, this.currentY + 4);
-      this.doc.text('ESTADO', cols.status.x + 2, this.currentY + 4);
+      this.doc.text('ESTATUS', cols.status.x + 2, this.currentY + 4);
       this.doc.text('MATCH', cols.match.x + 2, this.currentY + 4);
 
       this.currentY += headerHeight;

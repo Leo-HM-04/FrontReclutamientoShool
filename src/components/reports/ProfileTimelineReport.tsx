@@ -289,7 +289,7 @@ export default function ProfileTimelineReport({ profileId, onBack }: Props) {
         >
           <option value="">Todos los eventos</option>
           <option value="profile_created">Perfil Creado</option>
-          <option value="status_change">Cambio de Estado</option>
+          <option value="status_change">Cambio de Estatus</option>
           <option value="candidate_applied">Candidato Aplicó</option>
           <option value="interview_scheduled">Entrevista Agendada</option>
           <option value="offer_extended">Oferta Extendida</option>
@@ -382,7 +382,7 @@ export default function ProfileTimelineReport({ profileId, onBack }: Props) {
             <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
               <i className="fas fa-exchange-alt text-purple-600 text-sm"></i>
             </div>
-            <span className="text-sm text-gray-700">Cambio Estado</span>
+            <span className="text-sm text-gray-700">Cambio Estatus</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">

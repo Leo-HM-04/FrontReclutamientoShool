@@ -2803,8 +2803,27 @@ export default function Page() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                 {/* Candidate Distribution */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-users text-green-600 mr-2" />Distribucion de Candidatos</h3>
-                  <div style={{ height: 280 }}><canvas ref={distributionChartRef} /></div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <i className="fas fa-chart-pie text-purple-600 mr-2" />
+                    Distribución de Candidatos por Estatus
+                  </h3>
+                  <div style={{ height: 280 }}>
+                    <canvas ref={distributionChartRef} />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {candidatesByStatus.slice(0, 6).map((s) => (
+                      <div key={s.status} className="flex items-center text-xs">
+                        <div
+                          className="w-3 h-3 rounded-full mr-2 shrink-0"
+                          style={{ backgroundColor: STATUS_COLORS[s.status] || "#6B7280" }}
+                        />
+                        <span className="text-gray-600 truncate">
+                          {STATUS_LABELS[s.status] || s.status}
+                        </span>
+                        <span className="ml-auto font-bold text-gray-800">{s.count}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Source Effectiveness */}
@@ -2931,10 +2950,107 @@ export default function Page() {
                 )}
               </div>
 
-              {/* ====== PROFILES BY STATUS TILES ====== */}
-              {profilesByStatus2.length > 0 && (
+              {/* ═══════ PROCESSES TABLE ═══════ */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      <i className="fas fa-tasks text-blue-600 mr-2" />
+                      Procesos de Reclutamiento
+                    </h3>
+                    <span className="text-sm text-gray-500">
+                      {processes.length} procesos
+                    </span>
+                  </div>
+                </div>
+                {processes.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          {["Posición", "Cliente", "Estatus", "Prioridad", "Candidatos", "Fecha Límite"].map(
+                            (h) => (
+                              <th
+                                key={h}
+                                className="px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider text-left"
+                              >
+                                {h}
+                              </th>
+                            )
+                          )}
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {processes.map((p) => (
+                          <tr key={p.id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {p.position_title}
+                                </p>
+                                {p.department && (
+                                  <p className="text-xs text-gray-500">{p.department}</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {p.client_name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className="px-2.5 py-1 text-xs font-medium rounded-full"
+                                style={{
+                                  backgroundColor: `${STATUS_COLORS[p.status] || "#6B7280"}20`,
+                                  color: STATUS_COLORS[p.status] || "#6B7280",
+                                }}
+                              >
+                                {p.statusLabel}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`px-2.5 py-1 text-xs font-medium rounded-full ${priorityBadge(
+                                  p.priority
+                                )}`}
+                              >
+                                {p.priority === "urgent"
+                                  ? "Urgente"
+                                  : p.priority === "high"
+                                  ? "Alta"
+                                  : p.priority === "medium"
+                                  ? "Media"
+                                  : "Baja"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {p.candidates_count}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                              {p.deadline
+                                ? new Date(p.deadline).toLocaleDateString("es-MX")
+                                : "—"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <i className="fas fa-briefcase text-5xl text-gray-300 mb-3" />
+                    <p className="text-gray-500">No hay procesos registrados</p>
+                  </div>
+                )}
+              </div>
+
+              {/* ═══════ PROFILES BY STATUS ═══════ */}
+              {profilesByStatus.length > 0 && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4"><i className="fas fa-th-large text-indigo-600 mr-2" />Perfiles por Estado (detalle)</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <i className="fas fa-th-large text-indigo-600 mr-2" />
+                    Perfiles por Estatus
+                  </h3>
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                     {profilesByStatus2.map((s) => {
                       const PCOLORS: Record<string, string> = { draft: '#9CA3AF', pending: '#F59E0B', approved: '#10B981', in_progress: '#3B82F6', candidates_found: '#06B6D4', in_evaluation: '#F97316', in_interview: '#6366F1', finalists: '#EC4899', completed: '#059669', cancelled: '#EF4444' };

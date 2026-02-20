@@ -203,7 +203,7 @@ export default function ProfileStats() {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <i className="fas fa-chart-pie text-orange-600 mr-2"></i>
-            Perfiles por Estado
+            Perfiles por Estatus
           </h4>
           <div className="space-y-3">
             {stats?.by_status &&

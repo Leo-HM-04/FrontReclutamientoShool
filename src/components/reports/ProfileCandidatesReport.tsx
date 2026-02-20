@@ -111,7 +111,7 @@ export default function ProfileCandidatesReport({ profileId, onBack, onViewCandi
         ['Perfil:', data.profile.title],
         ['Cliente:', data.profile.client],
         [''],
-        ['#', 'Nombre', 'Email', 'Teléfono', 'Estado', 'Match %', 'Rating', 'Posición Actual', 'Empresa Actual', 'Experiencia (años)'],
+        ['#', 'Nombre', 'Email', 'Teléfono', 'Estatus', 'Match %', 'Rating', 'Posición Actual', 'Empresa Actual', 'Experiencia (años)'],
         ...data.candidates.map((c, i) => [
           i + 1,
           c.full_name,
@@ -285,18 +285,18 @@ export default function ProfileCandidatesReport({ profileId, onBack, onViewCandi
             />
           </div>
 
-          {/* Filtro por estado */}
+          {/* Filtro por estatus */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <i className="fas fa-filter mr-2"></i>
-              Filtrar por Estado
+              Filtrar por Estatus
             </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              <option value="">Todos los estados</option>
+              <option value="">Todos los estatus</option>
               <option value="applied">Aplicados</option>
               <option value="screening">En Revisión</option>
               <option value="shortlisted">Preseleccionados</option>
@@ -327,7 +327,7 @@ export default function ProfileCandidatesReport({ profileId, onBack, onViewCandi
                     Candidato
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Estado
+                    Estatus
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Match
