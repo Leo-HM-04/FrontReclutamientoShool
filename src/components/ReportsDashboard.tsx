@@ -62,6 +62,19 @@ export default function ReportsDashboard() {
   const [exporting, setExporting] = useState(false);
 
   // ============================================================
+  // HELPER FUNCTIONS
+  // ============================================================
+  
+  const formatNumber = (value: number | string, decimals: number = 0): string => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '0';
+    return new Intl.NumberFormat('es-MX', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(num);
+  };
+
+  // ============================================================
   // LIFECYCLE
   // ============================================================
 
@@ -336,7 +349,7 @@ export default function ReportsDashboard() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-600">Perfiles Creados</h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
-                    {report.summary.profiles_created}
+                    {formatNumber(report.summary.profiles_created)}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -346,7 +359,7 @@ export default function ReportsDashboard() {
               <div className="flex items-center text-sm">
                 <span className="text-gray-600">Completados: </span>
                 <span className="font-semibold text-gray-900 ml-2">
-                  {report.summary.profiles_completed}
+                  {formatNumber(report.summary.profiles_completed)}
                 </span>
               </div>
               {report.summary.profiles_created > 0 && (
@@ -373,7 +386,7 @@ export default function ReportsDashboard() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-600">Candidatos Agregados</h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
-                    {report.summary.candidates_added}
+                    {formatNumber(report.summary.candidates_added)}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
@@ -383,7 +396,7 @@ export default function ReportsDashboard() {
               <div className="flex items-center text-sm">
                 <span className="text-gray-600">Contratados: </span>
                 <span className="font-semibold text-gray-900 ml-2">
-                  {report.summary.candidates_hired}
+                  {formatNumber(report.summary.candidates_hired)}
                 </span>
               </div>
               {report.summary.candidates_added > 0 && (
@@ -410,7 +423,7 @@ export default function ReportsDashboard() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-600">Evaluaciones</h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
-                    {report.summary.evaluations_completed}
+                    {formatNumber(report.summary.evaluations_completed)}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
@@ -428,7 +441,7 @@ export default function ReportsDashboard() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-600">CVs Analizados</h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
-                    {report.summary.cv_analyses}
+                    {formatNumber(report.summary.cv_analyses)}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
@@ -438,7 +451,7 @@ export default function ReportsDashboard() {
               <div className="flex items-center text-sm">
                 <span className="text-gray-600">Docs generados: </span>
                 <span className="font-semibold text-gray-900 ml-2">
-                  {report.summary.documents_generated}
+                  {formatNumber(report.summary.documents_generated)}
                 </span>
               </div>
             </div>
@@ -453,7 +466,7 @@ export default function ReportsDashboard() {
                   Top 5 Clientes Más Activos
                 </h3>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                  {report.summary.new_clients} Nuevos
+                  {formatNumber(report.summary.new_clients)} Nuevos
                 </span>
               </div>
 
@@ -473,7 +486,7 @@ export default function ReportsDashboard() {
                         <div>
                           <p className="font-medium text-gray-900">{client.client__company_name}</p>
                           <p className="text-sm text-gray-500">
-                            {client.count} perfil{client.count !== 1 ? 'es' : ''}
+                            {formatNumber(client.count)} perfil{client.count !== 1 ? 'es' : ''}
                           </p>
                         </div>
                       </div>
@@ -536,13 +549,13 @@ export default function ReportsDashboard() {
                             {supervisor.assigned_to__first_name} {supervisor.assigned_to__last_name}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {supervisor.count} perfil{supervisor.count !== 1 ? 'es' : ''}
+                            {formatNumber(supervisor.count)} perfil{supervisor.count !== 1 ? 'es' : ''}
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-green-600">
-                          {supervisor.count}
+                          {formatNumber(supervisor.count)}
                         </p>
                         <p className="text-xs text-gray-500">perfiles</p>
                       </div>
@@ -560,7 +573,7 @@ export default function ReportsDashboard() {
                 <h3 className="text-lg font-semibold">Clientes Nuevos</h3>
                 <i className="fas fa-building text-2xl opacity-50" />
               </div>
-              <p className="text-4xl font-bold">{report.summary.new_clients}</p>
+              <p className="text-4xl font-bold">{formatNumber(report.summary.new_clients)}</p>
               <p className="text-blue-100 text-sm mt-2">
                 en el período
               </p>
@@ -588,7 +601,7 @@ export default function ReportsDashboard() {
                 <i className="fas fa-robot text-2xl opacity-50" />
               </div>
               <p className="text-4xl font-bold">
-                {report.summary.cv_analyses + report.summary.documents_generated}
+                {formatNumber(report.summary.cv_analyses + report.summary.documents_generated)}
               </p>
               <p className="text-green-100 text-sm mt-2">
                 Procesos automatizados

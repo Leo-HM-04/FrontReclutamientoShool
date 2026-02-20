@@ -118,6 +118,19 @@ export default function CandidatesStatusDashboard() {
   const [rejectionReason, setRejectionReason] = useState('');
 
   // ============================================================
+  // HELPER FUNCTIONS
+  // ============================================================
+  
+  const formatNumber = (value: number | string, decimals: number = 0): string => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '0';
+    return new Intl.NumberFormat('es-MX', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(num);
+  };
+
+  // ============================================================
   // LIFECYCLE
   // ============================================================
   
@@ -546,19 +559,19 @@ export default function CandidatesStatusDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-blue-50 p-3 rounded-lg">
             <div className="text-blue-600 text-sm font-medium">Perfiles Activos</div>
-            <div className="text-xl font-bold text-gray-900">{profiles.length}</div>
+            <div className="text-xl font-bold text-gray-900">{formatNumber(profiles.length)}</div>
           </div>
           <div className="bg-orange-50 p-3 rounded-lg">
             <div className="text-orange-600 text-sm font-medium">Aplicaciones</div>
-            <div className="text-xl font-bold text-gray-900">{applications.length}</div>
+            <div className="text-xl font-bold text-gray-900">{formatNumber(applications.length)}</div>
           </div>
           <div className="bg-green-50 p-3 rounded-lg">
             <div className="text-green-600 text-sm font-medium">Contratados</div>
-            <div className="text-xl font-bold text-gray-900">{applications.filter(a => a.status === 'hired').length}</div>
+            <div className="text-xl font-bold text-gray-900">{formatNumber(applications.filter(a => a.status === 'hired').length)}</div>
           </div>
           <div className="bg-yellow-50 p-3 rounded-lg">
             <div className="text-yellow-600 text-sm font-medium">En Evaluación</div>
-            <div className="text-xl font-bold text-gray-900">{applications.filter(a => a.status === 'in_evaluation').length}</div>
+            <div className="text-xl font-bold text-gray-900">{formatNumber(applications.filter(a => a.status === 'in_evaluation').length)}</div>
           </div>
         </div>
       </div>
@@ -610,7 +623,7 @@ export default function CandidatesStatusDashboard() {
                         {profile.position_title}
                       </h3>
                       <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                        {applications.filter(app => app.profile === profile.id).length || 0}
+                        {formatNumber(applications.filter(app => app.profile === profile.id).length || 0)}
                       </span>
                     </div>
                     <p className="text-xs text-gray-600 mb-1">{profile.client_name}</p>
@@ -664,7 +677,7 @@ export default function CandidatesStatusDashboard() {
                 <div className="bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <span className="text-sm font-medium text-blue-900">
-                      {selectedApplications.size} candidato(s) seleccionado(s)
+                      {formatNumber(selectedApplications.size)} candidato(s) seleccionado(s)
                     </span>
                     <button
                       onClick={() => setSelectedApplications(new Set())}
@@ -757,7 +770,7 @@ export default function CandidatesStatusDashboard() {
                                   <div className="flex items-center">
                                     <i className="fas fa-star text-yellow-500 mr-2" />
                                     <span className="text-sm font-medium text-gray-900">
-                                      Rating: {app.overall_rating}/10
+                                      Rating: {formatNumber(app.overall_rating)}/10
                                     </span>
                                   </div>
                                 )}
@@ -918,7 +931,7 @@ export default function CandidatesStatusDashboard() {
 
               <div className="mb-4">
                 <p className="text-sm text-gray-600">
-                  Actualizando <strong>{selectedApplications.size}</strong> candidato(s)
+                  Actualizando <strong>{formatNumber(selectedApplications.size)}</strong> candidato(s)
                 </p>
               </div>
               
@@ -1053,7 +1066,7 @@ export default function CandidatesStatusDashboard() {
                   <h4 className="font-semibold text-gray-900 mb-3">Experiencia y Educación</h4>
                   <div>
                     <p className="text-sm text-gray-600">Años de Experiencia</p>
-                    <p className="font-medium text-gray-900">{selectedCandidate.years_of_experience} años</p>
+                    <p className="font-medium text-gray-900">{formatNumber(selectedCandidate.years_of_experience)} años</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Nivel de Educación</p>
@@ -1062,7 +1075,7 @@ export default function CandidatesStatusDashboard() {
                   <div>
                     <p className="text-sm text-gray-600">Expectativa Salarial</p>
                     <p className="font-medium text-gray-900">
-                      ${selectedCandidate.salary_expectation_min?.toLocaleString()} - ${selectedCandidate.salary_expectation_max?.toLocaleString()} {selectedCandidate.salary_currency}
+                      ${formatNumber(selectedCandidate.salary_expectation_min ?? 0)} - ${formatNumber(selectedCandidate.salary_expectation_max ?? 0)} {selectedCandidate.salary_currency}
                     </p>
                   </div>
                 </div>

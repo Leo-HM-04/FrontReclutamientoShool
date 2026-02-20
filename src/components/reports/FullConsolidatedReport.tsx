@@ -943,6 +943,15 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
     }).format(amount);
   };
 
+  const formatNumber = (value: number | string, decimals: number = 0): string => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '0';
+    return new Intl.NumberFormat('es-MX', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(num);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -1095,7 +1104,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                   </span>
                 )}
                 <span className="ml-2 text-gray-500">
-                  ({getFilteredData().profiles.length} perfiles, {getFilteredData().candidates.length} candidatos)
+                  ({formatNumber(getFilteredData().profiles.length)} perfiles, {formatNumber(getFilteredData().candidates.length)} candidatos)
                 </span>
               </span>
             </div>
@@ -1129,7 +1138,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                   ? 'bg-blue-100 text-blue-600' 
                   : 'bg-gray-100 text-gray-600'
               }`}>
-                {tab.count}
+                {formatNumber(tab.count)}
               </span>
             )}
           </button>
@@ -1147,14 +1156,14 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-blue-600 font-medium">Total Perfiles</p>
-                    <p className="text-3xl font-bold text-blue-700">{data.summary.total_profiles}</p>
+                    <p className="text-3xl font-bold text-blue-700">{formatNumber(data.summary.total_profiles)}</p>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <i className="fas fa-briefcase text-blue-600 text-xl"></i>
                   </div>
                 </div>
                 <p className="text-xs text-blue-600 mt-2">
-                  {data.summary.profiles_completed} completados
+                  {formatNumber(data.summary.profiles_completed)} completados
                 </p>
               </div>
 
@@ -1162,14 +1171,14 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-purple-600 font-medium">Total Candidatos</p>
-                    <p className="text-3xl font-bold text-purple-700">{data.summary.total_candidates}</p>
+                    <p className="text-3xl font-bold text-purple-700">{formatNumber(data.summary.total_candidates)}</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                     <i className="fas fa-users text-purple-600 text-xl"></i>
                   </div>
                 </div>
                 <p className="text-xs text-purple-600 mt-2">
-                  {data.summary.candidates_hired} contratados
+                  {formatNumber(data.summary.candidates_hired)} contratados
                 </p>
               </div>
 
@@ -1177,7 +1186,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-green-600 font-medium">Total Clientes</p>
-                    <p className="text-3xl font-bold text-green-700">{data.summary.total_clients}</p>
+                    <p className="text-3xl font-bold text-green-700">{formatNumber(data.summary.total_clients)}</p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                     <i className="fas fa-building text-green-600 text-xl"></i>
@@ -1231,7 +1240,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                             style={{ width: `${(count / data.summary.total_profiles) * 100}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm font-semibold text-gray-700 w-8 text-right">{count}</span>
+                        <span className="text-sm font-semibold text-gray-700 w-8 text-right">{formatNumber(count)}</span>
                       </div>
                     </div>
                   ))}
@@ -1259,7 +1268,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                             style={{ width: `${(count / data.summary.total_candidates) * 100}%` }}
                           ></div>
                         </div>
-                        <span className="text-sm font-semibold text-gray-700 w-8 text-right">{count}</span>
+                        <span className="text-sm font-semibold text-gray-700 w-8 text-right">{formatNumber(count)}</span>
                       </div>
                     </div>
                   ))}
@@ -1310,7 +1319,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             <div className="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 <i className="fas fa-briefcase text-blue-600 mr-2"></i>
-                Todos los Perfiles ({data.profiles.length})
+                Todos los Perfiles ({formatNumber(data.profiles.length)})
               </h3>
               <div className="flex space-x-2">
                 <button
@@ -1359,15 +1368,15 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                       {/* Mini KPIs */}
                       <div className="flex space-x-4 text-white">
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{profile.candidates_count}</div>
+                          <div className="text-2xl font-bold">{formatNumber(profile.candidates_count)}</div>
                           <div className="text-xs text-blue-200">Candidatos</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{profile.shortlisted_count}</div>
+                          <div className="text-2xl font-bold">{formatNumber(profile.shortlisted_count)}</div>
                           <div className="text-xs text-blue-200">Preselec.</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{profile.interviewed_count}</div>
+                          <div className="text-2xl font-bold">{formatNumber(profile.interviewed_count)}</div>
                           <div className="text-xs text-blue-200">Entrev.</div>
                         </div>
                       </div>
@@ -1401,7 +1410,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 uppercase">Experiencia Requerida</p>
-                            <p className="font-medium text-gray-900">{profile.years_experience} años</p>
+                            <p className="font-medium text-gray-900">{formatNumber(profile.years_experience)} años</p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 uppercase">Nivel Educativo</p>
@@ -1462,35 +1471,35 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                       </h4>
                       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-blue-600">{profile.candidates_by_status?.applied || 0}</div>
+                          <div className="text-2xl font-bold text-blue-600">{formatNumber(profile.candidates_by_status?.applied || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">Aplicados</div>
                         </div>
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-yellow-600">{profile.candidates_by_status?.screening || 0}</div>
+                          <div className="text-2xl font-bold text-yellow-600">{formatNumber(profile.candidates_by_status?.screening || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">En Revisión</div>
                         </div>
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-cyan-600">{profile.candidates_by_status?.shortlisted || 0}</div>
+                          <div className="text-2xl font-bold text-cyan-600">{formatNumber(profile.candidates_by_status?.shortlisted || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">Preseleccionados</div>
                         </div>
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-purple-600">{profile.candidates_by_status?.interviewing || 0}</div>
+                          <div className="text-2xl font-bold text-purple-600">{formatNumber(profile.candidates_by_status?.interviewing || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">Entrevistados</div>
                         </div>
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-orange-600">{profile.candidates_by_status?.offered || 0}</div>
+                          <div className="text-2xl font-bold text-orange-600">{formatNumber(profile.candidates_by_status?.offered || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">Con Oferta</div>
                         </div>
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-green-600">{profile.candidates_by_status?.hired || 0}</div>
+                          <div className="text-2xl font-bold text-green-600">{formatNumber(profile.candidates_by_status?.hired || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">Aceptados</div>
                         </div>
                         <div className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                          <div className="text-2xl font-bold text-red-600">{profile.candidates_by_status?.rejected || 0}</div>
+                          <div className="text-2xl font-bold text-red-600">{formatNumber(profile.candidates_by_status?.rejected || 0)}</div>
                           <div className="text-xs text-gray-600 font-medium">Rechazados</div>
                         </div>
                         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg p-3 text-center shadow-sm">
-                          <div className="text-2xl font-bold text-white">{profile.candidates_count}</div>
+                          <div className="text-2xl font-bold text-white">{formatNumber(profile.candidates_count)}</div>
                           <div className="text-xs text-blue-100 font-medium">Total</div>
                         </div>
                       </div>
@@ -1530,7 +1539,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                       </div>
                       <div className="flex items-center">
                         <i className="fas fa-briefcase text-gray-400 mr-2"></i>
-                        <span>Vacantes: {profile.positions_available}</span>
+                        <span>Vacantes: {formatNumber(profile.positions_available)}</span>
                       </div>
                     </div>
                   </div>
@@ -1547,7 +1556,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             <div className="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 <i className="fas fa-building text-green-600 mr-2"></i>
-                Todos los Clientes ({data.clients.length})
+                Todos los Clientes ({formatNumber(data.clients.length)})
               </h3>
               <div className="flex space-x-2">
                 <button
@@ -1585,15 +1594,15 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                       {/* Mini KPIs */}
                       <div className="flex space-x-4 text-white">
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{client.active_profiles}</div>
+                          <div className="text-2xl font-bold">{formatNumber(client.active_profiles)}</div>
                           <div className="text-xs text-green-200">Activos</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{client.total_profiles}</div>
+                          <div className="text-2xl font-bold">{formatNumber(client.total_profiles)}</div>
                           <div className="text-xs text-green-200">Total Perf.</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{client.total_candidates_hired}</div>
+                          <div className="text-2xl font-bold">{formatNumber(client.total_candidates_hired)}</div>
                           <div className="text-xs text-green-200">Contratados</div>
                         </div>
                       </div>
@@ -1608,15 +1617,15 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                     {/* KPIs del Cliente */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
                       <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
-                        <div className="text-2xl font-bold text-blue-600">{client.total_profiles}</div>
+                        <div className="text-2xl font-bold text-blue-600">{formatNumber(client.total_profiles)}</div>
                         <div className="text-xs text-gray-600 font-medium">Total Perfiles</div>
                       </div>
                       <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
-                        <div className="text-2xl font-bold text-green-600">{client.profiles_completed}</div>
+                        <div className="text-2xl font-bold text-green-600">{formatNumber(client.profiles_completed)}</div>
                         <div className="text-xs text-gray-600 font-medium">Completados</div>
                       </div>
                       <div className="bg-emerald-50 rounded-xl p-4 text-center border border-emerald-100">
-                        <div className="text-2xl font-bold text-emerald-600">{client.active_profiles}</div>
+                        <div className="text-2xl font-bold text-emerald-600">{formatNumber(client.active_profiles)}</div>
                         <div className="text-xs text-gray-600 font-medium">Activos</div>
                       </div>
                       <div className="bg-amber-50 rounded-xl p-4 text-center border border-amber-100">
@@ -1628,7 +1637,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                         <div className="text-xs text-gray-600 font-medium">Días Prom.</div>
                       </div>
                       <div className="bg-indigo-50 rounded-xl p-4 text-center border border-indigo-100">
-                        <div className="text-2xl font-bold text-indigo-600">{client.total_candidates}</div>
+                        <div className="text-2xl font-bold text-indigo-600">{formatNumber(client.total_candidates)}</div>
                         <div className="text-xs text-gray-600 font-medium">Candidatos</div>
                       </div>
                     </div>
@@ -1643,7 +1652,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
                           {Object.entries(client.profiles_by_status).map(([status, count]) => (
                             <div key={status} className="bg-white rounded-lg p-3 text-center border border-gray-200 shadow-sm">
-                              <div className="text-2xl font-bold text-gray-800">{count}</div>
+                              <div className="text-2xl font-bold text-gray-800">{formatNumber(count)}</div>
                               <div className="text-xs text-gray-600 font-medium capitalize">{getStatusLabel(status)}</div>
                             </div>
                           ))}
@@ -1726,7 +1735,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                         <div className="bg-gray-100 px-5 py-3 border-b border-gray-200">
                           <h4 className="font-semibold text-gray-900 flex items-center">
                             <i className="fas fa-briefcase text-blue-600 mr-2"></i>
-                            Perfiles ({client.profiles_list.length})
+                            Perfiles ({formatNumber(client.profiles_list.length)})
                           </h4>
                         </div>
                         <div className="overflow-x-auto">
@@ -1759,7 +1768,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                                   <td className="px-4 py-3 text-center">
                                     <span className="inline-flex items-center text-gray-600">
                                       <i className="fas fa-users mr-1 text-gray-400"></i>
-                                      {profile.candidates_count}
+                                      {formatNumber(profile.candidates_count)}
                                     </span>
                                   </td>
                                   <td className="px-4 py-3 text-sm text-gray-600">
@@ -1780,7 +1789,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                           <div>
                             <p className="text-sm text-green-100">Tasa de Éxito</p>
                             <p className="text-2xl font-bold">{client.success_rate}%</p>
-                            <p className="text-xs text-green-200">{client.profiles_completed} de {client.total_profiles} perfiles completados</p>
+                            <p className="text-xs text-green-200">{formatNumber(client.profiles_completed)} de {formatNumber(client.total_profiles)} perfiles completados</p>
                           </div>
                           <i className="fas fa-check-circle text-4xl text-white/30"></i>
                         </div>
@@ -1799,7 +1808,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-sm text-purple-100">Candidatos Totales</p>
-                            <p className="text-2xl font-bold">{client.total_candidates}</p>
+                            <p className="text-2xl font-bold">{formatNumber(client.total_candidates)}</p>
                             <p className="text-xs text-purple-200">Gestionados en todos los perfiles</p>
                           </div>
                           <i className="fas fa-users text-4xl text-white/30"></i>
@@ -1822,7 +1831,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">Total Candidatos</p>
-                    <p className="text-3xl font-bold text-purple-600">{data.candidates.length}</p>
+                    <p className="text-3xl font-bold text-purple-600">{formatNumber(data.candidates.length)}</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                     <i className="fas fa-users text-purple-600 text-xl"></i>
@@ -1849,7 +1858,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                   <div>
                     <p className="text-sm text-gray-500">Contratados</p>
                     <p className="text-3xl font-bold text-green-600">
-                      {data.candidates.filter(c => c.status === 'hired').length}
+                      {formatNumber(data.candidates.filter(c => c.status === 'hired').length)}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -1877,7 +1886,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             <div className="flex items-center justify-between bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 <i className="fas fa-users text-purple-600 mr-2"></i>
-                Todos los Candidatos ({data.candidates.length})
+                Todos los Candidatos ({formatNumber(data.candidates.length)})
               </h3>
               <div className="flex space-x-2">
                 <button
@@ -2024,7 +2033,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 uppercase">Años de Experiencia</p>
-                            <p className="font-medium text-gray-900">{candidate.years_experience} años</p>
+                            <p className="font-medium text-gray-900">{formatNumber(candidate.years_experience)} años</p>
                           </div>
                           <div>
                             <p className="text-xs text-gray-500 uppercase">Nivel Educativo</p>
@@ -2079,11 +2088,11 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                     {/* Información Adicional */}
                     <div className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-4">
                       <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-100">
-                        <div className="text-2xl font-bold text-blue-600">{candidate.notes_count}</div>
+                        <div className="text-2xl font-bold text-blue-600">{formatNumber(candidate.notes_count)}</div>
                         <div className="text-xs text-gray-600 font-medium">Notas</div>
                       </div>
                       <div className="bg-green-50 rounded-lg p-4 text-center border border-green-100">
-                        <div className="text-2xl font-bold text-green-600">{candidate.documents_count}</div>
+                        <div className="text-2xl font-bold text-green-600">{formatNumber(candidate.documents_count)}</div>
                         <div className="text-xs text-gray-600 font-medium">Documentos</div>
                       </div>
                       <div className="bg-purple-50 rounded-lg p-4 text-center border border-purple-100">
@@ -2095,7 +2104,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                         <div className="text-xs text-gray-600 font-medium">Aplicó</div>
                       </div>
                       <div className="bg-indigo-50 rounded-lg p-4 text-center border border-indigo-100">
-                        <div className="text-sm font-bold text-indigo-600">{candidate.years_experience}</div>
+                        <div className="text-sm font-bold text-indigo-600">{formatNumber(candidate.years_experience)}</div>
                         <div className="text-xs text-gray-600 font-medium">Años Exp.</div>
                       </div>
                     </div>
@@ -2123,7 +2132,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 <option value="">-- Seleccionar un perfil --</option>
                 {data.profiles.map(profile => (
                   <option key={profile.id} value={profile.id}>
-                    {profile.position_title} - {profile.client_name} ({profile.candidates_count} candidatos)
+                    {profile.position_title} - {profile.client_name} ({formatNumber(profile.candidates_count)} candidatos)
                   </option>
                 ))}
               </select>
@@ -2160,7 +2169,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-bold">{profileCandidates.length}</div>
+                        <div className="text-3xl font-bold">{formatNumber(profileCandidates.length)}</div>
                         <div className="text-blue-200 text-sm">Candidatos</div>
                       </div>
                     </div>
@@ -2170,43 +2179,43 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                     <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
                       <div className="text-2xl font-bold text-blue-600">
-                        {profileCandidates.filter(c => c.status === 'new' || c.status === 'applied').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'new' || c.status === 'applied').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">Aplicados</div>
                     </div>
                     <div className="bg-yellow-50 rounded-xl p-4 text-center border border-yellow-100">
                       <div className="text-2xl font-bold text-yellow-600">
-                        {profileCandidates.filter(c => c.status === 'screening' || c.status === 'in_review').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'screening' || c.status === 'in_review').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">En Revisión</div>
                     </div>
                     <div className="bg-cyan-50 rounded-xl p-4 text-center border border-cyan-100">
                       <div className="text-2xl font-bold text-cyan-600">
-                        {profileCandidates.filter(c => c.status === 'shortlisted' || c.status === 'qualified').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'shortlisted' || c.status === 'qualified').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">Preseleccionados</div>
                     </div>
                     <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
                       <div className="text-2xl font-bold text-purple-600">
-                        {profileCandidates.filter(c => c.status === 'interviewing' || c.status === 'interview').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'interviewing' || c.status === 'interview').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">Entrevistados</div>
                     </div>
                     <div className="bg-orange-50 rounded-xl p-4 text-center border border-orange-100">
                       <div className="text-2xl font-bold text-orange-600">
-                        {profileCandidates.filter(c => c.status === 'offered' || c.status === 'offer').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'offered' || c.status === 'offer').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">Con Oferta</div>
                     </div>
                     <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
                       <div className="text-2xl font-bold text-green-600">
-                        {profileCandidates.filter(c => c.status === 'hired').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'hired').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">Contratados</div>
                     </div>
                     <div className="bg-red-50 rounded-xl p-4 text-center border border-red-100">
                       <div className="text-2xl font-bold text-red-600">
-                        {profileCandidates.filter(c => c.status === 'rejected').length}
+                        {formatNumber(profileCandidates.filter(c => c.status === 'rejected').length)}
                       </div>
                       <div className="text-xs text-gray-600 font-medium">Rechazados</div>
                     </div>
@@ -2242,7 +2251,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                     <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
                       <h4 className="font-semibold text-gray-900 flex items-center">
                         <i className="fas fa-users text-purple-600 mr-2"></i>
-                        Candidatos que Aplicaron ({profileCandidates.length})
+                        Candidatos que Aplicaron ({formatNumber(profileCandidates.length)})
                       </h4>
                     </div>
                     
@@ -2305,7 +2314,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                                   </div>
                                 </td>
                                 <td className="px-4 py-4 text-sm text-gray-600">
-                                  {candidate.years_experience} años
+                                  {formatNumber(candidate.years_experience)} años
                                 </td>
                                 <td className="px-4 py-4 text-sm text-gray-600">
                                   {formatDate(candidate.created_at)}

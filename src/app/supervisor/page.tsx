@@ -316,7 +316,15 @@ function useToasts() {
   };
 }
 
-
+// Función para formatear números con separador de miles
+function formatNumber(value: number | string, decimals: number = 0): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return '0';
+  return new Intl.NumberFormat('es-MX', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(num);
+}
 
 export default function Page() {
   const router = useRouter();
@@ -2260,7 +2268,7 @@ export default function Page() {
                     <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
                       <h3 className="font-semibold text-gray-900">Notificaciones</h3>
                       <div className="text-xs text-gray-500 flex items-center space-x-3">
-                        <span>{notifications.unread} sin leer • {notifications.readItems.length} leídas</span>
+                        <span>{formatNumber(notifications.unread)} sin leer • {formatNumber(notifications.readItems.length)} leídas</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); loadNotificationsFromAPI(true); }}
                           className="p-1 rounded hover:bg-blue-50 flex items-center"
@@ -2470,7 +2478,7 @@ export default function Page() {
                       <span className="flex-1 text-left">Perfiles de Reclutamiento</span>
                       {stats.activeProfiles > 0 && (
                         <span className="ml-auto bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                          {stats.activeProfiles}
+                          {formatNumber(stats.activeProfiles)}
                         </span>
                       )}
                     </button>
@@ -2694,7 +2702,7 @@ export default function Page() {
                     <div className="p-2 bg-blue-50 rounded-lg"><i className="fas fa-briefcase text-blue-600" /></div>
                     {(() => { const prev = lastMonthData.profiles || 1; const pct = Math.round(((stats.activeProcesses - prev) / prev) * 100); const up = pct >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(pct)}%</span>); })()}
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{stats.activeProcesses}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.activeProcesses)}</p>
                   <p className="text-xs text-gray-500 mt-1">Procesos Activos</p>
                 </div>
                 {/* Total Candidatos */}
@@ -2703,7 +2711,7 @@ export default function Page() {
                     <div className="p-2 bg-green-50 rounded-lg"><i className="fas fa-users text-green-600" /></div>
                     {(() => { const prev = lastMonthData.candidates || 1; const pct = Math.round(((candidates.length - prev) / prev) * 100); const up = pct >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(pct)}%</span>); })()}
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{candidates.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatNumber(candidates.length)}</p>
                   <p className="text-xs text-gray-500 mt-1">Total Candidatos</p>
                 </div>
                 {/* Tasa de Exito */}
@@ -2720,25 +2728,25 @@ export default function Page() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 bg-emerald-50 rounded-lg"><i className="fas fa-user-check text-emerald-600" /></div>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{stats.completedCandidates}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.completedCandidates)}</p>
                   <p className="text-xs text-gray-500 mt-1">Contratados (mes)</p>
                 </div>
                 {/* Aprobaciones Pendientes */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 bg-amber-50 rounded-lg"><i className="fas fa-clock text-amber-600" /></div>
-                    {pendingApprovals.length > 0 && <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendingApprovals.length}</span>}
+                    {pendingApprovals.length > 0 && <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">{formatNumber(pendingApprovals.length)}</span>}
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{pendingApprovals.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatNumber(pendingApprovals.length)}</p>
                   <p className="text-xs text-gray-500 mt-1">Pend. Aprobacion</p>
                 </div>
                 {/* Candidatos Estancados */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
                   <div className="flex items-center justify-between mb-3">
                     <div className="p-2 bg-red-50 rounded-lg"><i className="fas fa-exclamation-triangle text-red-600" /></div>
-                    {stagnantCandidates.length > 0 && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{stagnantCandidates.length}</span>}
+                    {stagnantCandidates.length > 0 && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{formatNumber(stagnantCandidates.length)}</span>}
                   </div>
-                  <p className="text-2xl font-bold text-gray-900">{stagnantCandidates.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatNumber(stagnantCandidates.length)}</p>
                   <p className="text-xs text-gray-500 mt-1">Cand. Estancados</p>
                 </div>
               </div>
@@ -2768,11 +2776,11 @@ export default function Page() {
                   <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-blue-50 rounded-lg p-3 text-center">
                       <p className="text-xs text-blue-600 font-medium">Prediccion Candidatos (3 meses)</p>
-                      <p className="text-xl font-bold text-blue-800">~{Math.round(candidateRegression.predict(trendData.length + 2))}</p>
+                      <p className="text-xl font-bold text-blue-800">~{formatNumber(Math.round(candidateRegression.predict(trendData.length + 2)))}</p>
                     </div>
                     <div className="bg-green-50 rounded-lg p-3 text-center">
                       <p className="text-xs text-green-600 font-medium">Prediccion Contrataciones (3 meses)</p>
-                      <p className="text-xl font-bold text-green-800">~{Math.round(hireRegression.predict(trendData.length + 2))}</p>
+                      <p className="text-xl font-bold text-green-800">~{formatNumber(Math.round(hireRegression.predict(trendData.length + 2)))}</p>
                     </div>
                     <div className="bg-purple-50 rounded-lg p-3 text-center">
                       <p className="text-xs text-purple-600 font-medium">Tendencia General</p>
@@ -2794,7 +2802,7 @@ export default function Page() {
                         <div key={s.status} className="flex items-center text-xs">
                           <div className="w-3 h-3 rounded-full mr-2 shrink-0" style={{ backgroundColor: s.color }} />
                           <span className="text-gray-600 truncate">{s.label}</span>
-                          <span className="ml-auto font-bold text-gray-800">{s.count}</span>
+                          <span className="ml-auto font-bold text-gray-800">{formatNumber(s.count)}</span>
                         </div>
                       ))}
                     </div>
@@ -2848,7 +2856,7 @@ export default function Page() {
                         <span className="text-gray-600 truncate">
                           {STATUS_LABELS[s.status] || s.status}
                         </span>
-                        <span className="ml-auto font-bold text-gray-800">{s.count}</span>
+                        <span className="ml-auto font-bold text-gray-800">{formatNumber(s.count)}</span>
                       </div>
                     ))}
                   </div>
@@ -2895,7 +2903,7 @@ export default function Page() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     <i className="fas fa-exclamation-triangle text-amber-600 mr-2" />Candidatos Estancados
-                    {stagnantCandidates.length > 0 && <span className="ml-2 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{stagnantCandidates.length}</span>}
+                    {stagnantCandidates.length > 0 && <span className="ml-2 bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-0.5 rounded-full">{formatNumber(stagnantCandidates.length)}</span>}
                   </h3>
                   <p className="text-xs text-gray-500 mb-3">Sin cambio de estado por mas de 14 dias</p>
                   {stagnantCandidates.length > 0 ? (
@@ -2929,7 +2937,7 @@ export default function Page() {
                 <div className="px-6 py-4 border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-gray-900"><i className="fas fa-user-check text-green-600 mr-2" />Aprobaciones Pendientes</h3>
-                    <span className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">{pendingApprovals.length} pendientes</span>
+                    <span className="bg-red-100 text-red-800 text-xs font-medium px-3 py-1 rounded-full">{formatNumber(pendingApprovals.length)} pendientes</span>
                   </div>
                 </div>
                 {pendingApprovals.length > 0 ? (
@@ -2987,7 +2995,7 @@ export default function Page() {
                       Procesos de Reclutamiento
                     </h3>
                     <span className="text-sm text-gray-500">
-                      {processes.length} procesos
+                      {formatNumber(processes.length)} procesos
                     </span>
                   </div>
                 </div>
@@ -3051,7 +3059,7 @@ export default function Page() {
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {p.candidates_count}
+                              {formatNumber(p.candidates_count ?? 0)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                               {p.deadline
@@ -3086,7 +3094,7 @@ export default function Page() {
                       const color = PCOLORS[s.status] || '#6B7280';
                       return (
                         <div key={s.status} className="rounded-lg p-4 text-center border" style={{ backgroundColor: `${color}10`, borderColor: `${color}30` }}>
-                          <p className="text-2xl font-bold" style={{ color }}>{s.count}</p>
+                          <p className="text-2xl font-bold" style={{ color }}>{formatNumber(s.count)}</p>
                           <p className="text-xs text-gray-600 mt-1">{PLABELS[s.status] || s.status}</p>
                         </div>
                       );
@@ -3205,7 +3213,7 @@ export default function Page() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {p.candidates?.current ?? 0} / {p.candidates?.target ?? 0}
+                            {formatNumber(p.candidates?.current ?? 0)} / {formatNumber(p.candidates?.target ?? 0)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="w-full bg-gray-200 rounded-full h-2">
@@ -3288,7 +3296,7 @@ export default function Page() {
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600">Total Candidatos</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {candidatesOverview?.total || candidates.length || 0}
+                        {formatNumber(candidatesOverview?.total || candidates.length || 0)}
                       </p>
                     </div>
                   </div>
@@ -3303,7 +3311,7 @@ export default function Page() {
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-600">Activos</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {candidatesOverview?.by_status?.find((s: any) => s.status === 'qualified')?.count || 0}
+                        {formatNumber(candidatesOverview?.by_status?.find((s: any) => s.status === 'qualified')?.count || 0)}
                       </p>
                     </div>
                   </div>
@@ -3466,7 +3474,7 @@ export default function Page() {
                             <div className="h-8 bg-gray-200 rounded w-16 mt-2"></div>
                           </div>
                         ) : (
-                          <p className="text-2xl font-bold text-gray-900">{applicationsData.total}</p>
+                          <p className="text-2xl font-bold text-gray-900">{formatNumber(applicationsData.total)}</p>
                         )}
                       </div>
                     </div>
@@ -3483,7 +3491,7 @@ export default function Page() {
                             <div className="h-8 bg-gray-200 rounded w-12 mt-2"></div>
                           </div>
                         ) : (
-                          <p className="text-2xl font-bold text-gray-900">{applicationsData.shortlisted}</p>
+                          <p className="text-2xl font-bold text-gray-900">{formatNumber(applicationsData.shortlisted)}</p>
                         )}
                       </div>
                     </div>
@@ -3500,7 +3508,7 @@ export default function Page() {
                             <div className="h-8 bg-gray-200 rounded w-12 mt-2"></div>
                           </div>
                         ) : (
-                          <p className="text-2xl font-bold text-gray-900">{applicationsData.active}</p>
+                          <p className="text-2xl font-bold text-gray-900">{formatNumber(applicationsData.active)}</p>
                         )}
                       </div>
                     </div>
@@ -3812,7 +3820,7 @@ export default function Page() {
                           <div className="ml-4">
                             <p className="text-sm font-medium text-gray-600">Total Candidatos</p>
                             <p className="text-2xl font-bold text-gray-900">
-                              {historyData.total_candidates.toLocaleString()}
+                              {formatNumber(historyData.total_candidates)}
                             </p>
                           </div>
                         </div>
@@ -3826,7 +3834,7 @@ export default function Page() {
                           </div>
                           <div className="ml-4">
                             <p className="text-sm font-medium text-gray-600">Contratados</p>
-                            <p className="text-2xl font-bold text-gray-900">{historyData.hired}</p>
+                            <p className="text-2xl font-bold text-gray-900">{formatNumber(historyData.hired)}</p>
                           </div>
                         </div>
                       </div>
@@ -3839,7 +3847,7 @@ export default function Page() {
                           </div>
                           <div className="ml-4">
                             <p className="text-sm font-medium text-gray-600">En Proceso</p>
-                            <p className="text-2xl font-bold text-gray-900">{historyData.in_process}</p>
+                            <p className="text-2xl font-bold text-gray-900">{formatNumber(historyData.in_process)}</p>
                           </div>
                         </div>
                       </div>
@@ -4137,11 +4145,11 @@ export default function Page() {
                       <div className="border-t border-gray-100 pt-4">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm text-gray-600">Procesos Activos</span>
-                          <span className="text-sm font-semibold text-gray-900">{cl.activeProcesses}</span>
+                          <span className="text-sm font-semibold text-gray-900">{formatNumber(cl.activeProcesses)}</span>
                         </div>
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm text-gray-600">Candidatos Totales</span>
-                          <span className="text-sm font-semibold text-gray-900">{cl.totalCandidates}</span>
+                          <span className="text-sm font-semibold text-gray-900">{formatNumber(cl.totalCandidates)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600">Última Actividad</span>
@@ -4206,11 +4214,11 @@ export default function Page() {
                       <div className="space-y-3 mb-4 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-600">Procesos Asignados</span>
-                          <span className="font-semibold text-gray-900">{m.assignedProcesses}</span>
+                          <span className="font-semibold text-gray-900">{formatNumber(m.assignedProcesses)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Candidatos Gestionados</span>
-                          <span className="font-semibold text-gray-900">{m.managedCandidates}</span>
+                          <span className="font-semibold text-gray-900">{formatNumber(m.managedCandidates)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Tasa de Éxito</span>
@@ -4362,30 +4370,30 @@ export default function Page() {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <div className="text-blue-600 text-sm font-medium">Perfiles Activos</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {clientProgressProfiles.filter((p: any) =>
+                        {formatNumber(clientProgressProfiles.filter((p: any) =>
                           p.status !== 'cancelled' && p.status !== 'completed'
-                        ).length}
+                        ).length)}
                       </div>
                     </div>
 
                     <div className="bg-green-50 p-4 rounded-lg">
                       <div className="text-green-600 text-sm font-medium">Perfiles Completados</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {clientProgressProfiles.filter((p: any) => p.status === 'completed').length}
+                        {formatNumber(clientProgressProfiles.filter((p: any) => p.status === 'completed').length)}
                       </div>
                     </div>
 
                     <div className="bg-yellow-50 p-4 rounded-lg">
                       <div className="text-yellow-600 text-sm font-medium">Pendientes Aprobación</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {clientProgressProfiles.filter((p: any) => p.status === 'pending').length}
+                        {formatNumber(clientProgressProfiles.filter((p: any) => p.status === 'pending').length)}
                       </div>
                     </div>
 
                     <div className="bg-purple-50 p-4 rounded-lg">
                       <div className="text-purple-600 text-sm font-medium">Total Perfiles</div>
                       <div className="text-2xl font-bold text-gray-900">
-                        {clientProgressProfiles.length}
+                        {formatNumber(clientProgressProfiles.length)}
                       </div>
                     </div>
                   </div>

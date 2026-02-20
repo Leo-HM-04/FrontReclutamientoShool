@@ -112,6 +112,19 @@ export default function ProfilesStatusDashboard() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // ============================================================
+  // HELPER FUNCTIONS
+  // ============================================================
+  
+  const formatNumber = (value: number | string, decimals: number = 0): string => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '0';
+    return new Intl.NumberFormat('es-MX', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    }).format(num);
+  };
+
+  // ============================================================
   // LIFECYCLE
   // ============================================================
   
@@ -513,26 +526,26 @@ export default function ProfilesStatusDashboard() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-blue-50 p-4 rounded-lg">
           <div className="text-blue-600 text-sm font-medium">Total Perfiles</div>
-          <div className="text-2xl font-bold text-gray-900">{profiles.length}</div>
+          <div className="text-2xl font-bold text-gray-900">{formatNumber(profiles.length)}</div>
         </div>
         
         <div className="bg-green-50 p-4 rounded-lg">
           <div className="text-green-600 text-sm font-medium">En Proceso</div>
           <div className="text-2xl font-bold text-gray-900">
-            {profiles.filter(p => p.status === 'in_progress').length}
+            {formatNumber(profiles.filter(p => p.status === 'in_progress').length)}
           </div>
         </div>
         
         <div className="bg-purple-50 p-4 rounded-lg">
           <div className="text-purple-600 text-sm font-medium">Aprobados por Cliente</div>
           <div className="text-2xl font-bold text-gray-900">
-            {profiles.filter(p => p.client_approved).length}
+            {formatNumber(profiles.filter(p => p.client_approved).length)}
           </div>
         </div>
         
         <div className="bg-orange-50 p-4 rounded-lg">
           <div className="text-orange-600 text-sm font-medium">Seleccionados</div>
-          <div className="text-2xl font-bold text-gray-900">{selectedProfiles.size}</div>
+          <div className="text-2xl font-bold text-gray-900">{formatNumber(selectedProfiles.size)}</div>
         </div>
       </div>
 
@@ -730,7 +743,7 @@ export default function ProfilesStatusDashboard() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{profile.number_of_positions}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900">{formatNumber(profile.number_of_positions)}</td>
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
                           <button
@@ -780,8 +793,8 @@ export default function ProfilesStatusDashboard() {
                                   <p><span className="font-medium">Departamento:</span> {profileDetail.department || 'N/A'}</p>
                                   <p><span className="font-medium">Tipo de Servicio:</span> {profileDetail.service_type_display}</p>
                                   <p><span className="font-medium">Educación:</span> {profileDetail.education_level}</p>
-                                  <p><span className="font-medium">Experiencia:</span> {profileDetail.years_experience} años</p>
-                                  <p><span className="font-medium">Salario:</span> ${profileDetail.salary_min} - ${profileDetail.salary_max} {profileDetail.salary_currency}</p>
+                                  <p><span className="font-medium">Experiencia:</span> {formatNumber(profileDetail.years_experience)} años</p>
+                                  <p><span className="font-medium">Salario:</span> ${formatNumber(parseFloat(profileDetail.salary_min))} - ${formatNumber(parseFloat(profileDetail.salary_max))} {profileDetail.salary_currency}</p>
                                 </div>
                               </div>
                               
