@@ -226,10 +226,6 @@ export default function ProfileForm({ profileId, onSuccess }: ProfileFormProps) 
         modality: modality,
         published_platforms: profile.published_platforms || [],
         work_schedule: profile.work_schedule || "",
-      });
-      
-      // Actualizar el texto de plataformas
-      setPlatformsText(profile.published_platforms?.join(', ') || '');
         technical_skills: technicalSkills,
         soft_skills: softSkills,
         languages_required: languages,
@@ -238,6 +234,10 @@ export default function ProfileForm({ profileId, onSuccess }: ProfileFormProps) 
         expected_start_date: profile.desired_start_date || "",
         assigned_to: profile.assigned_to?.toString() || "",
         internal_notes: profile.internal_notes || "",
+      });
+      
+      // Actualizar el texto de plataformas
+      setPlatformsText(profile.published_platforms?.join(', ') || '');
     } catch (error) {
       console.error("Error loading profile:", error);
       await showAlert("Error al cargar el perfil");
