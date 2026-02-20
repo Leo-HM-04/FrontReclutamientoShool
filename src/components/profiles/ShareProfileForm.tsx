@@ -367,7 +367,7 @@ export default function ShareProfileForm() {
                       )}
                   </div>
 
-                  <a href={link.share_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 break-words">{link.share_url}</a>
+                  <a href={`${window.location.origin}/reclutamiento/public/profile-create/${link.token}`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 break-words">{`${window.location.origin}/reclutamiento/public/profile-create/${link.token}`}</a>
                   <div className="text-xs text-gray-500 mt-1">Expira: {formatDate(link.expires_at)}{link.used_at ? ` • Usado: ${formatDate(link.used_at)}` : ''}</div>
 
                 </div>
@@ -382,7 +382,7 @@ export default function ShareProfileForm() {
                   </button>
 
                   <a
-                    href={link.share_url}
+                    href={`${window.location.origin}/reclutamiento/public/profile-create/${link.token}`}
                     target="_blank"
                     rel="noreferrer"
                     className="px-3 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700"

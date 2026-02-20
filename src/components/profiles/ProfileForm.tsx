@@ -471,18 +471,70 @@ ${formData.benefits || 'No especificados'}
       // Asegurarse de que el perfil existe y obtener su ID
       const profileId = await ensureProfileExists();
       
-      // Validar que hay un cliente seleccionado
-      if (!formData.client) {
-        await showAlert('⚠️ Debes seleccionar un cliente antes de compartir');
-        setShareLoading(false);
-        return;
-      }
-
       const token = localStorage.getItem('authToken');
       const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+      let clientId = formData.client;
+
+      // Si no hay cliente seleccionado, buscar o crear "Cliente Público"
+      if (!clientId) {
+        try {
+          // Buscar cliente público existente
+          const clientsResponse = await fetch(`${apiBase}/clients/?search=Cliente Público`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          if (clientsResponse.ok) {
+            const clientsData = await clientsResponse.json();
+            const clients = Array.isArray(clientsData) ? clientsData : clientsData.results || [];
+            const publicClient = clients.find((c: any) => c.company_name === 'Cliente Público');
+            
+            if (publicClient) {
+              clientId = publicClient.id;
+            } else {
+              // Crear cliente público si no existe
+              const createResponse = await fetch(`${apiBase}/clients/`, {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  company_name: 'Cliente Público',
+                  rfc: 'XAXX010101000',
+                  industry: 'General',
+                  contact_name: 'Público',
+                  contact_email: 'publico@sistema.com',
+                  contact_phone: '0000000000',
+                  contact_position: 'N/A',
+                  address_street: 'N/A',
+                  address_city: 'N/A',
+                  address_state: 'N/A',
+                  address_zip: '00000',
+                  address_country: 'México',
+                  is_active: true,
+                  notes: 'Cliente público para enlaces compartidos'
+                })
+              });
+              
+              if (createResponse.ok) {
+                const newClient = await createResponse.json();
+                clientId = newClient.id;
+              } else {
+                throw new Error('No se pudo crear el cliente público');
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error buscando/creando cliente público:', error);
+          await showAlert('⚠️ No se pudo configurar el cliente público');
+          setShareLoading(false);
+          return;
+        }
+      }
+
       // Generar token del CLIENTE para crear perfiles (no token del perfil)
-      const response = await fetch(`${apiBase}/clients/${formData.client}/generate_share_link/`, {
+      const response = await fetch(`${apiBase}/clients/${clientId}/generate_share_link/`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
