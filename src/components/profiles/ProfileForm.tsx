@@ -483,9 +483,9 @@ ${formData.benefits || 'No especificados'}
       if (!response.ok) throw new Error('Error al generar enlace');
 
       const data = await response.json();
-      // Usar la ruta pública de formulario en lugar de la vista de avance
-      const createLink = `${window.location.origin}/reclutamiento/public/profile-create/${data.token}`;
-      setShareLink(createLink);
+      // Usar la ruta pública para ver el avance del perfil
+      const progressLink = `${window.location.origin}/reclutamiento/public/profile-progress/${data.token}`;
+      setShareLink(progressLink);
       setShareProfileTitle(data.position_title || formData.position_title);
       setShareClientName(data.client_name || '');
       setShareModalOpen(true);
