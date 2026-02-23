@@ -2128,7 +2128,7 @@ const getPriorityDisplay = (priority: string) => {
                               candidate.status === 'rejected' ? 'bg-red-100 text-red-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
-                              {candidate.status_display || candidate.status}
+                              {({new: 'Nuevo', screening: 'En Revisión', qualified: 'Calificado', interview: 'En Entrevista', offer: 'Oferta Extendida', hired: 'Contratado', rejected: 'Rechazado', withdrawn: 'Retirado'} as Record<string, string>)[candidate.status] || candidate.status}
                             </span>
                           </td>
                           

@@ -3199,7 +3199,16 @@ export default function Page() {
                                 c.status === 'rejected' ? 'bg-red-100 text-red-800' :
                                   'bg-gray-100 text-gray-800'
                           }`}>
-                          {c.status_display || c.status || 'Nuevo'}
+                          {{
+                            new: 'Nuevo',
+                            screening: 'En Revisión',
+                            qualified: 'Calificado',
+                            interview: 'En Entrevista',
+                            offer: 'Oferta Extendida',
+                            hired: 'Contratado',
+                            rejected: 'Rechazado',
+                            withdrawn: 'Retirado',
+                          }[c.status] || c.status || 'Nuevo'}
                         </span>
                       </div>
                       <div className="space-y-2 mb-4 text-xs">

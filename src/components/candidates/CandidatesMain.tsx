@@ -533,7 +533,22 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                                   candidate.latest_application_status === 'applied' ? 'bg-blue-100 text-blue-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {candidate.latest_application_status_display || candidate.status_display || 'Nuevo'}
+                                  {{
+                                    applied: 'Aplicó',
+                                    screening: 'En Revisión',
+                                    shortlisted: 'Preseleccionado',
+                                    interview_scheduled: 'Entrevista Programada',
+                                    interviewed: 'Entrevistado',
+                                    offered: 'Oferta Extendida',
+                                    accepted: 'Oferta Aceptada',
+                                    rejected: 'Rechazado',
+                                    withdrawn: 'Retirado',
+                                    new: 'Nuevo',
+                                    qualified: 'Calificado',
+                                    interview: 'En Entrevista',
+                                    offer: 'Oferta Extendida',
+                                    hired: 'Contratado',
+                                  }[candidate.latest_application_status || candidate.status || ''] || candidate.status_display || 'Nuevo'}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -654,11 +669,27 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                               <td className="px-4 py-3">
                                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                   app.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                                  app.status === 'offered' ? 'bg-orange-100 text-orange-800' :
                                   app.status === 'rejected' ? 'bg-red-100 text-red-800' :
                                   app.status === 'shortlisted' ? 'bg-blue-100 text-blue-800' :
+                                  app.status === 'screening' ? 'bg-yellow-100 text-yellow-800' :
+                                  app.status === 'interview_scheduled' ? 'bg-purple-100 text-purple-800' :
+                                  app.status === 'interviewed' ? 'bg-indigo-100 text-indigo-800' :
+                                  app.status === 'applied' ? 'bg-blue-100 text-blue-800' :
+                                  app.status === 'withdrawn' ? 'bg-gray-100 text-gray-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
-                                  {app.status}
+                                  {{
+                                    applied: 'Aplicó',
+                                    screening: 'En Revisión',
+                                    shortlisted: 'Preseleccionado',
+                                    interview_scheduled: 'Entrevista Programada',
+                                    interviewed: 'Entrevistado',
+                                    offered: 'Oferta Extendida',
+                                    accepted: 'Oferta Aceptada',
+                                    rejected: 'Rechazado',
+                                    withdrawn: 'Retirado',
+                                  }[app.status] || app.status}
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-500">

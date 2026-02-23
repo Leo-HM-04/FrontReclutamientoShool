@@ -489,7 +489,17 @@ export default function PublicProfileProgressPage() {
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}>
-                            {candidate.status_display}
+                            {{
+                              applied: 'Aplicó',
+                              screening: 'En Revisión',
+                              shortlisted: 'Preseleccionado',
+                              interview_scheduled: 'Entrevista Programada',
+                              interviewed: 'Entrevistado',
+                              offered: 'Oferta Extendida',
+                              accepted: 'Oferta Aceptada',
+                              rejected: 'Rechazado',
+                              withdrawn: 'Retirado',
+                            }[candidate.status] || candidate.status_display || candidate.status}
                           </span>
                           <span className="text-xs text-gray-500">
                             Aplicó el {formatDate(candidate.applied_at)}
@@ -541,7 +551,17 @@ export default function PublicProfileProgressPage() {
                             <i className={`fas ${
                               candidate.status === 'accepted' ? 'fa-check-circle' : 'fa-clock'
                             } mr-1`}></i>
-                            {candidate.status_display}
+                            {{
+                              applied: 'Aplicó',
+                              screening: 'En Revisión',
+                              shortlisted: 'Preseleccionado',
+                              interview_scheduled: 'Entrevista Programada',
+                              interviewed: 'Entrevistado',
+                              offered: 'Oferta Extendida',
+                              accepted: 'Oferta Aceptada',
+                              rejected: 'Rechazado',
+                              withdrawn: 'Retirado',
+                            }[candidate.status] || candidate.status_display || candidate.status}
                           </span>
                           {candidate.offer_date && (
                             <div className="text-xs text-gray-600 mt-1">
