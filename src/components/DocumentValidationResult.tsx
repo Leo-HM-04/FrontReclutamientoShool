@@ -147,18 +147,18 @@ export default function DocumentValidationResult({
     if (status === 'approved' || status === 'skipped') {
       // Documento aprobado: escalar al rango 96-99
       const adjustScore = (raw: number) => {
-        if (raw >= 95) return Math.min(99, raw);
-        if (raw >= 70) return 96 + ((raw - 70) / 30) * 3; // 70-100 → 96-99
+        if (raw >= 95) return 99;
+        if (raw >= 60) return 96 + ((raw - 60) / 40) * 3; // 60-100 → 96-99
         return 96; // mínimo 96 si fue aprobado
       };
       return { legibility: adjustScore(legibility), match: adjustScore(match) };
     }
     if (status === 'warning') {
-      // Warning: escalar ligeramente al rango 88-95
+      // Warning: también mostrar rango alto 96-99 (documentos legibles con advertencias menores)
       const adjustScore = (raw: number) => {
-        if (raw >= 88) return Math.min(95, raw);
-        if (raw >= 50) return 88 + ((raw - 50) / 50) * 7; // 50-100 → 88-95
-        return raw;
+        if (raw >= 95) return 99;
+        if (raw >= 50) return 96 + ((raw - 50) / 50) * 3; // 50-100 → 96-99
+        return 93; // mínimo 93 si tiene warning
       };
       return { legibility: adjustScore(legibility), match: adjustScore(match) };
     }
