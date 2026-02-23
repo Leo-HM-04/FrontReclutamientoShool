@@ -548,7 +548,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                                     interview: 'En Entrevista',
                                     offer: 'Oferta Extendida',
                                     hired: 'Contratado',
-                                  }[candidate.latest_application_status || candidate.status || ''] || candidate.status_display || 'Nuevo'}
+                                  }[(candidate.latest_application_status || candidate.status || '') as string] || candidate.status_display || 'Nuevo'}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -689,7 +689,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                                     accepted: 'Oferta Aceptada',
                                     rejected: 'Rechazado',
                                     withdrawn: 'Retirado',
-                                  }[app.status] || app.status}
+                                  }[(app.status || '') as string] || app.status}
                                 </span>
                               </td>
                               <td className="px-4 py-3 text-sm text-gray-500">

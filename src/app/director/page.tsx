@@ -3208,7 +3208,7 @@ export default function Page() {
                             hired: 'Contratado',
                             rejected: 'Rechazado',
                             withdrawn: 'Retirado',
-                          }[c.status] || c.status || 'Nuevo'}
+                          }[(c.status || '') as string] || c.status || 'Nuevo'}
                         </span>
                       </div>
                       <div className="space-y-2 mb-4 text-xs">
