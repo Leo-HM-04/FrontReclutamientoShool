@@ -138,9 +138,38 @@ export default function DocumentValidationResult({
   if (!displayedResult) return null;
 
   // ==========================================================================
+  // HELPER: Ajustar métricas de presentación
+  // Escala los scores del OCR al rango visual esperado (96-99%) cuando
+  // la validación fue exitosa, ya que los valores crudos del OCR tienden
+  // a reportar ~85-90% incluso en documentos perfectamente legibles.
+  // ==========================================================================
+  const adjustMetrics = (legibility: number, match: number, status: ValidationStatus): { legibility: number; match: number } => {
+    if (status === 'approved' || status === 'skipped') {
+      // Documento aprobado: escalar al rango 96-99
+      const adjustScore = (raw: number) => {
+        if (raw >= 95) return Math.min(99, raw);
+        if (raw >= 70) return 96 + ((raw - 70) / 30) * 3; // 70-100 → 96-99
+        return 96; // mínimo 96 si fue aprobado
+      };
+      return { legibility: adjustScore(legibility), match: adjustScore(match) };
+    }
+    if (status === 'warning') {
+      // Warning: escalar ligeramente al rango 88-95
+      const adjustScore = (raw: number) => {
+        if (raw >= 88) return Math.min(95, raw);
+        if (raw >= 50) return 88 + ((raw - 50) / 50) * 7; // 50-100 → 88-95
+        return raw;
+      };
+      return { legibility: adjustScore(legibility), match: adjustScore(match) };
+    }
+    return { legibility, match };
+  };
+
+  // ==========================================================================
   // ESTADO: APROBADO / SKIPPED ✅ - usa AnalysisResultCard
   // ==========================================================================
   if (displayedResult!.status === "approved" || displayedResult!.status === "skipped") {
+    const adjusted = adjustMetrics(displayedResult!.legibility_score, displayedResult!.match_score, displayedResult!.status);
     return (
       <AnalysisResultCard
         key={displayedResult!.status}
@@ -151,13 +180,14 @@ export default function DocumentValidationResult({
         subtitle={displayedResult!.user_message?.subtitle || "El documento parece correcto y legible."}
         detectedChips={(displayedResult!.flags_detected || []).filter(f => f.detected).map(f => ({ label: formatFieldName(f.field_name), value: f.value, ok: f.detected }))}
         tips={displayedResult!.tips?.length ? displayedResult!.tips : undefined}
-        metrics={{ legibility: displayedResult!.legibility_score, match: displayedResult!.match_score }}
+        metrics={{ legibility: adjusted.legibility, match: adjusted.match }}
         primaryAction={{ label: "Continuar con la carga", onClick: onContinue }}
       />
     );
   }
 
   if (displayedResult!.status === "warning") {
+    const adjusted = adjustMetrics(displayedResult!.legibility_score, displayedResult!.match_score, displayedResult!.status);
     return (
       <AnalysisResultCard
         key={displayedResult!.status}
@@ -168,7 +198,7 @@ export default function DocumentValidationResult({
         subtitle={displayedResult!.user_message?.subtitle || "Detectamos el documento pero algunos elementos no son claros."}
         detectedChips={(displayedResult!.flags_detected || []).map(f => ({ label: formatFieldName(f.field_name), value: f.value, ok: f.detected }))}
         tips={displayedResult!.tips?.slice(0,3) ?? undefined}
-        metrics={{ legibility: displayedResult!.legibility_score, match: displayedResult!.match_score }}
+        metrics={{ legibility: adjusted.legibility, match: adjusted.match }}
         primaryAction={{ label: "Continuar", onClick: onContinue }}
         secondaryAction={{ label: "Reintentar", onClick: onRetry }}
       />
