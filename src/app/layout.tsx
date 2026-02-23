@@ -12,6 +12,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Sistema de Reclutamiento",
   description: "Plataforma integral de gestión de reclutamiento y recursos humanos",
+  icons: {
+    icon: [
+      { url: '/bausen-logo.png', type: 'image/png' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    apple: '/bausen-logo.png',
+  },
 };
 
 export default function RootLayout({
