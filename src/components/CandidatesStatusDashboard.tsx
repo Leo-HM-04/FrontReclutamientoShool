@@ -511,6 +511,21 @@ export default function CandidatesStatusDashboard() {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
   
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      applied: 'Aplicó',
+      screening: 'En Revisión',
+      shortlisted: 'Preseleccionado',
+      interview_scheduled: 'Entrevista Programada',
+      interviewed: 'Entrevistado',
+      offered: 'Oferta Extendida',
+      accepted: 'Oferta Aceptada',
+      rejected: 'Rechazado',
+      withdrawn: 'Retirado',
+    };
+    return labels[status] || status;
+  };
+  
   const getDocumentIcon = (docType: string) => {
     const icons: Record<string, string> = {
       cv: 'fa-file-pdf',
@@ -753,7 +768,7 @@ export default function CandidatesStatusDashboard() {
                                   <p className="text-sm text-gray-600">{app.candidate_email}</p>
                                 </div>
                                 <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(app.status)}`}>
-                                  {app.status_display}
+                                  {getStatusLabel(app.status)}
                                 </span>
                               </div>
 

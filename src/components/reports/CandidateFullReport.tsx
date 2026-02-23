@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getCandidateFullReport, formatDate, formatCurrency, getStatusColor, type CandidateFullReportData } from '@/lib/api-reports';
+import { getCandidateFullReport, formatDate, formatCurrency, getStatusColor, getStatusLabel, type CandidateFullReportData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
 import { downloadCandidateReportPDF } from '@/lib/pdf-candidate-report';
 
@@ -481,7 +481,7 @@ export default function CandidateFullReport({ candidateId, onBack }: Props) {
                         <p className="text-sm text-gray-600">{app.profile.client}</p>
                       </div>
                       <span className={`px-3 py-1 text-xs font-semibold rounded-full bg-${getStatusColor(app.status)}-100 text-${getStatusColor(app.status)}-800`}>
-                        {app.status_display}
+                        {getStatusLabel(app.status)}
                       </span>
                     </div>
 

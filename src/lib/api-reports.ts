@@ -219,6 +219,42 @@ export function getStatusColor(status: string): string {
   return colors[status] || 'gray';
 }
 
+export function getStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    // Profile statuses
+    'draft': 'Borrador',
+    'pending': 'Pendiente de Aprobación',
+    'approved': 'Aprobado',
+    'in_progress': 'En Proceso',
+    'candidates_found': 'Candidatos Encontrados',
+    'in_evaluation': 'En Evaluación',
+    'in_interview': 'En Entrevistas',
+    'finalists': 'Finalistas',
+    'completed': 'Completado',
+    'cancelled': 'Cancelado',
+    
+    // Candidate application statuses
+    'applied': 'Aplicó',
+    'screening': 'En Revisión',
+    'shortlisted': 'Preseleccionado',
+    'interview_scheduled': 'Entrevista Programada',
+    'interviewed': 'Entrevistado',
+    'offered': 'Oferta Extendida',
+    'accepted': 'Oferta Aceptada',
+    'rejected': 'Rechazado',
+    'withdrawn': 'Retirado',
+    
+    // Additional candidate statuses
+    'new': 'Nuevo',
+    'qualified': 'Calificado',
+    'interview': 'En Entrevista',
+    'offer': 'Oferta Extendida',
+    'hired': 'Contratado',
+  };
+  
+  return labels[status] || status;
+}
+
 // ════════════════════════════════════════════════════════════════════
 // TYPES (TypeScript Interfaces)
 // ════════════════════════════════════════════════════════════════════

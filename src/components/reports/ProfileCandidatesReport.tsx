@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getProfileCandidates, formatDate, getStatusColor, type ProfileCandidatesData } from '@/lib/api-reports';
+import { getProfileCandidates, formatDate, getStatusColor, getStatusLabel, type ProfileCandidatesData } from '@/lib/api-reports';
 import { downloadCandidatesReportPDF, type CandidatesReportData, type CandidateData } from '@/lib/pdf-candidates-report';
 import * as XLSX from 'xlsx';
 
@@ -362,7 +362,7 @@ export default function ProfileCandidatesReport({ profileId, onBack, onViewCandi
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getStatusColor(candidate.status)}-100 text-${getStatusColor(candidate.status)}-800`}>
-                        {candidate.status_display}
+                        {getStatusLabel(candidate.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
