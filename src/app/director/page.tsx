@@ -1560,7 +1560,10 @@ export default function Page() {
       if (!response.ok) throw new Error('Error al generar enlace');
 
       const data = await response.json();
-      setShareLink(data.share_url);
+      // Extraer token del share_url y construir URL correcta
+      const shareToken = data.share_url.split('/').pop();
+      const correctedUrl = `${window.location.origin}/reclutamiento/public/profile-progress/${shareToken}`;
+      setShareLink(correctedUrl);
       setSelectedProfileForShare({
         profileId: data.profile_id,
         profileTitle: data.position_title,
@@ -1590,8 +1593,11 @@ export default function Page() {
       if (!response.ok) throw new Error('Error al generar enlace de previsualización');
 
       const data = await response.json();
+      // Extraer token del share_url y construir URL correcta
+      const shareToken = data.share_url.split('/').pop();
+      const correctedUrl = `${window.location.origin}/reclutamiento/public/profile-progress/${shareToken}`;
       // Abrir en una nueva pestaña
-      window.open(data.share_url, '_blank');
+      window.open(correctedUrl, '_blank');
     } catch (error) {
       console.error('Error:', error);
       await showAlert('Error al abrir previsualización');
