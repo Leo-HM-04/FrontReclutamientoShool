@@ -3,6 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '@/lib/api';
 
+interface WorkExperience {
+  posicion: string;
+  empresa: string;
+  anosExperiencia: number;
+}
+
+interface Education {
+  nivelEstudios: string;
+  universidad: string;
+  carreraTitulo: string;
+}
+
+const emptyWorkExperience: WorkExperience = { posicion: '', empresa: '', anosExperiencia: 0 };
+const emptyEducation: Education = { nivelEstudios: '', universidad: '', carreraTitulo: '' };
+
 interface Candidate {
   id?: number;
   first_name: string;
@@ -36,6 +51,8 @@ export default function CandidateFormModal({
   onRefresh
 }: CandidateFormModalProps) {
   const [loading, setLoading] = useState(false);
+  const [workExperiences, setWorkExperiences] = useState<WorkExperience[]>([]);
+  const [educations, setEducations] = useState<Education[]>([{ ...emptyEducation }]);
   const [formData, setFormData] = useState<Partial<Candidate>>({
     first_name: '',
     last_name: '',
@@ -44,16 +61,41 @@ export default function CandidateFormModal({
     city: '',
     state: '',
     country: 'México',
-    current_position: '',
-    current_company: '',
-    years_of_experience: 0,
-    education_level: '',
-    university: '',
   });
 
   useEffect(() => {
     if (candidate) {
       setFormData(candidate);
+      // Cargar work_history
+      if (candidate.work_history && Array.isArray(candidate.work_history) && candidate.work_history.length > 0) {
+        setWorkExperiences(candidate.work_history.map((w: any) => ({
+          posicion: w.position || '',
+          empresa: w.company || '',
+          anosExperiencia: w.years || 0
+        })));
+      } else if (candidate.current_position || candidate.current_company) {
+        setWorkExperiences([{
+          posicion: candidate.current_position || '',
+          empresa: candidate.current_company || '',
+          anosExperiencia: candidate.years_of_experience || 0
+        }]);
+      } else {
+        setWorkExperiences([]);
+      }
+      // Cargar education_history
+      if (candidate.education_history && Array.isArray(candidate.education_history) && candidate.education_history.length > 0) {
+        setEducations(candidate.education_history.map((e: any) => ({
+          nivelEstudios: e.level || '',
+          universidad: e.university || '',
+          carreraTitulo: e.degree || ''
+        })));
+      } else {
+        setEducations([{
+          nivelEstudios: candidate.education_level || '',
+          universidad: candidate.university || '',
+          carreraTitulo: ''
+        }]);
+      }
     } else {
       setFormData({
         first_name: '',
@@ -63,12 +105,9 @@ export default function CandidateFormModal({
         city: '',
         state: '',
         country: 'México',
-        current_position: '',
-        current_company: '',
-        years_of_experience: 0,
-        education_level: '',
-        university: '',
       });
+      setWorkExperiences([]);
+      setEducations([{ ...emptyEducation }]);
     }
   }, [candidate]);
 
@@ -79,14 +118,47 @@ export default function CandidateFormModal({
     setLoading(true);
 
     console.log('📝 Iniciando guardado de candidato...');
-    console.log('Datos del formulario:', formData);
 
     try {
+      // Preparar datos con arrays de experiencia y educación
+      const submitData: any = { ...formData };
+      
+      // Información Laboral
+      if (workExperiences.length > 0) {
+        const primary = workExperiences[0];
+        submitData.current_position = primary.posicion.trim();
+        submitData.current_company = primary.empresa.trim();
+        submitData.years_of_experience = primary.anosExperiencia;
+        submitData.work_history = workExperiences.map(w => ({
+          position: w.posicion.trim(),
+          company: w.empresa.trim(),
+          years: w.anosExperiencia
+        }));
+      } else {
+        submitData.current_position = '';
+        submitData.current_company = '';
+        submitData.years_of_experience = 0;
+        submitData.work_history = [];
+      }
+      
+      // Educación
+      if (educations.length > 0) {
+        submitData.education_level = educations[0].nivelEstudios.trim();
+        submitData.university = educations[0].universidad.trim();
+        submitData.degree = educations[0].carreraTitulo.trim();
+        submitData.education_history = educations.map(e => ({
+          level: e.nivelEstudios.trim(),
+          university: e.universidad.trim(),
+          degree: e.carreraTitulo.trim()
+        }));
+      }
+
+      console.log('Datos a enviar:', submitData);
+
       let response;
       if (candidate?.id) {
-        // Actualizar candidato existente
         console.log('🔄 Actualizando candidato ID:', candidate.id);
-        response = await apiClient.updateCandidate(candidate.id, formData);
+        response = await apiClient.updateCandidate(candidate.id, submitData);
         console.log('✅ Respuesta de actualización:', response);
         if (onSuccess) {
           onSuccess('✅ Candidato actualizado exitosamente en la base de datos');
@@ -94,7 +166,7 @@ export default function CandidateFormModal({
       } else {
         // Crear nuevo candidato
         console.log('➕ Creando nuevo candidato...');
-        response = await apiClient.createCandidate(formData);
+        response = await apiClient.createCandidate(submitData);
         console.log('✅ Respuesta de creación:', response);
         if (onSuccess) {
           onSuccess('✅ Candidato creado exitosamente en la base de datos');
@@ -266,91 +338,193 @@ export default function CandidateFormModal({
               </div>
             </div>
 
-            {/* Sección 3: Información Profesional */}
+            {/* Sección 3: Información Laboral (0-3) */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="bg-emerald-600 px-5 py-3.5 border-b-2 border-emerald-700">
+              <div className="bg-emerald-600 px-5 py-3.5 border-b-2 border-emerald-700 flex items-center justify-between">
                 <h3 className="text-lg font-bold text-white tracking-wide flex items-center">
                   <i className="fas fa-briefcase mr-2" />
-                  INFORMACIÓN PROFESIONAL
+                  INFORMACIÓN LABORAL
+                  <span className="ml-2 text-sm font-normal text-emerald-200">({workExperiences.length}/3)</span>
                 </h3>
+                {workExperiences.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setWorkExperiences([...workExperiences, { ...emptyWorkExperience }])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 text-white text-sm rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    <i className="fas fa-plus text-xs" />
+                    Agregar
+                  </button>
+                )}
               </div>
 
-              <div className="p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <i className="fas fa-user-tie text-emerald-500 mr-1.5" />
-                      Posición Actual
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.current_position || ''}
-                      onChange={(e) => handleChange('current_position', e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
-                      placeholder="Ej: Desarrollador Senior"
-                    />
+              <div className="p-5 space-y-4">
+                {workExperiences.length === 0 && (
+                  <p className="text-sm text-gray-500 italic text-center py-3">
+                    Sin experiencia laboral agregada. Clic en &quot;Agregar&quot; para añadir.
+                  </p>
+                )}
+                {workExperiences.map((work, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-emerald-700">Experiencia {index + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setWorkExperiences(workExperiences.filter((_, i) => i !== index))}
+                        className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1"
+                      >
+                        <i className="fas fa-trash-alt text-xs" /> Eliminar
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <i className="fas fa-user-tie text-emerald-500 mr-1.5" /> Posición
+                        </label>
+                        <input
+                          type="text"
+                          value={work.posicion}
+                          onChange={(e) => {
+                            const updated = [...workExperiences];
+                            updated[index] = { ...updated[index], posicion: e.target.value };
+                            setWorkExperiences(updated);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
+                          placeholder="Ej: Desarrollador Senior"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <i className="fas fa-building text-emerald-500 mr-1.5" /> Empresa
+                        </label>
+                        <input
+                          type="text"
+                          value={work.empresa}
+                          onChange={(e) => {
+                            const updated = [...workExperiences];
+                            updated[index] = { ...updated[index], empresa: e.target.value };
+                            setWorkExperiences(updated);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
+                          placeholder="Nombre de la empresa"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <i className="fas fa-clock text-emerald-500 mr-1.5" /> Años de Experiencia
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={work.anosExperiencia}
+                          onChange={(e) => {
+                            const updated = [...workExperiences];
+                            updated[index] = { ...updated[index], anosExperiencia: parseInt(e.target.value) || 0 };
+                            setWorkExperiences(updated);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <i className="fas fa-building text-emerald-500 mr-1.5" />
-                      Empresa Actual
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.current_company || ''}
-                      onChange={(e) => handleChange('current_company', e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
-                      placeholder="Nombre de la empresa"
-                    />
+                ))}
+              </div>
+            </div>
+
+            {/* Sección 4: Educación (1-3) */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="bg-amber-600 px-5 py-3.5 border-b-2 border-amber-700 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-white tracking-wide flex items-center">
+                  <i className="fas fa-graduation-cap mr-2" />
+                  EDUCACIÓN
+                  <span className="ml-2 text-sm font-normal text-amber-200">({educations.length}/3)</span>
+                </h3>
+                {educations.length < 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setEducations([...educations, { ...emptyEducation }])}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 text-white text-sm rounded-lg hover:bg-white/30 transition-colors"
+                  >
+                    <i className="fas fa-plus text-xs" />
+                    Agregar
+                  </button>
+                )}
+              </div>
+
+              <div className="p-5 space-y-4">
+                {educations.map((edu, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-semibold text-amber-700">Educación {index + 1}</span>
+                      {educations.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setEducations(educations.filter((_, i) => i !== index))}
+                          className="text-red-500 hover:text-red-700 text-sm flex items-center gap-1"
+                        >
+                          <i className="fas fa-trash-alt text-xs" /> Eliminar
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <i className="fas fa-graduation-cap text-amber-500 mr-1.5" /> Nivel de Estudios
+                        </label>
+                        <select
+                          value={edu.nivelEstudios}
+                          onChange={(e) => {
+                            const updated = [...educations];
+                            updated[index] = { ...updated[index], nivelEstudios: e.target.value };
+                            setEducations(updated);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-amber-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="Secundaria">Secundaria</option>
+                          <option value="Preparatoria">Preparatoria</option>
+                          <option value="Técnico">Técnico</option>
+                          <option value="Licenciatura">Licenciatura</option>
+                          <option value="Maestría">Maestría</option>
+                          <option value="Doctorado">Doctorado</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <i className="fas fa-university text-amber-500 mr-1.5" /> Universidad
+                        </label>
+                        <input
+                          type="text"
+                          value={edu.universidad}
+                          onChange={(e) => {
+                            const updated = [...educations];
+                            updated[index] = { ...updated[index], universidad: e.target.value };
+                            setEducations(updated);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-amber-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
+                          placeholder="Nombre de la universidad"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          <i className="fas fa-certificate text-amber-500 mr-1.5" /> Título/Carrera
+                        </label>
+                        <input
+                          type="text"
+                          value={edu.carreraTitulo}
+                          onChange={(e) => {
+                            const updated = [...educations];
+                            updated[index] = { ...updated[index], carreraTitulo: e.target.value };
+                            setEducations(updated);
+                          }}
+                          className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-amber-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
+                          placeholder="Ej: Ingeniería en Sistemas"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <i className="fas fa-clock text-emerald-500 mr-1.5" />
-                      Años de Experiencia
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="50"
-                      value={formData.years_of_experience || 0}
-                      onChange={(e) => handleChange('years_of_experience', parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <i className="fas fa-graduation-cap text-emerald-500 mr-1.5" />
-                      Nivel de Estudios
-                    </label>
-                    <select
-                      value={formData.education_level || ''}
-                      onChange={(e) => handleChange('education_level', e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="Secundaria">Secundaria</option>
-                      <option value="Preparatoria">Preparatoria</option>
-                      <option value="Técnico">Técnico</option>
-                      <option value="Licenciatura">Licenciatura</option>
-                      <option value="Maestría">Maestría</option>
-                      <option value="Doctorado">Doctorado</option>
-                    </select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      <i className="fas fa-university text-emerald-500 mr-1.5" />
-                      Universidad
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.university || ''}
-                      onChange={(e) => handleChange('university', e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none text-gray-800 shadow-sm transition-colors"
-                      placeholder="Nombre de la universidad"
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 

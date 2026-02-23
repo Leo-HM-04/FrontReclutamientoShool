@@ -157,19 +157,43 @@ export default function CandidateDetailModal({ isOpen, onClose, candidate, onEdi
                   <FontAwesomeIcon icon={faBriefcase} className="mr-2 text-blue-600" />
                   Información Profesional
                 </h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Posición Actual:</span>
-                    <p className="text-gray-900">{candidate.current_position}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Empresa:</span>
-                    <p className="text-gray-900">{candidate.current_company}</p>
-                  </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Años de Experiencia:</span>
-                    <p className="text-gray-900">{candidate.years_of_experience} años</p>
-                  </div>
+                <div className="space-y-4">
+                  {candidate.work_history && candidate.work_history.length > 0 ? (
+                    candidate.work_history.map((work: any, index: number) => (
+                      <div key={index} className={`space-y-2 ${index > 0 ? 'border-t border-gray-200 pt-3' : ''}`}>
+                        {candidate.work_history.length > 1 && (
+                          <span className="text-xs font-semibold text-emerald-600 uppercase">Experiencia {index + 1}</span>
+                        )}
+                        <div>
+                          <span className="text-sm font-medium text-gray-500">Posición:</span>
+                          <p className="text-gray-900">{work.position || 'No especificado'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-500">Empresa:</span>
+                          <p className="text-gray-900">{work.company || 'No especificado'}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-500">Años de Experiencia:</span>
+                          <p className="text-gray-900">{work.years} años</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Posición Actual:</span>
+                        <p className="text-gray-900">{candidate.current_position || 'No especificado'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Empresa:</span>
+                        <p className="text-gray-900">{candidate.current_company || 'No especificado'}</p>
+                      </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Años de Experiencia:</span>
+                        <p className="text-gray-900">{candidate.years_of_experience} años</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -179,11 +203,51 @@ export default function CandidateDetailModal({ isOpen, onClose, candidate, onEdi
                   <FontAwesomeIcon icon={faGraduationCap} className="mr-2 text-blue-600" />
                   Educación
                 </h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-sm font-medium text-gray-500">Nivel de Estudios:</span>
-                    <p className="text-gray-900">{candidate.education_level}</p>
-                  </div>
+                <div className="space-y-4">
+                  {candidate.education_history && candidate.education_history.length > 0 ? (
+                    candidate.education_history.map((edu: any, index: number) => (
+                      <div key={index} className={`space-y-2 ${index > 0 ? 'border-t border-gray-200 pt-3' : ''}`}>
+                        {candidate.education_history.length > 1 && (
+                          <span className="text-xs font-semibold text-blue-600 uppercase">Educación {index + 1}</span>
+                        )}
+                        <div>
+                          <span className="text-sm font-medium text-gray-500">Nivel de Estudios:</span>
+                          <p className="text-gray-900">{edu.level || 'No especificado'}</p>
+                        </div>
+                        {edu.university && (
+                          <div>
+                            <span className="text-sm font-medium text-gray-500">Universidad:</span>
+                            <p className="text-gray-900">{edu.university}</p>
+                          </div>
+                        )}
+                        {edu.degree && (
+                          <div>
+                            <span className="text-sm font-medium text-gray-500">Título/Carrera:</span>
+                            <p className="text-gray-900">{edu.degree}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-sm font-medium text-gray-500">Nivel de Estudios:</span>
+                        <p className="text-gray-900">{candidate.education_level || 'No especificado'}</p>
+                      </div>
+                      {candidate.university && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-500">Universidad:</span>
+                          <p className="text-gray-900">{candidate.university}</p>
+                        </div>
+                      )}
+                      {candidate.degree && (
+                        <div>
+                          <span className="text-sm font-medium text-gray-500">Título/Carrera:</span>
+                          <p className="text-gray-900">{candidate.degree}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

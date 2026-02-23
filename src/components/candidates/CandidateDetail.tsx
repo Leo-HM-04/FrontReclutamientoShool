@@ -30,6 +30,8 @@ interface Candidate {
   education_level?: string;
   university?: string;
   degree?: string;
+  work_history?: Array<{position: string; company: string; years: number}>;
+  education_history?: Array<{level: string; university: string; degree: string}>;
   skills?: string[];
   languages?: any[];
   certifications?: string[];
@@ -219,23 +221,53 @@ export default function CandidateDetail({ candidateId, onBack }: CandidateDetail
               <i className="fas fa-briefcase text-blue-600 mr-2"></i>
               Experiencia Laboral
             </h4>
-            <div className="space-y-3">
-              {candidate.current_position && (
-                <div>
-                  <p className="text-sm text-gray-500">Posición Actual</p>
-                  <p className="font-medium">{candidate.current_position}</p>
-                </div>
-              )}
-              {candidate.current_company && (
-                <div>
-                  <p className="text-sm text-gray-500">Empresa Actual</p>
-                  <p className="font-medium">{candidate.current_company}</p>
-                </div>
-              )}
-              {candidate.years_of_experience !== null && (
-                <div>
-                  <p className="text-sm text-gray-500">Años de Experiencia</p>
-                  <p className="font-medium">{candidate.years_of_experience} años</p>
+            <div className="space-y-4">
+              {candidate.work_history && candidate.work_history.length > 0 ? (
+                candidate.work_history.map((work, index) => (
+                  <div key={index} className={`space-y-2 ${index > 0 ? 'border-t border-gray-200 pt-3' : ''}`}>
+                    {candidate.work_history!.length > 1 && (
+                      <span className="text-xs font-semibold text-emerald-600 uppercase">Experiencia {index + 1}</span>
+                    )}
+                    {work.position && (
+                      <div>
+                        <p className="text-sm text-gray-500">Posición</p>
+                        <p className="font-medium">{work.position}</p>
+                      </div>
+                    )}
+                    {work.company && (
+                      <div>
+                        <p className="text-sm text-gray-500">Empresa</p>
+                        <p className="font-medium">{work.company}</p>
+                      </div>
+                    )}
+                    {work.years !== null && work.years !== undefined && (
+                      <div>
+                        <p className="text-sm text-gray-500">Años de Experiencia</p>
+                        <p className="font-medium">{work.years} años</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-3">
+                  {candidate.current_position && (
+                    <div>
+                      <p className="text-sm text-gray-500">Posición Actual</p>
+                      <p className="font-medium">{candidate.current_position}</p>
+                    </div>
+                  )}
+                  {candidate.current_company && (
+                    <div>
+                      <p className="text-sm text-gray-500">Empresa Actual</p>
+                      <p className="font-medium">{candidate.current_company}</p>
+                    </div>
+                  )}
+                  {candidate.years_of_experience !== null && (
+                    <div>
+                      <p className="text-sm text-gray-500">Años de Experiencia</p>
+                      <p className="font-medium">{candidate.years_of_experience} años</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -247,23 +279,53 @@ export default function CandidateDetail({ candidateId, onBack }: CandidateDetail
               <i className="fas fa-graduation-cap text-blue-600 mr-2"></i>
               Educación
             </h4>
-            <div className="space-y-3">
-              {candidate.education_level && (
-                <div>
-                  <p className="text-sm text-gray-500">Nivel Educativo</p>
-                  <p className="font-medium capitalize">{candidate.education_level}</p>
-                </div>
-              )}
-              {candidate.university && (
-                <div>
-                  <p className="text-sm text-gray-500">Universidad</p>
-                  <p className="font-medium">{candidate.university}</p>
-                </div>
-              )}
-              {candidate.degree && (
-                <div>
-                  <p className="text-sm text-gray-500">Título</p>
-                  <p className="font-medium">{candidate.degree}</p>
+            <div className="space-y-4">
+              {candidate.education_history && candidate.education_history.length > 0 ? (
+                candidate.education_history.map((edu, index) => (
+                  <div key={index} className={`space-y-2 ${index > 0 ? 'border-t border-gray-200 pt-3' : ''}`}>
+                    {candidate.education_history!.length > 1 && (
+                      <span className="text-xs font-semibold text-blue-600 uppercase">Educación {index + 1}</span>
+                    )}
+                    {edu.level && (
+                      <div>
+                        <p className="text-sm text-gray-500">Nivel Educativo</p>
+                        <p className="font-medium capitalize">{edu.level}</p>
+                      </div>
+                    )}
+                    {edu.university && (
+                      <div>
+                        <p className="text-sm text-gray-500">Universidad</p>
+                        <p className="font-medium">{edu.university}</p>
+                      </div>
+                    )}
+                    {edu.degree && (
+                      <div>
+                        <p className="text-sm text-gray-500">Título</p>
+                        <p className="font-medium">{edu.degree}</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="space-y-3">
+                  {candidate.education_level && (
+                    <div>
+                      <p className="text-sm text-gray-500">Nivel Educativo</p>
+                      <p className="font-medium capitalize">{candidate.education_level}</p>
+                    </div>
+                  )}
+                  {candidate.university && (
+                    <div>
+                      <p className="text-sm text-gray-500">Universidad</p>
+                      <p className="font-medium">{candidate.university}</p>
+                    </div>
+                  )}
+                  {candidate.degree && (
+                    <div>
+                      <p className="text-sm text-gray-500">Título</p>
+                      <p className="font-medium">{candidate.degree}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
