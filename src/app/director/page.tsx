@@ -897,8 +897,6 @@ export default function Page() {
 
   // ====== Carga inicial ======
   useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
     const initializeDashboard = async () => {
       setLoading(true);
       try {
@@ -916,20 +914,6 @@ export default function Page() {
     };
 
     initializeDashboard();
-
-    // Configurar intervalo SOLO si estamos en dashboard
-    if (currentView === 'dashboard') {
-      intervalId = setInterval(() => {
-        loadDashboardData();
-      }, 30000);
-    }
-
-    // ✅ Cleanup correcto
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
   }, []);
 
 
@@ -939,9 +923,8 @@ export default function Page() {
 
     if (currentView === 'dashboard') {
       intervalId = setInterval(() => {
-        console.log('⏰ Actualizando dashboard (intervalo de 30s)');
         loadDashboardData();
-      }, 30000);
+      }, 60000); // Actualizar cada 60s para no sobrecargar
     }
 
     return () => {
@@ -965,7 +948,7 @@ export default function Page() {
 
     if (currentView === "tasks") {
       loadCeleryData();
-      interval = setInterval(loadCeleryData, 10000);
+      interval = setInterval(loadCeleryData, 30000); // Cada 30s en vez de 10s
     }
 
     return () => {
@@ -1259,15 +1242,11 @@ export default function Page() {
         });
       }
 
-      // Try to load server-side notifications and merge with alerts
+      // Merge local alert-derived notifications with existing state (no redundant API call)
       try {
-        await loadNotificationsFromAPI();
-
-        // Merge local alert-derived notifications (notificationsList) in case they are not present on server
         setNotifications(prev => {
           const existingIds = new Set<number>([...prev.unreadItems.map(i => i.id), ...prev.readItems.map(i => i.id)]);
           const alertsToAdd = notificationsList.filter(n => !existingIds.has(n.id));
-          // Alerts are treated as unread by default unless they have read_at
           const alertsUnread = alertsToAdd.filter(a => !a.read_at);
           const unreadItems = [...alertsUnread, ...prev.unreadItems];
           return { unread: unreadItems.length, unreadItems, readItems: prev.readItems };
