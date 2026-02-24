@@ -125,7 +125,7 @@ export default function ProfileDetail({ profileId, onBack }: ProfileDetailProps)
       approved: { bg: "bg-green-100", text: "text-green-700", label: "Aprobado" },
       in_progress: { bg: "bg-blue-100", text: "text-blue-700", label: "En Proceso" },
       candidates_found: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Candidatos Encontrados" },
-      in_evaluation: { bg: "bg-purple-100", text: "text-purple-700", label: "En Evaluación" },
+      in_evaluation: { bg: "bg-purple-100", text: "text-purple-700", label: "Aplicación de Pruebas" },
       in_interview: { bg: "bg-pink-100", text: "text-pink-700", label: "En Entrevista" },
       finalists: { bg: "bg-orange-100", text: "text-orange-700", label: "Finalistas" },
       completed: { bg: "bg-green-100", text: "text-green-700", label: "Completado" },
@@ -539,7 +539,7 @@ export default function ProfileDetail({ profileId, onBack }: ProfileDetailProps)
                 <option value="approved">Aprobado</option>
                 <option value="in_progress">En Proceso</option>
                 <option value="candidates_found">Candidatos Encontrados</option>
-                <option value="in_evaluation">En Evaluación</option>
+                <option value="in_evaluation">Aplicación de Pruebas</option>
                 <option value="in_interview">En Entrevista</option>
                 <option value="finalists">Finalistas</option>
                 <option value="completed">Completado</option>

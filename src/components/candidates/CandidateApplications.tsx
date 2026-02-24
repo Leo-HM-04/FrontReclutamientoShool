@@ -42,7 +42,7 @@ export default function CandidateApplications({ candidateId }: CandidateApplicat
   const getStatusBadge = (status: string) => {
     const statusConfig: { [key: string]: { bg: string; text: string; label: string } } = {
       applied: { bg: "bg-blue-100", text: "text-blue-700", label: "Aplicado" },
-      in_evaluation: { bg: "bg-yellow-100", text: "text-yellow-700", label: "En Evaluación" },
+      in_evaluation: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Aplicación de Pruebas" },
       shortlisted: { bg: "bg-purple-100", text: "text-purple-700", label: "Preseleccionado" },
       interview_scheduled: { bg: "bg-indigo-100", text: "text-indigo-700", label: "Entrevista Programada" },
       interviewed: { bg: "bg-pink-100", text: "text-pink-700", label: "Entrevistado" },

@@ -64,7 +64,7 @@ export default function ProfileStatusHistory() {
       approved: "Aprobado",
       in_progress: "En Proceso",
       candidates_found: "Candidatos Encontrados",
-      in_evaluation: "En Evaluación",
+      in_evaluation: "Aplicación de Pruebas",
       in_interview: "En Entrevista",
       finalists: "Finalistas",
       completed: "Completado",

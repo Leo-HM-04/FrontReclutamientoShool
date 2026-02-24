@@ -585,7 +585,7 @@ export default function CandidatesStatusDashboard() {
             <div className="text-xl font-bold text-gray-900">{formatNumber(applications.filter(a => a.status === 'hired').length)}</div>
           </div>
           <div className="bg-yellow-50 p-3 rounded-lg">
-            <div className="text-yellow-600 text-sm font-medium">En Evaluación</div>
+            <div className="text-yellow-600 text-sm font-medium"></div>
             <div className="text-xl font-bold text-gray-900">{formatNumber(applications.filter(a => a.status === 'in_evaluation').length)}</div>
           </div>
         </div>
@@ -880,7 +880,7 @@ export default function CandidatesStatusDashboard() {
                     <option value="approved">Aprobado</option>
                     <option value="in_progress">En Proceso</option>
                     <option value="candidates_found">Candidatos Encontrados</option>
-                    <option value="in_evaluation">En Evaluación</option>
+                    <option value="in_evaluation">Aplicación de Pruebas</option>
                     <option value="in_interview">En Entrevistas</option>
                     <option value="finalists">Finalistas</option>
                     <option value="completed">Completado</option>

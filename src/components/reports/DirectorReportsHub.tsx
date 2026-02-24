@@ -86,7 +86,7 @@ export default function DirectorReportsHub() {
     { label: 'Perfiles Creados', value: funnelData.total_profiles || 0, percentage: 100, color: '#3B82F6' },
     { label: 'Perfiles Aprobados', value: funnelData.approved_profiles || 0, percentage: 0, color: '#8B5CF6' },
     { label: 'Candidatos Activos', value: funnelData.active_candidates || 0, percentage: 0, color: '#06B6D4' },
-    { label: 'En Evaluación', value: funnelData.in_evaluation || 0, percentage: 0, color: '#F59E0B' },
+    { label: 'Aplicación de Pruebas', value: funnelData.in_evaluation || 0, percentage: 0, color: '#F59E0B' },
     { label: 'En Entrevistas', value: funnelData.in_interview || 0, percentage: 0, color: '#EC4899' },
     { label: 'Con Oferta', value: funnelData.with_offer || 0, percentage: 0, color: '#6366F1' },
     { label: 'Contratados', value: funnelData.hired || 0, percentage: 0, color: '#10B981' },

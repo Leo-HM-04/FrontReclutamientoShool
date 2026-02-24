@@ -685,7 +685,7 @@ ${formData.benefits || 'No especificados'}
                 <option value="approved">Aprobado</option>
                 <option value="in_progress">En Proceso</option>
                 <option value="candidates_found">Candidatos Encontrados</option>
-                <option value="in_evaluation">En Evaluación</option>
+                <option value="in_evaluation">Aplicación de Pruebas</option>
                 <option value="in_interview">En Entrevistas</option>
                 <option value="finalists">Finalistas</option>
                 <option value="completed">Completado</option>

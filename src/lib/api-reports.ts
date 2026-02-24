@@ -227,7 +227,7 @@ export function getStatusLabel(status: string): string {
     'approved': 'Aprobado',
     'in_progress': 'En Proceso',
     'candidates_found': 'Candidatos Encontrados',
-    'in_evaluation': 'En Evaluación',
+    'in_evaluation': 'Aplicación de Pruebas',
     'in_interview': 'En Entrevistas',
     'finalists': 'Finalistas',
     'completed': 'Completado',

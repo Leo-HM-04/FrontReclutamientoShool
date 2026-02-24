@@ -1195,7 +1195,7 @@ export default function Page() {
         'approved': { label: 'Aprobado', color: '#3B82F6' },
         'in_progress': { label: 'En Proceso', color: '#8B5CF6' },
         'candidates_found': { label: 'Candidatos Encontrados', color: '#06B6D4' },
-        'in_evaluation': { label: 'En Evaluación', color: '#F97316' },
+        'in_evaluation': { label: 'Aplicación de Pruebas', color: '#F97316' },
         'in_interview': { label: 'En Entrevista', color: '#EC4899' },
         'finalists': { label: 'Finalistas', color: '#6366F1' },
         'completed': { label: 'Completado', color: '#10B981' },
@@ -3283,7 +3283,7 @@ export default function Page() {
                       <i className="fas fa-clipboard-check text-yellow-600 text-xl" />
                     </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-600">En Evaluación</p>
+                      <p className="text-sm font-medium text-gray-600">Aplicación de Pruebas</p>
                       <p className="text-2xl font-bold text-gray-900">
                         {candidatesOverview?.by_status?.find((s: any) => s.status === 'screening')?.count || 0}
                       </p>
