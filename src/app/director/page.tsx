@@ -916,25 +916,8 @@ export default function Page() {
     initializeDashboard();
   }, []);
 
-
-  // Intervalo inteligente: solo activo cuando estamos en la vista dashboard
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
-    if (currentView === 'dashboard') {
-      intervalId = setInterval(() => {
-        loadDashboardData();
-      }, 60000); // Actualizar cada 60s para no sobrecargar
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [currentView]);
-
-
+  // ⚠️ Auto-refresh deshabilitado para evitar parpadeos
+  // Si necesitas datos actualizados, usa el botón de refrescar manualmente
 
   useEffect(() => {
     if (currentView === 'candidates' && !loading) {
@@ -942,20 +925,11 @@ export default function Page() {
     }
   }, [currentView]);
 
-  // Cargar datos de Celery cuando la vista sea "tasks"
+  // Cargar datos de Celery cuando la vista sea "tasks" (sin auto-refresh)
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
     if (currentView === "tasks") {
       loadCeleryData();
-      interval = setInterval(loadCeleryData, 30000); // Cada 30s en vez de 10s
     }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
   }, [currentView]);
 
   // Cargar datos de clientes cuando sea necesario
