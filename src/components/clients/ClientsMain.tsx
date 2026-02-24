@@ -37,8 +37,21 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
   // Data states
   const [clients, setClients] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [showContactModal, setShowContactModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // Contract upload states
+  const [showContractForm, setShowContractForm] = useState(false);
+  const [contractUploading, setContractUploading] = useState(false);
+  const [contractForm, setContractForm] = useState({
+    client: "",
+    title: "",
+    description: "",
+    file: null as File | null,
+    start_date: "",
+    end_date: "",
+  });
   
   // Filtros para clients-list
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,15 +79,65 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
           setClients(clientsData as any[]);
           break;
         case "contacts":
-          // Los contactos se cargan junto con los clientes
           const clientsForContacts = await apiClient.getClients();
           setClients(clientsForContacts as any[]);
+          break;
+        case "contracts":
+          const [contractsData, clientsForContracts] = await Promise.all([
+            apiClient.getClientContracts(),
+            apiClient.getClients(),
+          ]);
+          setContracts(contractsData as any[]);
+          setClients(clientsForContracts as any[]);
           break;
       }
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContractUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contractForm.file || !contractForm.client || !contractForm.title) {
+      await showAlert("Por favor completa los campos obligatorios (Cliente, Título y Archivo)");
+      return;
+    }
+    setContractUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("client", contractForm.client);
+      formData.append("title", contractForm.title);
+      if (contractForm.description) formData.append("description", contractForm.description);
+      formData.append("file", contractForm.file);
+      if (contractForm.start_date) formData.append("start_date", contractForm.start_date);
+      if (contractForm.end_date) formData.append("end_date", contractForm.end_date);
+
+      await apiClient.uploadClientContract(formData);
+      await showSuccess("Contrato subido exitosamente");
+      setContractForm({ client: "", title: "", description: "", file: null, start_date: "", end_date: "" });
+      setShowContractForm(false);
+      loadData();
+    } catch (error: any) {
+      console.error("Error uploading contract:", error);
+      await showError(error.message || "Error al subir el contrato");
+    } finally {
+      setContractUploading(false);
+    }
+  };
+
+  const handleDeleteContract = async (contractId: number, contractTitle: string) => {
+    const confirmed = await showConfirm(`¿Estás seguro de eliminar el contrato "${contractTitle}"?`);
+    if (confirmed) {
+      try {
+        await apiClient.deleteClientContract(contractId);
+        await showSuccess("Contrato eliminado");
+        loadData();
+      } catch (error) {
+        console.error("Error deleting contract:", error);
+        await showError("Error al eliminar el contrato");
+      }
     }
   };
 
@@ -591,22 +654,222 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
 
             {currentView === "contracts" && (
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Contratos</h3>
-                <div className="text-center py-12 text-gray-500">
-                  <i className="fas fa-file-contract text-5xl mb-4 text-gray-300"></i>
-                  <p className="text-lg">Vista de contratos en desarrollo</p>
-                  <p className="text-sm mt-2">Aquí se mostrarán los contratos</p>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900">Contratos</h3>
+                  <button
+                    onClick={() => setShowContractForm(!showContractForm)}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <i className={`fas ${showContractForm ? 'fa-times' : 'fa-plus'}`}></i>
+                    {showContractForm ? "Cancelar" : "Subir Contrato"}
+                  </button>
                 </div>
+
+                {/* Upload Form */}
+                {showContractForm && (
+                  <form onSubmit={handleContractUpload} className="bg-gray-50 rounded-xl p-6 mb-6 border border-gray-200">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                      <i className="fas fa-upload mr-2 text-green-600"></i>Subir Nuevo Contrato
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cliente *</label>
+                        <select
+                          value={contractForm.client}
+                          onChange={(e) => setContractForm({ ...contractForm, client: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          required
+                        >
+                          <option value="">Seleccionar cliente...</option>
+                          {clients.map((c: any) => (
+                            <option key={c.id} value={c.id}>{c.company_name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Título del Contrato *</label>
+                        <input
+                          type="text"
+                          value={contractForm.title}
+                          onChange={(e) => setContractForm({ ...contractForm, title: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          placeholder="Ej: Contrato de servicios 2026"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Inicio</label>
+                        <input
+                          type="date"
+                          value={contractForm.start_date}
+                          onChange={(e) => setContractForm({ ...contractForm, start_date: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de Fin</label>
+                        <input
+                          type="date"
+                          value={contractForm.end_date}
+                          onChange={(e) => setContractForm({ ...contractForm, end_date: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                        <textarea
+                          value={contractForm.description}
+                          onChange={(e) => setContractForm({ ...contractForm, description: e.target.value })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                          rows={2}
+                          placeholder="Descripción opcional del contrato..."
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Archivo del Contrato *</label>
+                        <div className="flex items-center gap-3">
+                          <label className="flex-1 cursor-pointer">
+                            <div className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${contractForm.file ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-green-400'}`}>
+                              {contractForm.file ? (
+                                <div className="flex items-center justify-center gap-2 text-green-700">
+                                  <i className="fas fa-file-check"></i>
+                                  <span className="font-medium">{contractForm.file.name}</span>
+                                  <span className="text-sm text-green-500">({(contractForm.file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                                </div>
+                              ) : (
+                                <div className="text-gray-500">
+                                  <i className="fas fa-cloud-upload-alt text-2xl mb-1"></i>
+                                  <p className="text-sm">Haz clic para seleccionar archivo (PDF, DOC, DOCX)</p>
+                                </div>
+                              )}
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx"
+                              onChange={(e) => setContractForm({ ...contractForm, file: e.target.files?.[0] || null })}
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-4">
+                      <button
+                        type="button"
+                        onClick={() => { setShowContractForm(false); setContractForm({ client: "", title: "", description: "", file: null, start_date: "", end_date: "" }); }}
+                        className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={contractUploading}
+                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                      >
+                        {contractUploading ? (
+                          <><i className="fas fa-spinner fa-spin"></i> Subiendo...</>
+                        ) : (
+                          <><i className="fas fa-upload"></i> Subir Contrato</>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Contracts List */}
+                {loading ? (
+                  <div className="text-center py-12">
+                    <i className="fas fa-spinner fa-spin text-3xl text-green-500"></i>
+                    <p className="mt-2 text-gray-500">Cargando contratos...</p>
+                  </div>
+                ) : contracts.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <i className="fas fa-file-contract text-5xl mb-4 text-gray-300"></i>
+                    <p className="text-lg">No hay contratos registrados</p>
+                    <p className="text-sm mt-2">Sube tu primer contrato usando el botón de arriba</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {contracts.map((contract: any) => (
+                      <div key={contract.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <i className="fas fa-file-contract text-blue-600 text-xl"></i>
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900">{contract.title}</h4>
+                              <p className="text-sm text-gray-600 mt-0.5">
+                                <i className="fas fa-building mr-1"></i>
+                                {contract.client_name}
+                              </p>
+                              {contract.description && (
+                                <p className="text-sm text-gray-500 mt-1">{contract.description}</p>
+                              )}
+                              <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                                {contract.start_date && (
+                                  <span><i className="fas fa-calendar-alt mr-1"></i>Inicio: {new Date(contract.start_date).toLocaleDateString('es-MX')}</span>
+                                )}
+                                {contract.end_date && (
+                                  <span><i className="fas fa-calendar-times mr-1"></i>Fin: {new Date(contract.end_date).toLocaleDateString('es-MX')}</span>
+                                )}
+                                <span><i className="fas fa-clock mr-1"></i>Subido: {new Date(contract.created_at).toLocaleDateString('es-MX')}</span>
+                                {contract.uploaded_by_name && (
+                                  <span><i className="fas fa-user mr-1"></i>{contract.uploaded_by_name}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                              contract.status === 'active' ? 'bg-green-100 text-green-800' :
+                              contract.status === 'expired' ? 'bg-red-100 text-red-800' :
+                              contract.status === 'cancelled' ? 'bg-gray-100 text-gray-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {contract.status === 'active' ? 'Activo' :
+                               contract.status === 'expired' ? 'Expirado' :
+                               contract.status === 'cancelled' ? 'Cancelado' : 'Borrador'}
+                            </span>
+                            {contract.file_url && (
+                              <a
+                                href={contract.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Descargar"
+                              >
+                                <i className="fas fa-download"></i>
+                              </a>
+                            )}
+                            <button
+                              onClick={() => handleDeleteContract(contract.id, contract.title)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Eliminar"
+                            >
+                              <i className="fas fa-trash-alt"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {currentView === "history" && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Historial</h3>
-                <div className="text-center py-12 text-gray-500">
-                  <i className="fas fa-history text-5xl mb-4 text-gray-300"></i>
-                  <p className="text-lg">Vista de historial en desarrollo</p>
-                  <p className="text-sm mt-2">Aquí se mostrará el historial de interacciones</p>
+                <div className="text-center py-16 text-gray-400">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                    <i className="fas fa-history text-4xl text-gray-300"></i>
+                  </div>
+                  <p className="text-lg font-medium text-gray-500">Sección en Desarrollo</p>
+                  <p className="text-sm mt-2">El historial de interacciones con clientes estará disponible próximamente</p>
+                  <span className="inline-block mt-4 px-4 py-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                    <i className="fas fa-tools mr-1"></i> En desarrollo
+                  </span>
                 </div>
               </div>
             )}
@@ -614,10 +877,15 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
             {currentView === "statistics" && (
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Estadísticas</h3>
-                <div className="text-center py-12 text-gray-500">
-                  <i className="fas fa-chart-bar text-5xl mb-4 text-gray-300"></i>
-                  <p className="text-lg">Vista de estadísticas en desarrollo</p>
-                  <p className="text-sm mt-2">Aquí se mostrarán las métricas de clientes</p>
+                <div className="text-center py-16 text-gray-400">
+                  <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-4">
+                    <i className="fas fa-chart-bar text-4xl text-gray-300"></i>
+                  </div>
+                  <p className="text-lg font-medium text-gray-500">Sección en Desarrollo</p>
+                  <p className="text-sm mt-2">Las métricas y estadísticas de clientes estarán disponibles próximamente</p>
+                  <span className="inline-block mt-4 px-4 py-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">
+                    <i className="fas fa-tools mr-1"></i> En desarrollo
+                  </span>
                 </div>
               </div>
             )}

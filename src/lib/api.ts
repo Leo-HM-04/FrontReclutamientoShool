@@ -830,6 +830,50 @@ class ApiClient {
 
 
 
+  // ====== CLIENT CONTRACTS ======
+
+  /**
+   * Get contracts, optionally filtered by client
+   */
+  async getClientContracts(clientId?: number): Promise<any> {
+    const query = clientId ? `?client=${clientId}` : '';
+    return this.makeRequest<any>(`/client-contracts/${query}`);
+  }
+
+  /**
+   * Upload a new contract for a client
+   */
+  async uploadClientContract(formData: FormData): Promise<any> {
+    const token = localStorage.getItem('authToken');
+    const response = await fetch(`${this.baseURL}/client-contracts/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw {
+        message: errorData.message || 'Error al subir contrato',
+        status: response.status,
+        details: errorData,
+      } as ApiError;
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Delete a contract
+   */
+  async deleteClientContract(id: number): Promise<void> {
+    return this.makeRequest<void>(`/client-contracts/${id}/`, {
+      method: 'DELETE',
+    });
+  }
+
   // ====== USERS MANAGEMENT ======
 
   /**
