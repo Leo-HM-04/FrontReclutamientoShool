@@ -238,7 +238,7 @@ export interface CandidateData {
 
 export interface ExtendedConsolidatedReportData {
   filter?: {
-    type: 'all' | 'client' | 'profile';
+    type: 'all' | 'client' | 'profile' | 'client_profile';
     clientId?: number;
     clientName?: string;
     profileId?: number;
