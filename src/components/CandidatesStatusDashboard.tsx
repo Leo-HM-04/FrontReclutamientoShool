@@ -748,7 +748,7 @@ export default function CandidatesStatusDashboard() {
                       {filteredApplications.map((app) => (
                         <div
                           key={app.id}
-                          className={`group relative bg-white rounded-lg border-2 p-4 transition-all duration-200 cursor-pointer ${
+                          className={`group bg-white rounded-lg border-2 p-4 transition-all duration-200 cursor-pointer ${
                             selectedApplications.has(app.id)
                               ? 'border-blue-500 shadow-md bg-blue-50/50 scale-[1.01]'
                               : 'border-gray-200 hover:border-blue-300 hover:shadow-sm hover:scale-[1.005]'
@@ -756,20 +756,20 @@ export default function CandidatesStatusDashboard() {
                           onClick={() => handleSelectApplication(app.id)}
                           title={selectedApplications.has(app.id) ? 'Click para deseleccionar' : 'Click para seleccionar'}
                         >
-                          {/* Selection indicator */}
-                          <div className={`absolute top-3 left-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                            selectedApplications.has(app.id)
-                              ? 'border-blue-500 bg-blue-500 scale-110'
-                              : 'border-gray-300 opacity-0 group-hover:opacity-100 group-hover:border-blue-400'
-                          }`}>
-                            {selectedApplications.has(app.id) ? (
-                              <i className="fas fa-check text-white text-[9px]" />
-                            ) : (
-                              <i className="fas fa-plus text-blue-400 text-[9px]" />
-                            )}
-                          </div>
+                          <div className="flex items-start space-x-3">
 
-                          <div className="flex items-start space-x-4">
+                            {/* Selection indicator */}
+                            <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200 shrink-0 mt-0.5 ${
+                              selectedApplications.has(app.id)
+                                ? 'border-blue-500 bg-blue-500 scale-110'
+                                : 'border-gray-300 opacity-0 group-hover:opacity-100 group-hover:border-blue-400 group-hover:scale-105'
+                            }`}>
+                              {selectedApplications.has(app.id) ? (
+                                <i className="fas fa-check text-white text-[10px]" />
+                              ) : (
+                                <i className="fas fa-plus text-blue-400 text-[10px]" />
+                              )}
+                            </div>
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">

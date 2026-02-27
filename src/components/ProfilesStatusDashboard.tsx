@@ -713,9 +713,10 @@ export default function ProfilesStatusDashboard() {
                     <tr
                       className={`group cursor-pointer transition-all duration-200 ${
                         selectedProfiles.has(profile.id)
-                          ? 'bg-blue-50 hover:bg-blue-100'
-                          : 'hover:bg-gray-50'
+                          ? 'bg-blue-50/70 hover:bg-blue-100/70'
+                          : 'hover:bg-gradient-to-r hover:from-blue-50/40 hover:to-transparent'
                       }`}
+                      style={{ transform: 'translateZ(0)' }}
                       onClick={() => handleSelectProfile(profile.id)}
                       title={selectedProfiles.has(profile.id) ? 'Click para deseleccionar' : 'Click para seleccionar'}
                     >
@@ -765,13 +766,13 @@ export default function ProfilesStatusDashboard() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">{formatNumber(profile.number_of_positions)}</td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex space-x-2">
+                        <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleExpandProfile(profile.id)}
-                            className="text-blue-600 hover:text-blue-800"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-600 hover:bg-blue-100 hover:text-blue-700 transition-all duration-150"
                             title="Ver detalles"
                           >
-                            <i className={`fas fa-chevron-${expandedProfile === profile.id ? 'up' : 'down'}`} />
+                            <i className={`fas fa-chevron-${expandedProfile === profile.id ? 'up' : 'down'} text-sm`} />
                           </button>
                           <button
                             onClick={() => {
@@ -779,10 +780,10 @@ export default function ProfilesStatusDashboard() {
                               setApprovalAction(profile.client_approved ? 'reject' : 'approve');
                               setShowApprovalModal(true);
                             }}
-                            className="text-green-600 hover:text-green-800"
-                            title="Aprobar/Rechazar"
+                            className="w-8 h-8 rounded-lg flex items-center justify-center text-green-600 hover:bg-green-100 hover:text-green-700 transition-all duration-150"
+                            title={profile.client_approved ? 'Rechazar' : 'Aprobar'}
                           >
-                            <i className="fas fa-check" />
+                            <i className={`fas ${profile.client_approved ? 'fa-times' : 'fa-check'} text-sm`} />
                           </button>
                           {profile.status === 'in_progress' && (
                             <button
@@ -791,10 +792,10 @@ export default function ProfilesStatusDashboard() {
                                 setPlatformForm({ platform: '', url: '' });
                                 setShowPlatformModal(true);
                               }}
-                              className="text-purple-600 hover:text-purple-800"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-purple-600 hover:bg-purple-100 hover:text-purple-700 transition-all duration-150"
                               title="Agregar plataforma"
                             >
-                              <i className="fas fa-plus-circle" />
+                              <i className="fas fa-plus-circle text-sm" />
                             </button>
                           )}
                         </div>
