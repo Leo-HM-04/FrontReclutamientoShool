@@ -176,33 +176,41 @@ export default function FullConsolidatedReport({ onBack }: Props) {
   const [selectedProfileFilter, setSelectedProfileFilter] = useState<number | null>(null);
   const [selectedClientFilter, setSelectedClientFilter] = useState<number | null>(null);
 
-  // Datos filtrados
+  // Perfiles disponibles en el dropdown (filtrados por cliente si aplica)
+  const availableProfiles = data
+    ? (selectedClientFilter
+        ? data.profiles.filter(p => p.client_id === selectedClientFilter)
+        : data.profiles)
+    : [];
+
+  // Datos filtrados (combina ambos filtros con lógica AND)
   const getFilteredData = () => {
     if (!data) return { profiles: [], clients: [], candidates: [] };
     
     let filteredProfiles = data.profiles;
     let filteredClients = data.clients;
-    let filteredCandidates = data.candidates;
 
-    // Filtrar por cliente
+    // 1) Filtro por cliente (filtro padre)
     if (selectedClientFilter) {
-      filteredProfiles = data.profiles.filter(p => p.client_id === selectedClientFilter);
-      filteredClients = data.clients.filter(c => c.id === selectedClientFilter);
-      const profileIds = new Set(filteredProfiles.map(p => Number(p.id)));
-      filteredCandidates = data.candidates.filter(c => profileIds.has(Number(c.profile_id)));
-
+      filteredProfiles = filteredProfiles.filter(p => p.client_id === selectedClientFilter);
+      filteredClients = filteredClients.filter(c => c.id === selectedClientFilter);
     }
 
-    // Filtrar por perfil
+    // 2) Filtro por perfil (filtro hijo, se combina con el de cliente)
     if (selectedProfileFilter) {
-      filteredProfiles = data.profiles.filter(p => p.id === selectedProfileFilter);
-      filteredCandidates = data.candidates.filter(c => c.profile_id === selectedProfileFilter);
-      // Obtener cliente del perfil seleccionado
-      const selectedProfile = data.profiles.find(p => p.id === selectedProfileFilter);
-      if (selectedProfile) {
-        filteredClients = data.clients.filter(c => c.id === selectedProfile.client_id);
+      filteredProfiles = filteredProfiles.filter(p => p.id === selectedProfileFilter);
+      // Si no hay filtro de cliente, deducir el cliente del perfil seleccionado
+      if (!selectedClientFilter) {
+        const selectedProfile = data.profiles.find(p => p.id === selectedProfileFilter);
+        if (selectedProfile) {
+          filteredClients = filteredClients.filter(c => c.id === selectedProfile.client_id);
+        }
       }
     }
+
+    // 3) Filtrar candidatos basado en los perfiles resultantes
+    const profileIds = new Set(filteredProfiles.map(p => Number(p.id)));
+    const filteredCandidates = data.candidates.filter(c => profileIds.has(Number(c.profile_id)));
 
     return { profiles: filteredProfiles, clients: filteredClients, candidates: filteredCandidates };
   };
@@ -577,10 +585,20 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
         ? Math.round((data.summary.profiles_completed / data.summary.total_profiles) * 100) 
         : 0;
       
-      // Determinar tipo de filtro aplicado
-      let filterInfo: { type: 'all' | 'client' | 'profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string } = { type: 'all' };
+      // Determinar tipo de filtro aplicado (soporta ambos simultáneamente)
+      let filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string } = { type: 'all' };
       
-      if (selectedClientFilter) {
+      if (selectedClientFilter && selectedProfileFilter) {
+        const client = data.clients.find(c => c.id === selectedClientFilter);
+        const profile = data.profiles.find(p => p.id === selectedProfileFilter);
+        filterInfo = {
+          type: 'client_profile',
+          clientId: selectedClientFilter,
+          clientName: client?.company_name || 'N/A',
+          profileId: selectedProfileFilter,
+          profileTitle: profile?.position_title || 'N/A',
+        };
+      } else if (selectedClientFilter) {
         const client = data.clients.find(c => c.id === selectedClientFilter);
         filterInfo = {
           type: 'client',
@@ -856,7 +874,9 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
 
       // Generar nombre de archivo
       let filename = 'Reporte_General_Consolidado';
-      if (filterInfo.type === 'client') {
+      if (filterInfo.type === 'client_profile') {
+        filename = `Reporte_${filterInfo.clientName?.replace(/\s+/g, '_')}_${filterInfo.profileTitle?.substring(0, 30).replace(/\s+/g, '_')}`;
+      } else if (filterInfo.type === 'client') {
         filename = `Reporte_Cliente_${filterInfo.clientName?.replace(/\s+/g, '_')}`;
       } else if (filterInfo.type === 'profile') {
         filename = `Reporte_Perfil_${filterInfo.profileTitle?.substring(0, 30).replace(/\s+/g, '_')}`;
@@ -1057,18 +1077,18 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             </select>
           </div>
 
-          {/* Filtro por Perfil */}
+          {/* Filtro por Perfil (cascada: muestra solo perfiles del cliente seleccionado) */}
           <div className="flex-1 min-w-[200px]">
             <select
               value={selectedProfileFilter || ''}
               onChange={(e) => {
                 setSelectedProfileFilter(e.target.value ? parseInt(e.target.value) : null);
-                setSelectedClientFilter(null);
+                // NO limpiar el filtro de cliente → mantiene la jerarquía cascada
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Todos los Perfiles</option>
-              {data.profiles.map(profile => (
+              <option value="">{selectedClientFilter ? 'Todos los Perfiles del Cliente' : 'Todos los Perfiles'}</option>
+              {availableProfiles.map(profile => (
                 <option key={profile.id} value={profile.id}>{profile.position_title} - {profile.client_name}</option>
               ))}
             </select>
@@ -2130,7 +2150,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">-- Seleccionar un perfil --</option>
-                {data.profiles.map(profile => (
+                {availableProfiles.map(profile => (
                   <option key={profile.id} value={profile.id}>
                     {profile.position_title} - {profile.client_name} ({formatNumber(profile.candidates_count)} candidatos)
                   </option>
