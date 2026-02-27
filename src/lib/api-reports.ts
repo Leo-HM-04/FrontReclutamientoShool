@@ -635,3 +635,57 @@ export async function sendProfileReportEmail(profileId: number, message?: string
     throw error;
   }
 }
+
+export async function sendCandidateReportEmail(candidateId: number, message?: string) {
+  try {
+    const body: Record<string, string> = {};
+    if (message) body.message = message;
+
+    const response = await fetch(
+      `${API_URL}/director/reports/candidate/${candidateId}/send-email/`,
+      {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error sending candidate report email:', error);
+    throw error;
+  }
+}
+
+export async function sendClientReportEmail(clientId: number, message?: string) {
+  try {
+    const body: Record<string, string> = {};
+    if (message) body.message = message;
+
+    const response = await fetch(
+      `${API_URL}/director/reports/client/${clientId}/send-email/`,
+      {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error sending client report email:', error);
+    throw error;
+  }
+}

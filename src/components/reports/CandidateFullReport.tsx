@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getCandidateFullReport, formatDate, formatCurrency, getStatusColor, getStatusLabel, type CandidateFullReportData } from '@/lib/api-reports';
+import { getCandidateFullReport, sendCandidateReportEmail, formatDate, formatCurrency, getStatusColor, getStatusLabel, type CandidateFullReportData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
 import { downloadCandidateReportPDF } from '@/lib/pdf-candidate-report';
 
@@ -20,12 +20,13 @@ interface Props {
 }
 
 export default function CandidateFullReport({ candidateId, onBack }: Props) {
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
   const [data, setData] = useState<CandidateFullReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'info' | 'applications' | 'documents' | 'evaluations' | 'notes'>('info');
   const [exporting, setExporting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -224,6 +225,31 @@ export default function CandidateFullReport({ candidateId, onBack }: Props) {
     }
   };
 
+  // ═══════════════════════════════════════════════
+  // ENVIAR POR CORREO
+  // ═══════════════════════════════════════════════
+  const handleSendEmail = async () => {
+    if (!data) return;
+
+    const confirmed = await showConfirm(
+      `¿Enviar el reporte de "${data.personal_info.full_name}" por correo a los clientes asociados?\n\nSe enviará a los contactos de los clientes con perfiles donde aplicó este candidato.`
+    );
+    if (!confirmed) return;
+
+    setSendingEmail(true);
+    try {
+      const result = await sendCandidateReportEmail(candidateId);
+      const sentList = result.sent_to?.join(', ') || 'destinatarios';
+      await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
+    } catch (error: unknown) {
+      console.error('Error al enviar reporte por correo:', error);
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      await showAlert(`❌ Error al enviar el reporte: ${message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const { personal_info, applications, documents, evaluations, notes, statistics } = data;
 
   return (
@@ -267,6 +293,15 @@ export default function CandidateFullReport({ candidateId, onBack }: Props) {
             >
               <i className="fas fa-file-excel mr-2"></i>
               {exporting ? 'Generando...' : 'Excel'}
+            </button>
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="px-4 py-2 bg-emerald-500/80 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Enviar reporte por correo al cliente"
+            >
+              <i className={`fas ${sendingEmail ? 'fa-spinner fa-spin' : 'fa-envelope'} mr-2`}></i>
+              {sendingEmail ? 'Enviando...' : 'Enviar'}
             </button>
           </div>
         </div>

@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getClientFullReport, formatDate, getStatusColor, type ClientFullReportData } from '@/lib/api-reports';
+import { getClientFullReport, sendClientReportEmail, formatDate, getStatusColor, type ClientFullReportData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
 import { downloadClientReportPDF } from '@/lib/pdf-client-report';
 
@@ -21,12 +21,13 @@ interface Props {
 }
 
 export default function ClientFullReport({ clientId, onBack, onViewProfile }: Props) {
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
   const [data, setData] = useState<ClientFullReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [exporting, setExporting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -224,6 +225,31 @@ export default function ClientFullReport({ clientId, onBack, onViewProfile }: Pr
     }
   };
 
+  // ═══════════════════════════════════════════════
+  // ENVIAR POR CORREO
+  // ═══════════════════════════════════════════════
+  const handleSendEmail = async () => {
+    if (!data) return;
+
+    const confirmed = await showConfirm(
+      `¿Enviar el reporte de "${data.client.company_name}" por correo al cliente?\n\nSe enviará al contacto principal y contactos adicionales.`
+    );
+    if (!confirmed) return;
+
+    setSendingEmail(true);
+    try {
+      const result = await sendClientReportEmail(clientId);
+      const sentList = result.sent_to?.join(', ') || 'destinatarios';
+      await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
+    } catch (error: unknown) {
+      console.error('Error al enviar reporte por correo:', error);
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      await showAlert(`❌ Error al enviar el reporte: ${message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const { client, profiles, statistics, profiles_by_status } = data;
 
   return (
@@ -271,6 +297,15 @@ export default function ClientFullReport({ clientId, onBack, onViewProfile }: Pr
             >
               <i className="fas fa-file-excel mr-2"></i>
               {exporting ? 'Generando...' : 'Excel'}
+            </button>
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="px-4 py-2 bg-emerald-500/80 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Enviar reporte por correo al cliente"
+            >
+              <i className={`fas ${sendingEmail ? 'fa-spinner fa-spin' : 'fa-envelope'} mr-2`}></i>
+              {sendingEmail ? 'Enviando...' : 'Enviar'}
             </button>
             <button onClick={() => window.print()} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors">
               <i className="fas fa-print"></i>

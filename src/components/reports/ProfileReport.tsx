@@ -20,7 +20,7 @@ interface Props {
 }
 
 export default function ProfileReport({ profileId, onBack }: Props) {
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
   const [data, setData] = useState<ProfileReportData | null>(null);
   const [candidatesData, setCandidatesData] = useState<ProfileCandidatesData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -221,9 +221,8 @@ export default function ProfileReport({ profileId, onBack }: Props) {
   const handleSendEmail = async () => {
     if (!data) return;
 
-    const confirmed = await showAlert(
-      `¿Enviar el reporte de "${profile.position_title}" por correo al cliente ${client.company_name}?\n\nSe enviará al contacto principal y contactos adicionales con el PDF adjunto.`,
-      'confirm'
+    const confirmed = await showConfirm(
+      `¿Enviar el reporte de "${profile.position_title}" por correo al cliente ${client.company_name}?\n\nSe enviará al contacto principal y contactos adicionales con el PDF adjunto.`
     );
     if (!confirmed) return;
 

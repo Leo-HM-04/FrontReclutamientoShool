@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getProfileTimeline, formatDateTime, type ProfileTimelineData, type TimelineEvent } from '@/lib/api-reports';
+import { getProfileTimeline, sendProfileReportEmail, formatDateTime, type ProfileTimelineData, type TimelineEvent } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
 import { downloadTimelineReportPDF } from '@/lib/pdf-timeline-report';
 
@@ -20,12 +20,13 @@ interface Props {
 }
 
 export default function ProfileTimelineReport({ profileId, onBack }: Props) {
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
   const [data, setData] = useState<ProfileTimelineData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('');
   const [exporting, setExporting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -216,6 +217,31 @@ export default function ProfileTimelineReport({ profileId, onBack }: Props) {
     }
   };
 
+  // ═══════════════════════════════════════════════
+  // ENVIAR POR CORREO
+  // ═══════════════════════════════════════════════
+  const handleSendEmail = async () => {
+    if (!data) return;
+
+    const confirmed = await showConfirm(
+      `¿Enviar el reporte del perfil "${data.profile.title}" por correo al cliente?\n\nSe enviará al contacto principal y contactos adicionales con el PDF adjunto.`
+    );
+    if (!confirmed) return;
+
+    setSendingEmail(true);
+    try {
+      const result = await sendProfileReportEmail(profileId);
+      const sentList = result.sent_to?.join(', ') || 'destinatarios';
+      await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
+    } catch (error: unknown) {
+      console.error('Error al enviar reporte por correo:', error);
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      await showAlert(`❌ Error al enviar el reporte: ${message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ═══════════════════════════════════════════════ */}
@@ -255,6 +281,15 @@ export default function ProfileTimelineReport({ profileId, onBack }: Props) {
             >
               <i className="fas fa-file-excel mr-2"></i>
               {exporting ? 'Generando...' : 'Excel'}
+            </button>
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="px-4 py-2 bg-emerald-500/80 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Enviar reporte por correo al cliente"
+            >
+              <i className={`fas ${sendingEmail ? 'fa-spinner fa-spin' : 'fa-envelope'} mr-2`}></i>
+              {sendingEmail ? 'Enviando...' : 'Enviar'}
             </button>
             <button onClick={() => window.print()} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors">
               <i className="fas fa-print"></i>
