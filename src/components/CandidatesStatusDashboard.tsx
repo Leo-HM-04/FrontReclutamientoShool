@@ -342,17 +342,17 @@ export default function CandidatesStatusDashboard() {
       });
       
       if (response.ok) {
-        showNotification('Estado del perfil actualizado', 'success');
+        showNotification('Estatus del perfil actualizado', 'success');
         await loadProfiles();
         setShowProfileStatusModal(false);
         setProfileNewStatus('');
         setProfileStatusNotes('');
       } else {
-        showNotification('Error al actualizar estado del perfil', 'error');
+        showNotification('Error al actualizar estatus del perfil', 'error');
       }
     } catch (error) {
       console.error('Error updating profile status:', error);
-      showNotification('Error al actualizar estado del perfil', 'error');
+      showNotification('Error al actualizar estatus del perfil', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -558,7 +558,7 @@ export default function CandidatesStatusDashboard() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Estado de Candidatos</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Estatus de Candidatos</h1>
             <p className="text-gray-600 mt-1">Gestiona los candidatos aplicando a los perfiles</p>
           </div>
           <button
@@ -670,7 +670,7 @@ export default function CandidatesStatusDashboard() {
                     className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
                   >
                     <i className="fas fa-edit mr-2" />
-                    Estado del Perfil
+                    Estatus del Perfil
                   </button>
                 </div>
 
@@ -838,13 +838,13 @@ export default function CandidatesStatusDashboard() {
         </div>
       </div>
 
-      {/* Modal: Cambiar Estado del Perfil */}
+      {/* Modal: Cambiar Estatus del Perfil */}
       {showProfileStatusModal && selectedProfile && (
         <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Cambiar Estado del Perfil</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Cambiar Estatus del Perfil</h3>
                 <button
                   onClick={() => {
                     setShowProfileStatusModal(false);
@@ -924,7 +924,7 @@ export default function CandidatesStatusDashboard() {
         </div>
       )}
 
-      {/* Modal: Cambiar Estado de Candidatos */}
+      {/* Modal: Cambiar Estatus de Candidatos */}
       {showCandidateStatusModal && (
         <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">

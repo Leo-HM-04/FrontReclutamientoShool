@@ -2483,7 +2483,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("profiles-status")}`}
                     >
                       <i className="fas fa-tasks mr-3 w-5" />
-                      <span className="flex-1 text-left">Estado de Perfiles</span>
+                      <span className="flex-1 text-left">Estatus de Perfiles</span>
                     </button>
                   </li>
 
@@ -2499,7 +2499,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("candidates-status")}`}
                     >
                       <i className="fas fa-user-check mr-3 w-5" />
-                      <span className="flex-1 text-left">Estado de Candidatos</span>
+                      <span className="flex-1 text-left">Estatus de Candidatos</span>
                     </button>
                   </li>
 
