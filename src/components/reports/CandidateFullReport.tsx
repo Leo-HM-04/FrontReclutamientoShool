@@ -12,7 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { getCandidateFullReport, sendCandidateReportEmail, formatDate, formatCurrency, getStatusColor, getStatusLabel, type CandidateFullReportData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
-import { downloadCandidateReportPDF } from '@/lib/pdf-candidate-report';
+import { downloadCandidateReportPDF, generateCandidateReportPDF } from '@/lib/pdf-candidate-report';
 
 interface Props {
   candidateId: number;
@@ -238,7 +238,65 @@ export default function CandidateFullReport({ candidateId, onBack }: Props) {
 
     setSendingEmail(true);
     try {
-      const result = await sendCandidateReportEmail(candidateId);
+      // Generar el mismo PDF que se descarga
+      const reportData = {
+        nombre: data.personal_info.full_name,
+        fecha_reporte: new Date().toLocaleDateString('es-MX', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        }),
+        contacto: {
+          email: data.personal_info.email || '',
+          telefono: data.personal_info.phone || '',
+          ciudad: data.personal_info.location?.city || '',
+          estado: data.personal_info.location?.state || '',
+        },
+        profesional: {
+          empresa_actual: data.personal_info.current_company || undefined,
+          posicion_actual: data.personal_info.current_position || undefined,
+          educacion: data.personal_info.education_level || '',
+          universidad: data.personal_info.university || undefined,
+          experiencia_anios: data.personal_info.years_of_experience || 0,
+        },
+        estadisticas: {
+          aplicaciones: data.statistics.total_applications || 0,
+          documentos: data.statistics.total_documents || 0,
+          evaluaciones: data.statistics.total_evaluations || 0,
+        },
+        habilidades: data.personal_info.skills || [],
+        aplicaciones: data.applications.map(app => ({
+          perfil: app.profile.title || '',
+          cliente: app.profile.client || '',
+          estado: app.status_display || '',
+          fecha: formatDate(app.applied_at),
+          match_porcentaje: app.match_percentage || 0,
+        })),
+        evaluaciones: data.evaluations?.map(evalItem => ({
+          template: evalItem.template || 'Evaluación',
+          categoria: evalItem.template_category || '',
+          estado: evalItem.status_display || evalItem.status || 'Pendiente',
+          puntaje: evalItem.final_score,
+          aprobado: evalItem.passed,
+        })) || [],
+        documentos: data.documents?.map(doc => ({
+          nombre: doc.filename || 'Documento',
+          tipo: doc.type || 'Otro',
+          fecha: formatDate(doc.uploaded_at),
+        })) || [],
+        notas: data.notes?.map(nota => ({
+          tipo: nota.type || 'General',
+          contenido: nota.content || '',
+          autor: nota.created_by || '',
+          fecha: formatDate(nota.created_at),
+        })) || [],
+      };
+
+      const pdf = generateCandidateReportPDF(reportData);
+      const pdfBlob = pdf.output('blob') as Blob;
+      const pdfFilename = `Candidato_${data.personal_info.full_name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const result = await sendCandidateReportEmail(candidateId, pdfBlob, pdfFilename);
       const sentList = result.sent_to?.join(', ') || 'destinatarios';
       await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
     } catch (error: unknown) {

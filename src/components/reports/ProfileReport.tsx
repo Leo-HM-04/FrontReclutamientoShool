@@ -12,7 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { getProfileReport, getProfileCandidates, sendProfileReportEmail, formatDate, formatCurrency, getStatusColor, type ProfileReportData, type ProfileCandidatesData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
-import { generateProfileReport, type ProfileReportData as PDFProfileData } from '@/lib/pdf-profile-report';
+import { generateProfileReport, generateProfileReportBlob, type ProfileReportData as PDFProfileData } from '@/lib/pdf-profile-report';
 
 interface Props {
   profileId: number;
@@ -228,7 +228,43 @@ export default function ProfileReport({ profileId, onBack }: Props) {
 
     setSendingEmail(true);
     try {
-      const result = await sendProfileReportEmail(profileId);
+      // Generar el mismo PDF que se descarga
+      const pdfData: PDFProfileData = {
+        titulo: 'REPORTE DE PERFIL',
+        puesto: profile.position_title,
+        fecha: new Date().toLocaleDateString('es-MX', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        kpis: {
+          dias_abierto: progress.days_open,
+          candidatos: candidates_stats.total,
+          preseleccionados: candidates_stats.shortlisted,
+          entrevistas: candidates_stats.interviewed,
+        },
+        estado: profile.status_display,
+        prioridad: profile.priority === 'Alta' ? 'high' : profile.priority === 'Media' ? 'medium' : 'low',
+        servicio: profile.service_type === 'Urgente' ? 'urgente' : profile.service_type === 'Express' ? 'express' : 'normal',
+        supervisor: supervisor?.name || 'No asignado',
+        empresa: client.company_name,
+        industria: client.industry,
+        contacto: client.contact_name,
+        email: client.contact_email,
+        ciudad: `${profile.location.city}, ${profile.location.state}`,
+        modalidad: profile.location.work_mode.toLowerCase() as 'presencial' | 'remoto' | 'híbrido',
+        salario: `${formatCurrency(profile.salary.min)} - ${formatCurrency(profile.salary.max)} ${profile.salary.currency}/${profile.salary.period}`,
+        resumen_rol: profile.description || 'Sin descripción disponible',
+        requisitos: profile.requirements || '',
+        technical_skills: profile.technical_skills || [],
+        soft_skills: profile.soft_skills || [],
+        languages: profile.languages || [],
+      };
+
+      const pdfBlob = generateProfileReportBlob(pdfData);
+      const pdfFilename = `Reporte_Perfil_${profile.position_title.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const result = await sendProfileReportEmail(profileId, pdfBlob, pdfFilename);
       const sentList = result.sent_to?.join(', ') || 'destinatarios';
       await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
     } catch (error: unknown) {

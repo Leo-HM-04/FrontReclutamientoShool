@@ -12,7 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { getProfileTimeline, sendProfileReportEmail, formatDateTime, type ProfileTimelineData, type TimelineEvent } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
-import { downloadTimelineReportPDF } from '@/lib/pdf-timeline-report';
+import { downloadTimelineReportPDF, generateTimelineReportPDF } from '@/lib/pdf-timeline-report';
 
 interface Props {
   profileId: number;
@@ -230,7 +230,44 @@ export default function ProfileTimelineReport({ profileId, onBack }: Props) {
 
     setSendingEmail(true);
     try {
-      const result = await sendProfileReportEmail(profileId);
+      // Generar el mismo PDF que se descarga
+      const events = filterType 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? data.timeline.filter((e: any) => e.type === filterType)
+        : data.timeline;
+
+      const reportData = {
+        puesto: data.profile.title,
+        cliente: data.profile.client,
+        fecha_reporte: new Date().toLocaleDateString('es-MX', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        dias_abierto: data.metrics?.total_duration_days || Math.ceil((data.metrics?.total_duration_hours || 0) / 24) || 1,
+        total_candidatos: data.metrics?.candidates_count || data.candidates?.length || 0,
+        match_promedio: data.metrics?.avg_match_score || 0,
+        total_eventos: data.total_events || events.length,
+        candidatos: (data.candidates || []).map((c) => ({
+          nombre: c.name,
+          email: '',
+          fecha_aplico: c.applied_at_formatted || formatDateTime(c.applied_at),
+          match_porcentaje: c.match || 0,
+          estado: c.status || 'Pendiente'
+        })),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        eventos: events.map((event: any) => ({
+          fecha_hora: formatDateTime(event.timestamp),
+          tipo: event.title,
+          descripcion: event.description || ''
+        }))
+      };
+
+      const pdf = generateTimelineReportPDF(reportData);
+      const pdfBlob = pdf.output('blob') as Blob;
+      const pdfFilename = `Timeline_${data.profile.title.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const result = await sendProfileReportEmail(profileId, pdfBlob, pdfFilename);
       const sentList = result.sent_to?.join(', ') || 'destinatarios';
       await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
     } catch (error: unknown) {

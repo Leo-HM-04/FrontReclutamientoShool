@@ -609,17 +609,21 @@ export function formatPercentage(value: number, decimals: number = 1): string {
 // ENVIAR REPORTE POR CORREO
 // ════════════════════════════════════════════════════════════════════
 
-export async function sendProfileReportEmail(profileId: number, message?: string) {
+export async function sendProfileReportEmail(profileId: number, pdfBlob: Blob, pdfFilename: string, message?: string) {
   try {
-    const body: Record<string, string> = {};
-    if (message) body.message = message;
+    const token = localStorage.getItem('authToken');
+    const formData = new FormData();
+    formData.append('pdf_file', pdfBlob, pdfFilename);
+    if (message) formData.append('message', message);
 
     const response = await fetch(
       `${API_URL}/director/reports/profile/${profileId}/send-email/`,
       {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body),
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
       }
     );
 
@@ -636,17 +640,21 @@ export async function sendProfileReportEmail(profileId: number, message?: string
   }
 }
 
-export async function sendCandidateReportEmail(candidateId: number, message?: string) {
+export async function sendCandidateReportEmail(candidateId: number, pdfBlob: Blob, pdfFilename: string, message?: string) {
   try {
-    const body: Record<string, string> = {};
-    if (message) body.message = message;
+    const token = localStorage.getItem('authToken');
+    const formData = new FormData();
+    formData.append('pdf_file', pdfBlob, pdfFilename);
+    if (message) formData.append('message', message);
 
     const response = await fetch(
       `${API_URL}/director/reports/candidate/${candidateId}/send-email/`,
       {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body),
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
       }
     );
 
@@ -663,17 +671,21 @@ export async function sendCandidateReportEmail(candidateId: number, message?: st
   }
 }
 
-export async function sendClientReportEmail(clientId: number, message?: string) {
+export async function sendClientReportEmail(clientId: number, pdfBlob: Blob, pdfFilename: string, message?: string) {
   try {
-    const body: Record<string, string> = {};
-    if (message) body.message = message;
+    const token = localStorage.getItem('authToken');
+    const formData = new FormData();
+    formData.append('pdf_file', pdfBlob, pdfFilename);
+    if (message) formData.append('message', message);
 
     const response = await fetch(
       `${API_URL}/director/reports/client/${clientId}/send-email/`,
       {
         method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(body),
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
       }
     );
 

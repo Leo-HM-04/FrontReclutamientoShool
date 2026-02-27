@@ -11,7 +11,7 @@
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { getProfileCandidates, sendProfileReportEmail, formatDate, getStatusColor, getStatusLabel, type ProfileCandidatesData } from '@/lib/api-reports';
-import { downloadCandidatesReportPDF, type CandidatesReportData, type CandidateData } from '@/lib/pdf-candidates-report';
+import { downloadCandidatesReportPDF, generateCandidatesReportPDF, type CandidatesReportData, type CandidateData } from '@/lib/pdf-candidates-report';
 import * as XLSX from 'xlsx';
 
 interface Props {
@@ -168,7 +168,35 @@ export default function ProfileCandidatesReport({ profileId, onBack, onViewCandi
 
     setSendingEmail(true);
     try {
-      const result = await sendProfileReportEmail(profileId);
+      // Generar el mismo PDF que se descarga
+      const candidatosData: CandidateData[] = data.candidates.map(candidate => ({
+        nombre: candidate.full_name,
+        email: candidate.email,
+        estado: candidate.status_display,
+        match_porcentaje: candidate.match_percentage || 0,
+        applied_at: candidate.applied_at,
+        interview_date: candidate.interview_date || undefined,
+        offer_date: candidate.offer_date || undefined,
+        status_history: []
+      }));
+
+      const reportData: CandidatesReportData = {
+        puesto: data.profile.title,
+        cliente: data.profile.client,
+        fecha: new Date().toLocaleDateString('es-MX', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        candidatos: candidatosData,
+        incluirMarcaAgua: true
+      };
+
+      const pdf = generateCandidatesReportPDF(reportData);
+      const pdfBlob = pdf.output('blob') as Blob;
+      const pdfFilename = `Candidatos_${data.profile.title.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const result = await sendProfileReportEmail(profileId, pdfBlob, pdfFilename);
       const sentList = result.sent_to?.join(', ') || 'destinatarios';
       await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
     } catch (error: unknown) {

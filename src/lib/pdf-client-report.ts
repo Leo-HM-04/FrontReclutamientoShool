@@ -994,3 +994,8 @@ export function downloadClientReportPDF(data: ClientReportData, filename: string
   const pdf = generator.generate(data);
   pdf.save(filename);
 }
+
+export function generateClientReportPDF(data: ClientReportData): jsPDF {
+  const generator = new ClientReportPDF();
+  return generator.generate(data);
+}

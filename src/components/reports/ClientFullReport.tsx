@@ -12,7 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { getClientFullReport, sendClientReportEmail, formatDate, getStatusColor, type ClientFullReportData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
-import { downloadClientReportPDF } from '@/lib/pdf-client-report';
+import { downloadClientReportPDF, generateClientReportPDF, type ClientReportData as PDFClientReportData } from '@/lib/pdf-client-report';
 
 interface Props {
   clientId: number;
@@ -232,13 +232,50 @@ export default function ClientFullReport({ clientId, onBack, onViewProfile }: Pr
     if (!data) return;
 
     const confirmed = await showConfirm(
-      `¿Enviar el reporte de "${data.client.company_name}" por correo al cliente?\n\nSe enviará al contacto principal y contactos adicionales.`
+      `¿Enviar el reporte de "${data.client.company_name}" por correo al cliente?\n\nSe enviará al contacto principal y contactos adicionales con el PDF adjunto.`
     );
     if (!confirmed) return;
 
     setSendingEmail(true);
     try {
-      const result = await sendClientReportEmail(clientId);
+      // Generar el mismo PDF que se descarga
+      const reportData = {
+        client: {
+          company_name: data.client.company_name,
+          industry: data.client.industry,
+          website: data.client.website,
+          contact_name: data.client.contact_name,
+          contact_email: data.client.contact_email,
+          contact_phone: data.client.contact_phone,
+          address: data.client.address,
+          city: data.client.city,
+          state: data.client.state,
+          notes: data.client.notes || '',
+        },
+        statistics: {
+          total_profiles: data.statistics.total_profiles,
+          completed_profiles: data.statistics.completed_profiles,
+          active_profiles: data.statistics.active_profiles,
+          success_rate: data.statistics.success_rate,
+          avg_days_to_complete: data.statistics.avg_days_to_complete,
+          total_candidates_managed: data.statistics.total_candidates_managed,
+        },
+        profiles: data.profiles.map(profile => ({
+          title: profile.title || 'Sin título',
+          status_display: profile.status_display || 'N/A',
+          priority: profile.priority || 'N/A',
+          candidates_count: profile.candidates_count || 0,
+          created_at: profile.created_at,
+          end_date: profile.completed_at || undefined,
+        })),
+        profiles_by_status: data.profiles_by_status,
+      };
+
+      const pdf = generateClientReportPDF(reportData as PDFClientReportData);
+      const pdfBlob = pdf.output('blob') as Blob;
+      const pdfFilename = `Cliente_${data.client.company_name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const result = await sendClientReportEmail(clientId, pdfBlob, pdfFilename);
       const sentList = result.sent_to?.join(', ') || 'destinatarios';
       await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
     } catch (error: unknown) {
