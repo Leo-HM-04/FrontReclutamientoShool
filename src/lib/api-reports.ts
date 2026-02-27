@@ -701,3 +701,50 @@ export async function sendClientReportEmail(clientId: number, pdfBlob: Blob, pdf
     throw error;
   }
 }
+
+// ════════════════════════════════════════════════════════════════════
+// ENVIAR REPORTE CONSOLIDADO POR CORREO
+// ════════════════════════════════════════════════════════════════════
+
+export async function sendConsolidatedReportEmail(
+  pdfBlob: Blob,
+  pdfFilename: string,
+  options: {
+    clientId?: number;
+    profileId?: number;
+    filterType: 'all' | 'client' | 'profile' | 'client_profile';
+    message?: string;
+  }
+) {
+  try {
+    const token = localStorage.getItem('authToken');
+    const formData = new FormData();
+    formData.append('pdf_file', pdfBlob, pdfFilename);
+    formData.append('filter_type', options.filterType);
+    if (options.clientId) formData.append('client_id', String(options.clientId));
+    if (options.profileId) formData.append('profile_id', String(options.profileId));
+    if (options.message) formData.append('message', options.message);
+
+    const response = await fetch(
+      `${API_URL}/director/reports/consolidated/send-email/`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error sending consolidated report email:', error);
+    throw error;
+  }
+}

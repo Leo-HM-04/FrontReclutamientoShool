@@ -2827,4 +2827,9 @@ export function downloadExtendedConsolidatedReportPDF(data: ExtendedConsolidated
   pdf.save(finalFilename);
 }
 
+export function generateExtendedConsolidatedReportPDF(data: ExtendedConsolidatedReportData): InstanceType<typeof import('jspdf').jsPDF> {
+  const generator = new ExtendedConsolidatedReportPDF();
+  return generator.generate(data);
+}
+
 export { ExtendedConsolidatedReportPDF };

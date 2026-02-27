@@ -29,11 +29,12 @@ import {
 import {
   getProfileReport,
   getProfileCandidates,
+  sendConsolidatedReportEmail,
   type ProfileReportData,
   type ProfileCandidatesData,
 } from '@/lib/api-reports';
 
-import { downloadExtendedConsolidatedReportPDF } from '@/lib/pdf-consolidated-report-extended';
+import { downloadExtendedConsolidatedReportPDF, generateExtendedConsolidatedReportPDF } from '@/lib/pdf-consolidated-report-extended';
 
 // ═══════════════════════════════════════════════════════════════════
 // INTERFACES DETALLADAS
@@ -162,10 +163,11 @@ interface Props {
 }
 
 export default function FullConsolidatedReport({ onBack }: Props) {
-  const { showAlert } = useModal();
+  const { showAlert, showConfirm } = useModal();
   const [data, setData] = useState<ConsolidatedData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [activeTab, setActiveTab] = useState<'summary' | 'profiles' | 'clients' | 'candidates' | 'profile-candidates'>('summary');
   const [expandedProfiles, setExpandedProfiles] = useState<Set<number>>(new Set());
   const [expandedClients, setExpandedClients] = useState<Set<number>>(new Set());
@@ -571,6 +573,151 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
   }
 };
 
+  // ═══════════════════════════════════════════════════════════════
+  // CONSTRUIR DATOS DE REPORTE (compartido entre export y email)
+  // ═══════════════════════════════════════════════════════════════
+  const buildReportData = (
+    filteredData: { profiles: ProfileDetail[]; clients: ClientDetail[]; candidates: CandidateDetail[] },
+    fullData: ConsolidatedData,
+    filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string },
+    successRate: number,
+  ) => {
+    return {
+      filter: filterInfo,
+      summary: {
+        total_profiles: filteredData.profiles.length,
+        total_candidates: filteredData.candidates.length,
+        total_clients: filteredData.clients.length,
+        profiles_completed: filteredData.profiles.filter(p => p.status === 'completed').length,
+        candidates_hired: filteredData.candidates.filter(c => c.status === 'hired').length,
+        avg_time_to_fill: fullData.summary.avg_time_to_fill || 0,
+        success_rate: successRate,
+        profiles_by_status: filteredData.profiles.reduce((acc, p) => {
+          acc[p.status] = (acc[p.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        candidates_by_status: filteredData.candidates.reduce((acc, c) => {
+          acc[c.status] = (acc[c.status] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+      },
+      profiles: filteredData.profiles.map(p => {
+        const profileCandidates = filteredData.candidates.filter(c => Number(c.profile_id) === Number(p.id));
+        const matchScores = profileCandidates.map(c => c.matching_score || 0);
+        const matchAvg = matchScores.length > 0 ? Math.round(matchScores.reduce((a, b) => a + b, 0) / matchScores.length) : 0;
+        const topMatch = matchScores.length > 0 ? Math.max(...matchScores) : 0;
+        const offers = profileCandidates.filter(c => c.status === 'offered' || c.status === 'hired').length;
+        const highMatch = profileCandidates.filter(c => (c.matching_score || 0) >= 70);
+        const medMatch = profileCandidates.filter(c => (c.matching_score || 0) >= 40 && (c.matching_score || 0) < 70);
+        const lowMatch = profileCandidates.filter(c => (c.matching_score || 0) < 40);
+
+        const candidates_list = profileCandidates.map(c => {
+          const score = c.matching_score || 0;
+          const bucket = score >= 70 ? ('ALTO' as const) : score >= 40 ? ('MEDIO' as const) : ('BAJO' as const);
+          return {
+            id: c.id, name: c.full_name, email: c.email, stage: getStatusLabel(c.status),
+            match: score, bucket,
+            match_percentage: score, applied_date: c.created_at, interview_date: null, offer_date: null,
+          };
+        });
+
+        const candidatos = profileCandidates.map(c => ({
+          nombre: c.full_name, email: c.email, estado: getStatusLabel(c.status),
+          match_porcentaje: c.matching_score || 0, applied_at: c.created_at, interview_date: null, offer_date: null,
+        }));
+
+        const candidates_report = {
+          total_candidates: profileCandidates.length, match_avg: matchAvg, top_match: topMatch, offers,
+          match_distribution: [
+            { bucket: 'ALTO' as const, range: '>=70%', count: highMatch.length, values: highMatch.map(c => c.matching_score || 0) },
+            { bucket: 'MEDIO' as const, range: '40-69%', count: medMatch.length, values: medMatch.map(c => c.matching_score || 0) },
+            { bucket: 'BAJO' as const, range: '<40%', count: lowMatch.length, values: lowMatch.map(c => c.matching_score || 0) },
+          ],
+          candidates_list, candidatos,
+          gantt_range_start: p.created_at, gantt_range_end: new Date().toISOString(),
+        };
+
+        const hoursOpen = p.days_open * 24;
+        const industryAvgHours = 360;
+        const efficiencyVsIndustry = industryAvgHours > 0 ? Math.round((industryAvgHours / Math.max(hoursOpen, 1)) * 100) : 0;
+        const sortedCandidates = [...profileCandidates].sort((a, b) => (b.matching_score || 0) - (a.matching_score || 0));
+
+        const allEvents: { timestamp: Date; type: string; text: string }[] = [];
+        allEvents.push({ timestamp: new Date(p.created_at), type: 'Perfil Creado', text: `Se creo el perfil para ${p.position_title}` });
+        profileCandidates.forEach(c => {
+          allEvents.push({ timestamp: new Date(c.created_at), type: 'Candidato Aplico', text: `${c.full_name} aplico a la posicion` });
+        });
+        allEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+        const eventsByDay: { [key: string]: { time: string; type: string; text: string }[] } = {};
+        allEvents.forEach(event => {
+          const dayKey = event.timestamp.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+          const timeStr = event.timestamp.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+          if (!eventsByDay[dayKey]) eventsByDay[dayKey] = [];
+          eventsByDay[dayKey].push({ time: timeStr, type: event.type, text: event.text });
+        });
+        const events_detail = Object.entries(eventsByDay).map(([day, items]) => ({ day_group: day, items }));
+
+        const process_timeline = {
+          time_open_days: p.days_open, time_open_hours: hoursOpen,
+          events_count: profileCandidates.length + 1, pool_match_avg: matchAvg,
+          efficiency_vs_industry: efficiencyVsIndustry, industry_avg_hours: industryAvgHours,
+          process_phases: [
+            { phase: 'Creacion del Perfil', duration: '1 dia', start: p.created_at, end: p.created_at },
+            { phase: 'Recepcion de Candidatos', duration: `${p.days_open} dias`, start: p.created_at, end: new Date().toISOString() },
+          ],
+          candidates_cards: sortedCandidates.slice(0, 6).map((c, idx) => ({
+            initials: c.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+            rank: idx + 1, name: c.full_name, match: `${c.matching_score || 0}%`,
+            date: new Date(c.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }),
+            stage: c.status,
+          })),
+          events_detail,
+          puesto: p.position_title, cliente: p.client_name,
+          fecha_reporte: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
+          dias_abierto: p.days_open, total_candidatos: profileCandidates.length,
+          match_promedio: matchAvg, total_eventos: allEvents.length,
+          candidatos: profileCandidates.map(c => ({
+            nombre: c.full_name, email: c.email,
+            fecha_aplico: new Date(c.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }),
+            match_porcentaje: c.matching_score || 0, estado: getStatusLabel(c.status),
+          })),
+          eventos: allEvents.map(e => ({
+            fecha_hora: e.timestamp.toLocaleString('es-MX', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+            tipo: e.type, descripcion: e.text,
+          })),
+        };
+
+        return {
+          id: p.id, position_title: p.position_title, client_name: p.client_name, client_id: p.client_id,
+          status: p.status, priority: p.priority, service_type: p.service_type, created_at: p.created_at,
+          candidates_count: p.candidates_count, shortlisted_count: p.shortlisted_count, interviewed_count: p.interviewed_count,
+          salary_min: p.salary_min, salary_max: p.salary_max, salary_period: p.salary_period,
+          location_city: p.location_city, location_state: p.location_state, work_modality: p.work_modality,
+          years_experience: p.years_experience, education_level: p.education_level, days_open: p.days_open,
+          description: p.description, requirements: p.requirements,
+          client_industry: p.client_industry, client_contact_name: p.client_contact_name, client_contact_email: p.client_contact_email,
+          supervisor_name: p.supervisor_name, technical_skills: [], soft_skills: [],
+          candidates_by_status: p.candidates_by_status,
+          candidates_report, process_timeline,
+        };
+      }),
+      clients: filteredData.clients.map(c => ({
+        id: c.id, company_name: c.company_name, industry: c.industry,
+        contact_name: c.contact_name, contact_email: c.contact_email, contact_phone: c.contact_phone,
+        website: c.website || '', address: c.address || '', city: '', state: '', notes: c.notes || '',
+        active_profiles: c.active_profiles, total_profiles: c.total_profiles,
+        total_candidates_hired: c.total_candidates_hired, total_candidates: c.total_candidates,
+        profiles_completed: c.profiles_completed, success_rate: c.success_rate,
+        avg_days_to_complete: c.avg_days_to_fill || null, profiles_by_status: c.profiles_by_status,
+        profiles_list: filteredData.profiles.filter(pr => pr.client_id === c.id).map(pr => ({
+          id: pr.id, position_title: pr.position_title, status: pr.status, priority: pr.priority,
+          candidates_count: pr.candidates_count, created_at: pr.created_at, end_date: undefined,
+        })),
+      })),
+      candidates: [],
+    };
+  };
 
   const handleExportPDF = async () => {
     if (!data) return;
@@ -615,262 +762,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
       }
 
       // Construir datos para el generador de PDF
-      const reportData = {
-        filter: filterInfo,
-        summary: {
-          total_profiles: filteredData.profiles.length,
-          total_candidates: filteredData.candidates.length,
-          total_clients: filteredData.clients.length,
-          profiles_completed: filteredData.profiles.filter(p => p.status === 'completed').length,
-          candidates_hired: filteredData.candidates.filter(c => c.status === 'hired').length,
-          avg_time_to_fill: data.summary.avg_time_to_fill || 0,
-          success_rate: successRate,
-          profiles_by_status: filteredData.profiles.reduce((acc, p) => {
-            acc[p.status] = (acc[p.status] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>),
-          candidates_by_status: filteredData.candidates.reduce((acc, c) => {
-            acc[c.status] = (acc[c.status] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>),
-        },
-        profiles: filteredData.profiles.map(p => {
-          // Construir reporte de candidatos del perfil
-          const profileCandidates = filteredData.candidates.filter(c => Number(c.profile_id) === Number(p.id));
-          const matchScores = profileCandidates.map(c => c.matching_score || 0);
-          const matchAvg = matchScores.length > 0 ? Math.round(matchScores.reduce((a, b) => a + b, 0) / matchScores.length) : 0;
-          const topMatch = matchScores.length > 0 ? Math.max(...matchScores) : 0;
-          const offers = profileCandidates.filter(c => c.status === 'offered' || c.status === 'hired').length;
-          
-          // Distribucion de match
-          const highMatch = profileCandidates.filter(c => (c.matching_score || 0) >= 70);
-          const medMatch = profileCandidates.filter(c => (c.matching_score || 0) >= 40 && (c.matching_score || 0) < 70);
-          const lowMatch = profileCandidates.filter(c => (c.matching_score || 0) < 40);
-
-          // 1) Lista en el formato que pide ProfileCandidateData (INGLÉS / llaves exactas)
-            const candidates_list = profileCandidates.map(c => {
-            const score = c.matching_score || 0;
-
-            const bucket =
-              score >= 70 ? ('ALTO' as const) :
-              score >= 40 ? ('MEDIO' as const) :
-                            ('BAJO' as const);
-
-            return {
-              id: c.id,
-              name: c.full_name,
-              email: c.email,
-              stage: getStatusLabel(c.status),
-
-              // ✅ requeridos por ProfileCandidateData
-              match: score,
-              bucket,
-
-              // los que ya traías
-              match_percentage: score,   // opcional: déjalo si otras partes lo usan
-              applied_date: c.created_at,
-              interview_date: null,
-              offer_date: null,
-            };
-          });
-
-
-            // 2) (Opcional) Tu formato actual para no romper otras secciones del PDF
-            const candidatos = profileCandidates.map(c => ({
-              nombre: c.full_name,
-              email: c.email,
-              estado: getStatusLabel(c.status),
-              match_porcentaje: c.matching_score || 0,
-              applied_at: c.created_at,
-              interview_date: null,
-              offer_date: null,
-            }));
-
-            const candidates_report = {
-              total_candidates: profileCandidates.length,
-              match_avg: matchAvg,
-              top_match: topMatch,
-              offers: offers,
-              match_distribution: [
-                { bucket: 'ALTO' as const, range: '>=70%', count: highMatch.length, values: highMatch.map(c => c.matching_score || 0) },
-                { bucket: 'MEDIO' as const, range: '40-69%', count: medMatch.length, values: medMatch.map(c => c.matching_score || 0) },
-                { bucket: 'BAJO' as const, range: '<40%', count: lowMatch.length, values: lowMatch.map(c => c.matching_score || 0) },
-              ],
-
-              // ✅ ESTA es la propiedad que te está exigiendo el tipo
-              candidates_list,
-
-              // (opcional) conservas tu propiedad previa si el PDF la usa en otras partes
-              candidatos,
-
-              gantt_range_start: p.created_at,
-              gantt_range_end: new Date().toISOString(),
-            };
-
-
-
-          // Construir timeline del proceso
-          const hoursOpen = p.days_open * 24;
-          const industryAvgHours = 360;
-          const efficiencyVsIndustry = industryAvgHours > 0 ? Math.round((industryAvgHours / Math.max(hoursOpen, 1)) * 100) : 0;
-
-          // Ordenar candidatos por match score para mostrar los mejores primero
-          const sortedCandidates = [...profileCandidates].sort((a, b) => (b.matching_score || 0) - (a.matching_score || 0));
-
-          // Construir eventos de timeline desde los candidatos
-          const allEvents: { timestamp: Date; type: string; text: string }[] = [];
-          
-          // Evento de creacion del perfil
-          allEvents.push({
-            timestamp: new Date(p.created_at),
-            type: 'Perfil Creado',
-            text: `Se creo el perfil para ${p.position_title}`,
-          });
-          
-          // Eventos de aplicacion de candidatos
-          profileCandidates.forEach(c => {
-            allEvents.push({
-              timestamp: new Date(c.created_at),
-              type: 'Candidato Aplico',
-              text: `${c.full_name} aplico a la posicion`,
-            });
-          });
-
-          // Ordenar eventos por fecha descendente
-          allEvents.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-          // Agrupar eventos por dia
-          const eventsByDay: { [key: string]: { time: string; type: string; text: string }[] } = {};
-          allEvents.forEach(event => {
-            const dayKey = event.timestamp.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
-            const timeStr = event.timestamp.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
-            if (!eventsByDay[dayKey]) {
-              eventsByDay[dayKey] = [];
-            }
-            eventsByDay[dayKey].push({
-              time: timeStr,
-              type: event.type,
-              text: event.text,
-            });
-          });
-
-          // Convertir a formato esperado
-          const events_detail = Object.entries(eventsByDay).map(([day, items]) => ({
-            day_group: day,
-            items: items,
-          }));
-
-          const process_timeline = {
-            time_open_days: p.days_open,
-            time_open_hours: hoursOpen,
-            events_count: profileCandidates.length + 1, // +1 por creacion del perfil
-            pool_match_avg: matchAvg,
-            efficiency_vs_industry: efficiencyVsIndustry,
-            industry_avg_hours: industryAvgHours,
-            process_phases: [
-              { phase: 'Creacion del Perfil', duration: '1 dia', start: p.created_at, end: p.created_at },
-              { phase: 'Recepcion de Candidatos', duration: `${p.days_open} dias`, start: p.created_at, end: new Date().toISOString() },
-            ],
-            // Mostrar los 6 mejores candidatos ordenados por match
-            candidates_cards: sortedCandidates.slice(0, 6).map((c, idx) => ({
-              initials: c.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
-              rank: idx + 1,
-              name: c.full_name,
-              match: `${c.matching_score || 0}%`,
-              date: new Date(c.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }),
-              stage: c.status,
-            })),
-            events_detail: events_detail,
-            puesto: p.position_title,
-            cliente: p.client_name,
-            fecha_reporte: new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }),
-            dias_abierto: p.days_open,
-            total_candidatos: profileCandidates.length,
-            match_promedio: matchAvg,
-            total_eventos: allEvents.length,
-            candidatos: profileCandidates.map(c => ({
-              nombre: c.full_name,
-              email: c.email,
-              fecha_aplico: new Date(c.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' }),
-              match_porcentaje: c.matching_score || 0,
-              estado: getStatusLabel(c.status),
-            })),
-            eventos: allEvents.map(e => ({
-              fecha_hora: e.timestamp.toLocaleString('es-MX', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-              tipo: e.type,
-              descripcion: e.text,
-            })),
-          };
-
-          return {
-            id: p.id,
-            position_title: p.position_title,
-            client_name: p.client_name,
-            client_id: p.client_id,
-            status: p.status,
-            priority: p.priority,
-            service_type: p.service_type,
-            created_at: p.created_at,
-            candidates_count: p.candidates_count,
-            shortlisted_count: p.shortlisted_count,
-            interviewed_count: p.interviewed_count,
-            salary_min: p.salary_min,
-            salary_max: p.salary_max,
-            salary_period: p.salary_period,
-            location_city: p.location_city,
-            location_state: p.location_state,
-            work_modality: p.work_modality,
-            years_experience: p.years_experience,
-            education_level: p.education_level,
-            days_open: p.days_open,
-            description: p.description,
-            requirements: p.requirements,
-            client_industry: p.client_industry,
-            client_contact_name: p.client_contact_name,
-            client_contact_email: p.client_contact_email,
-            supervisor_name: p.supervisor_name,
-            technical_skills: [], // Se puede agregar desde el API si existe
-            soft_skills: [], // Se puede agregar desde el API si existe
-            candidates_by_status: p.candidates_by_status,
-            // NUEVOS DATOS PARA EL REPORTE EXTENDIDO
-            candidates_report: candidates_report,
-            process_timeline: process_timeline,
-          };
-        }),
-        clients: filteredData.clients.map(c => ({
-          id: c.id,
-          company_name: c.company_name,
-          industry: c.industry,
-          contact_name: c.contact_name,
-          contact_email: c.contact_email,
-          contact_phone: c.contact_phone,
-          website: c.website || '',
-          address: c.address || '',
-          city: '', // Extraer de address si es necesario
-          state: '', // Extraer de address si es necesario
-          notes: c.notes || '',
-          active_profiles: c.active_profiles,
-          total_profiles: c.total_profiles,
-          total_candidates_hired: c.total_candidates_hired,
-          total_candidates: c.total_candidates,
-          profiles_completed: c.profiles_completed,
-          success_rate: c.success_rate,
-          avg_days_to_complete: c.avg_days_to_fill || null,
-          profiles_by_status: c.profiles_by_status,
-          profiles_list: filteredData.profiles
-            .filter(p => p.client_id === c.id)
-            .map(p => ({
-              id: p.id,
-              position_title: p.position_title,
-              status: p.status,
-              priority: p.priority,
-              candidates_count: p.candidates_count,
-              created_at: p.created_at,
-              end_date: undefined,
-            })),
-        })),
-        candidates: [],
-      };
+      const reportData = buildReportData(filteredData, data, filterInfo, successRate);
 
       // Generar nombre de archivo
       let filename = 'Reporte_General_Consolidado';
@@ -892,6 +784,82 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
       await showAlert('❌ Error al exportar el reporte');
     } finally {
       setExporting(false);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // ENVIAR POR CORREO
+  // ═══════════════════════════════════════════════════════════════
+  const handleSendEmail = async () => {
+    if (!data) return;
+
+    // Determinar a quién se envía
+    let confirmMsg = '¿Enviar el reporte consolidado por correo?\n\n';
+    if (selectedClientFilter) {
+      const client = data.clients.find(c => c.id === selectedClientFilter);
+      confirmMsg += `Se enviará al cliente "${client?.company_name}" (contacto principal y adicionales) con el PDF adjunto.`;
+    } else if (selectedProfileFilter) {
+      const profile = data.profiles.find(p => p.id === selectedProfileFilter);
+      confirmMsg += `Se enviará al cliente del perfil "${profile?.position_title}" con el PDF adjunto.`;
+    } else {
+      confirmMsg += 'Se enviará a todos los clientes con perfiles activos con el PDF adjunto.';
+    }
+
+    const confirmed = await showConfirm(confirmMsg);
+    if (!confirmed) return;
+
+    setSendingEmail(true);
+    try {
+      // Reutilizar la misma lógica de handleExportPDF para construir reportData
+      const filteredData = getFilteredData();
+      const successRate = data.summary.total_profiles > 0
+        ? Math.round((data.summary.profiles_completed / data.summary.total_profiles) * 100)
+        : 0;
+
+      let filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string } = { type: 'all' };
+      if (selectedClientFilter && selectedProfileFilter) {
+        const client = data.clients.find(c => c.id === selectedClientFilter);
+        const profile = data.profiles.find(p => p.id === selectedProfileFilter);
+        filterInfo = { type: 'client_profile', clientId: selectedClientFilter, clientName: client?.company_name || 'N/A', profileId: selectedProfileFilter, profileTitle: profile?.position_title || 'N/A' };
+      } else if (selectedClientFilter) {
+        const client = data.clients.find(c => c.id === selectedClientFilter);
+        filterInfo = { type: 'client', clientId: selectedClientFilter, clientName: client?.company_name || 'N/A' };
+      } else if (selectedProfileFilter) {
+        const profile = data.profiles.find(p => p.id === selectedProfileFilter);
+        filterInfo = { type: 'profile', profileId: selectedProfileFilter, profileTitle: profile?.position_title || 'N/A' };
+      }
+
+      // Construir datos para el PDF (misma estructura que handleExportPDF)
+      const reportData = buildReportData(filteredData, data, filterInfo, successRate);
+
+      // Generar PDF blob
+      const pdf = generateExtendedConsolidatedReportPDF(reportData);
+      const pdfBlob = pdf.output('blob') as Blob;
+
+      let pdfFilename = 'Reporte_General_Consolidado';
+      if (filterInfo.type === 'client_profile') {
+        pdfFilename = `Reporte_${filterInfo.clientName?.replace(/\s+/g, '_')}_${filterInfo.profileTitle?.substring(0, 30).replace(/\s+/g, '_')}`;
+      } else if (filterInfo.type === 'client') {
+        pdfFilename = `Reporte_Cliente_${filterInfo.clientName?.replace(/\s+/g, '_')}`;
+      } else if (filterInfo.type === 'profile') {
+        pdfFilename = `Reporte_Perfil_${filterInfo.profileTitle?.substring(0, 30).replace(/\s+/g, '_')}`;
+      }
+      pdfFilename += `_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const result = await sendConsolidatedReportEmail(pdfBlob, pdfFilename, {
+        clientId: selectedClientFilter || undefined,
+        profileId: selectedProfileFilter || undefined,
+        filterType: filterInfo.type,
+      });
+
+      const sentList = result.sent_to?.join(', ') || 'destinatarios';
+      await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
+    } catch (error: unknown) {
+      console.error('Error al enviar reporte consolidado por correo:', error);
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      await showAlert(`❌ Error al enviar el reporte: ${message}`);
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -1025,6 +993,14 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
           </div>
         </div>
         <div className="flex space-x-3">
+          <button
+            onClick={handleSendEmail}
+            disabled={sendingEmail}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+          >
+            <i className={`fas ${sendingEmail ? 'fa-spinner fa-spin' : 'fa-envelope'} mr-2`}></i>
+            {sendingEmail ? 'Enviando...' : 'Enviar por Correo'}
+          </button>
           <button
             onClick={handleExportPDF}
             disabled={exporting}
