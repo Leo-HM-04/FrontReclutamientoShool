@@ -696,16 +696,21 @@ export default function ShortlistedCandidatesDashboard() {
                 ) : (
                   <>
                     {/* Select All */}
-                    <div className="mb-4 flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filteredCandidates.length > 0 && filteredCandidates.every(c => selectedCandidates.has(c.application.id))}
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                      />
-                      <label className="ml-2 text-sm font-medium text-gray-700">
+                    <div className="mb-4">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-purple-50 text-gray-600 hover:text-purple-700"
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          filteredCandidates.length > 0 && filteredCandidates.every(c => selectedCandidates.has(c.application.id))
+                            ? 'border-purple-500 bg-purple-500' : 'border-gray-300'
+                        }`}>
+                          {filteredCandidates.length > 0 && filteredCandidates.every(c => selectedCandidates.has(c.application.id)) && (
+                            <i className="fas fa-check text-white text-[9px]" />
+                          )}
+                        </div>
                         Seleccionar todos
-                      </label>
+                      </button>
                     </div>
 
                     {/* Candidates Detailed Cards */}
@@ -715,21 +720,33 @@ export default function ShortlistedCandidatesDashboard() {
                         .map((candidateData) => (
                         <div
                           key={candidateData.application.id}
-                          className={`bg-white rounded-xl border-2 overflow-hidden transition-all ${
+                          className={`group bg-white rounded-xl border-2 overflow-hidden transition-all duration-200 cursor-pointer ${
                             selectedCandidates.has(candidateData.application.id)
-                              ? 'border-purple-500 shadow-lg'
-                              : 'border-gray-200'
+                              ? 'border-purple-500 shadow-lg scale-[1.01]'
+                              : 'border-gray-200 hover:border-purple-300 hover:shadow-md hover:scale-[1.005]'
                           }`}
+                          onClick={() => handleSelectCandidate(candidateData.application.id)}
+                          title={selectedCandidates.has(candidateData.application.id) ? 'Click para deseleccionar' : 'Click para seleccionar'}
                         >
                           {/* Card Header */}
-                          <div className="bg-gradient-to-r from-purple-50 to-white p-6 border-b border-gray-200">
+                          <div className={`p-6 border-b border-gray-200 transition-colors duration-200 ${
+                            selectedCandidates.has(candidateData.application.id)
+                              ? 'bg-gradient-to-r from-purple-100 to-purple-50'
+                              : 'bg-gradient-to-r from-purple-50 to-white'
+                          }`}>
                             <div className="flex items-start">
-                              <input
-                                type="checkbox"
-                                checked={selectedCandidates.has(candidateData.application.id)}
-                                onChange={() => handleSelectCandidate(candidateData.application.id)}
-                                className="mt-1 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                              />
+                              {/* Selection circle */}
+                              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all duration-200 shrink-0 mt-1 ${
+                                selectedCandidates.has(candidateData.application.id)
+                                  ? 'border-purple-500 bg-purple-500 scale-110'
+                                  : 'border-gray-300 opacity-0 group-hover:opacity-100 group-hover:border-purple-400 group-hover:scale-105'
+                              }`}>
+                                {selectedCandidates.has(candidateData.application.id) ? (
+                                  <i className="fas fa-check text-white text-[10px]" />
+                                ) : (
+                                  <i className="fas fa-plus text-purple-400 text-[10px]" />
+                                )}
+                              </div>
                               
                               <div className="flex-1 ml-4">
                                 <div className="flex items-start justify-between">
@@ -742,7 +759,7 @@ export default function ShortlistedCandidatesDashboard() {
                                     </p>
                                   </div>
                                   <button
-                                    onClick={() => toggleExpand(candidateData.application.id)}
+                                    onClick={(e) => { e.stopPropagation(); toggleExpand(candidateData.application.id); }}
                                     className="text-gray-400 hover:text-gray-600 ml-4"
                                   >
                                     <i className={`fas fa-chevron-${candidateData.expanded ? 'up' : 'down'}`} />
@@ -778,7 +795,7 @@ export default function ShortlistedCandidatesDashboard() {
 
                           {/* Expanded Content */}
                           {candidateData.expanded && (
-                            <div className="p-6">
+                            <div className="p-6" onClick={(e) => e.stopPropagation()}>
                               {/* Grid de Información */}
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                                 {/* Contacto */}
@@ -926,7 +943,8 @@ export default function ShortlistedCandidatesDashboard() {
                                     Documentos ({candidateData.documents.length})
                                   </h4>
                                   <button
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.stopPropagation();
                                       setSelectedCandidateForUpload(candidateData.candidate.id);
                                       setShowUploadModal(true);
                                     }}
@@ -952,7 +970,7 @@ export default function ShortlistedCandidatesDashboard() {
                                         </div>
                                         <div className="flex space-x-2 ml-3">
                                           <button
-                                            onClick={() => handlePreviewDocument(doc)}
+                                            onClick={(e) => { e.stopPropagation(); handlePreviewDocument(doc); }}
                                             className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                                             title="Vista previa"
                                           >

@@ -667,13 +667,20 @@ export default function ProfilesStatusDashboard() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedProfiles.size === filteredProfiles.length}
-                      onChange={handleSelectAll}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
+                  <th className="px-4 py-3 text-left w-10">
+                    <button
+                      onClick={handleSelectAll}
+                      className="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110"
+                      style={{
+                        borderColor: selectedProfiles.size === filteredProfiles.length && filteredProfiles.length > 0 ? '#3B82F6' : '#D1D5DB',
+                        backgroundColor: selectedProfiles.size === filteredProfiles.length && filteredProfiles.length > 0 ? '#3B82F6' : 'transparent',
+                      }}
+                      title="Seleccionar todos"
+                    >
+                      {selectedProfiles.size === filteredProfiles.length && filteredProfiles.length > 0 && (
+                        <i className="fas fa-check text-white text-[10px]" />
+                      )}
+                    </button>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Posición
@@ -703,14 +710,27 @@ export default function ProfilesStatusDashboard() {
                   .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
                   .map((profile) => (
                   <React.Fragment key={profile.id}>
-                    <tr className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedProfiles.has(profile.id)}
-                          onChange={() => handleSelectProfile(profile.id)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
+                    <tr
+                      className={`group cursor-pointer transition-all duration-200 ${
+                        selectedProfiles.has(profile.id)
+                          ? 'bg-blue-50 hover:bg-blue-100'
+                          : 'hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleSelectProfile(profile.id)}
+                      title={selectedProfiles.has(profile.id) ? 'Click para deseleccionar' : 'Click para seleccionar'}
+                    >
+                      <td className="px-4 py-4">
+                        <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                          selectedProfiles.has(profile.id)
+                            ? 'border-blue-500 bg-blue-500 scale-110'
+                            : 'border-gray-300 group-hover:border-blue-400 group-hover:scale-105'
+                        }`}>
+                          {selectedProfiles.has(profile.id) ? (
+                            <i className="fas fa-check text-white text-[10px]" />
+                          ) : (
+                            <i className="fas fa-plus text-gray-400 text-[9px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div>
@@ -744,7 +764,7 @@ export default function ProfilesStatusDashboard() {
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">{formatNumber(profile.number_of_positions)}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleExpandProfile(profile.id)}

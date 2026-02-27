@@ -726,16 +726,21 @@ export default function CandidatesStatusDashboard() {
                 ) : (
                   <>
                     {/* Select All */}
-                    <div className="mb-4 flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={filteredApplications.length > 0 && filteredApplications.every(app => selectedApplications.has(app.id))}
-                        onChange={handleSelectAllApplications}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <label className="ml-2 text-sm font-medium text-gray-700">
+                    <div className="mb-4">
+                      <button
+                        onClick={handleSelectAllApplications}
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all hover:bg-blue-50 text-gray-600 hover:text-blue-700"
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          filteredApplications.length > 0 && filteredApplications.every(app => selectedApplications.has(app.id))
+                            ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                        }`}>
+                          {filteredApplications.length > 0 && filteredApplications.every(app => selectedApplications.has(app.id)) && (
+                            <i className="fas fa-check text-white text-[9px]" />
+                          )}
+                        </div>
                         Seleccionar todos
-                      </label>
+                      </button>
                     </div>
 
                     {/* Candidates Grid */}
@@ -743,20 +748,28 @@ export default function CandidatesStatusDashboard() {
                       {filteredApplications.map((app) => (
                         <div
                           key={app.id}
-                          className={`bg-white rounded-lg border-2 p-4 transition-all ${
+                          className={`group relative bg-white rounded-lg border-2 p-4 transition-all duration-200 cursor-pointer ${
                             selectedApplications.has(app.id)
-                              ? 'border-blue-500 shadow-md'
-                              : 'border-gray-200 hover:border-blue-300'
+                              ? 'border-blue-500 shadow-md bg-blue-50/50 scale-[1.01]'
+                              : 'border-gray-200 hover:border-blue-300 hover:shadow-sm hover:scale-[1.005]'
                           }`}
+                          onClick={() => handleSelectApplication(app.id)}
+                          title={selectedApplications.has(app.id) ? 'Click para deseleccionar' : 'Click para seleccionar'}
                         >
+                          {/* Selection indicator */}
+                          <div className={`absolute top-3 left-3 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                            selectedApplications.has(app.id)
+                              ? 'border-blue-500 bg-blue-500 scale-110'
+                              : 'border-gray-300 opacity-0 group-hover:opacity-100 group-hover:border-blue-400'
+                          }`}>
+                            {selectedApplications.has(app.id) ? (
+                              <i className="fas fa-check text-white text-[9px]" />
+                            ) : (
+                              <i className="fas fa-plus text-blue-400 text-[9px]" />
+                            )}
+                          </div>
+
                           <div className="flex items-start space-x-4">
-                            {/* Checkbox */}
-                            <input
-                              type="checkbox"
-                              checked={selectedApplications.has(app.id)}
-                              onChange={() => handleSelectApplication(app.id)}
-                              className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
@@ -812,7 +825,7 @@ export default function CandidatesStatusDashboard() {
 
                             {/* Action Button */}
                             <button
-                              onClick={() => handleViewCandidate(app.candidate)}
+                              onClick={(e) => { e.stopPropagation(); handleViewCandidate(app.candidate); }}
                               className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
                               title="Ver perfil completo"
                             >
