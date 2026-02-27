@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getProfileReport, getProfileCandidates, formatDate, formatCurrency, getStatusColor, type ProfileReportData, type ProfileCandidatesData } from '@/lib/api-reports';
+import { getProfileReport, getProfileCandidates, sendProfileReportEmail, formatDate, formatCurrency, getStatusColor, type ProfileReportData, type ProfileCandidatesData } from '@/lib/api-reports';
 import * as XLSX from 'xlsx';
 import { generateProfileReport, type ProfileReportData as PDFProfileData } from '@/lib/pdf-profile-report';
 
@@ -26,6 +26,7 @@ export default function ProfileReport({ profileId, onBack }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -215,6 +216,32 @@ export default function ProfileReport({ profileId, onBack }: Props) {
   };
 
   // ═══════════════════════════════════════════════
+  // ENVIAR POR CORREO
+  // ═══════════════════════════════════════════════
+  const handleSendEmail = async () => {
+    if (!data) return;
+
+    const confirmed = await showAlert(
+      `¿Enviar el reporte de "${profile.position_title}" por correo al cliente ${client.company_name}?\n\nSe enviará al contacto principal y contactos adicionales con el PDF adjunto.`,
+      'confirm'
+    );
+    if (!confirmed) return;
+
+    setSendingEmail(true);
+    try {
+      const result = await sendProfileReportEmail(profileId);
+      const sentList = result.sent_to?.join(', ') || 'destinatarios';
+      await showAlert(`✅ Reporte enviado exitosamente a: ${sentList}`);
+    } catch (error: unknown) {
+      console.error('Error al enviar reporte por correo:', error);
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      await showAlert(`❌ Error al enviar el reporte: ${message}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  // ═══════════════════════════════════════════════
   // LOADING STATE
   // ═══════════════════════════════════════════════
   if (loading) {
@@ -282,6 +309,15 @@ export default function ProfileReport({ profileId, onBack }: Props) {
             >
               <i className="fas fa-file-excel mr-2"></i>
               {exporting ? 'Generando...' : 'Excel'}
+            </button>
+            <button
+              onClick={handleSendEmail}
+              disabled={sendingEmail}
+              className="px-4 py-2 bg-emerald-500/80 hover:bg-emerald-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Enviar reporte por correo al cliente"
+            >
+              <i className={`fas ${sendingEmail ? 'fa-spinner fa-spin' : 'fa-envelope'} mr-2`}></i>
+              {sendingEmail ? 'Enviando...' : 'Enviar'}
             </button>
           </div>
         </div>

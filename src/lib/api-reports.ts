@@ -604,3 +604,34 @@ export function calculateTrend(current: number, previous: number): {
 export function formatPercentage(value: number, decimals: number = 1): string {
   return `${value.toFixed(decimals)}%`;
 }
+
+// ════════════════════════════════════════════════════════════════════
+// ENVIAR REPORTE POR CORREO
+// ════════════════════════════════════════════════════════════════════
+
+export async function sendProfileReportEmail(profileId: number, message?: string) {
+  try {
+    const body: Record<string, string> = {};
+    if (message) body.message = message;
+
+    const response = await fetch(
+      `${API_URL}/director/reports/profile/${profileId}/send-email/`,
+      {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(body),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || `Error ${response.status}: ${response.statusText}`);
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Error sending profile report email:', error);
+    throw error;
+  }
+}
