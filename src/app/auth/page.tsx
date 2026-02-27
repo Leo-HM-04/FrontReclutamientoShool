@@ -305,6 +305,7 @@ export default function LoginPage() {
                         id="email" 
                         name="email" 
                         type="email" 
+                        autoComplete="username"
                         required
                         value={loginForm.email}
                         onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
@@ -327,6 +328,7 @@ export default function LoginPage() {
                         id="password" 
                         name="password" 
                         type={showPassword ? 'text' : 'password'}
+                        autoComplete="new-password"
                         required
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
