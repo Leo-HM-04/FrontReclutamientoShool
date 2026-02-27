@@ -888,11 +888,14 @@ export default function Page() {
   const processChartRef = useRef<HTMLCanvasElement | null>(null);
   const chartInstanceRef = useRef<any>(null);
 
-  // Re-render process doughnut when data changes
+  // Re-render process doughnut when data changes or view switches back to dashboard
   useEffect(() => {
-    if (currentView === 'dashboard' && processesByStatus.length > 0) {
-      setTimeout(() => setupCharts(), 100);
-    }
+    if (currentView !== 'dashboard') return;
+    // Use requestAnimationFrame to ensure the canvas is laid out before drawing
+    const rafId = requestAnimationFrame(() => {
+      setupCharts();
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [processesByStatus, currentView]);
 
   // ====== Carga inicial ======
@@ -904,7 +907,8 @@ export default function Page() {
         await loadApplicationsData();
         await loadDocumentsData();
         await loadNotesData();
-        setupCharts();
+        // Charts are rendered by useEffect reacting to state changes, not here
+        // (calling setupCharts() here would use stale closure data)
       } catch (e) {
         console.error(e);
         error("Error cargando el dashboard");
