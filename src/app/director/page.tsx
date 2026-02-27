@@ -1155,6 +1155,7 @@ export default function Page() {
       // PROCESOS POR ESTADO - MAPEO COMPLETO
       // ========================================
       const statusMapping: { [key: string]: { label: string; color: string } } = {
+        'draft': { label: 'Borrador', color: '#9CA3AF' },
         'pending': { label: 'Pendiente', color: '#F59E0B' },
         'approved': { label: 'Aprobado', color: '#3B82F6' },
         'in_progress': { label: 'En Proceso', color: '#8B5CF6' },
