@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from "@/context/ModalContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -45,6 +46,7 @@ export default function EvaluationTemplates() {
   const [shareLink, setShareLink] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
   const { showConfirm, showAlert, showSuccess, showError } = useModal();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const categories = [
     { value: "technical", label: "Técnica" },
@@ -565,21 +567,39 @@ const handleShare = async (templateId: number) => {
         </div>
       )}
 
-      {showModal && (
-        <div 
-          className="fixed top-16 left-0 right-0 bottom-0 flex items-center justify-center z-50 p-4"
-          style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      {showModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowModal(false); setSelectedTemplate(null); } }}
         >
-          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold">{selectedTemplate ? "Editar" : "Nueva"} Plantilla</h3>
-                <button onClick={() => { setShowModal(false); setSelectedTemplate(null); }} className="text-gray-400 hover:text-gray-600">
-                  <i className="fas fa-times text-xl"></i>
-                </button>
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '1100px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-clipboard-list"></i>
+                  {selectedTemplate ? "Editar" : "Nueva"} Plantilla de Evaluación
+                </h2>
+                <p className="text-indigo-100 text-sm mt-1">
+                  {selectedTemplate ? "Modifica los datos y preguntas de la plantilla" : "Configura la plantilla y agrega preguntas para los candidatos"}
+                </p>
               </div>
+              <button
+                onClick={() => { setShowModal(false); setSelectedTemplate(null); }}
+                className="text-white hover:bg-indigo-800 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
 
-              <form onSubmit={async (e) => {
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <form ref={formRef} onSubmit={async (e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 
@@ -700,45 +720,83 @@ const handleShare = async (templateId: number) => {
                   await showAlert("❌ Error al guardar");
                 }
               }}>
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-2">Título *</label>
-                    <input type="text" name="title" defaultValue={selectedTemplate?.title || ""} required className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-sm font-medium mb-2">Descripción</label>
-                    <textarea name="description" defaultValue={selectedTemplate?.description || ""} rows={2} className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Categoría *</label>
-                    <select name="category" defaultValue={selectedTemplate?.category || "technical"} required className="w-full px-3 py-2 border rounded-lg">
-                      {categories.map((cat) => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Duración (min) *</label>
-                    <input type="number" name="duration_minutes" defaultValue={selectedTemplate?.duration_minutes || 60} required min="1" className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Puntaje mínimo (%) *</label>
-                    <input type="number" name="passing_score" defaultValue={selectedTemplate?.passing_score || 70} required min="0" max="100" step="0.01" className="w-full px-3 py-2 border rounded-lg" />
-                  </div>
-                  <div className="flex items-center">
-                    <input type="checkbox" name="is_active" id="is_active" defaultChecked={selectedTemplate?.is_active !== false} className="h-4 w-4" />
-                    <label htmlFor="is_active" className="ml-2 text-sm">Activa</label>
+                {/* Template Info Section */}
+                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 border border-indigo-100 mb-8">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-info-circle text-indigo-600"></i>
+                    Información General
+                  </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <i className="fas fa-heading mr-1 text-indigo-500"></i> Título *
+                      </label>
+                      <input type="text" name="title" defaultValue={selectedTemplate?.title || ""} required 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" 
+                        placeholder="Ej: Evaluación Técnica de Python" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <i className="fas fa-align-left mr-1 text-indigo-500"></i> Descripción
+                      </label>
+                      <textarea name="description" defaultValue={selectedTemplate?.description || ""} rows={3} 
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" 
+                        placeholder="Describe el propósito y alcance de esta evaluación..." />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          <i className="fas fa-tag mr-1 text-indigo-500"></i> Categoría *
+                        </label>
+                        <select name="category" defaultValue={selectedTemplate?.category || "technical"} required 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                          {categories.map((cat) => (<option key={cat.value} value={cat.value}>{cat.label}</option>))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          <i className="fas fa-clock mr-1 text-indigo-500"></i> Duración (min) *
+                        </label>
+                        <input type="number" name="duration_minutes" defaultValue={selectedTemplate?.duration_minutes || 60} required min="1" 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          <i className="fas fa-percentage mr-1 text-indigo-500"></i> Puntaje mínimo (%) *
+                        </label>
+                        <input type="number" name="passing_score" defaultValue={selectedTemplate?.passing_score || 70} required min="0" max="100" step="0.01" 
+                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition" />
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-300 w-full cursor-pointer hover:bg-gray-50 transition">
+                          <input type="checkbox" name="is_active" id="is_active" defaultChecked={selectedTemplate?.is_active !== false} className="h-5 w-5 rounded text-indigo-600 focus:ring-indigo-500" />
+                          <span className="text-sm font-semibold text-gray-700">Activa</span>
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Sección de Preguntas - SIEMPRE VISIBLE */}
-                <div className="mt-6 border-t pt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="text-lg font-semibold">Preguntas</h4>
+                {/* Questions Section */}
+                <div className="mt-2">
+                  <div className="flex justify-between items-center mb-4 bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4 border border-gray-200">
+                    <div>
+                      <h4 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <i className="fas fa-question-circle text-indigo-600"></i>
+                        Preguntas
+                      </h4>
+                      <p className="text-sm text-gray-500 mt-0.5">
+                        {selectedTemplate 
+                          ? `${existingQuestions.length} pregunta(s) existente(s)` 
+                          : "Agrega las preguntas para tu evaluación"}
+                      </p>
+                    </div>
                     {!selectedTemplate ? (
-                      <button type="button" onClick={addQuestion} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                      <button type="button" onClick={addQuestion} className="px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold shadow-md transition">
                         <i className="fas fa-plus mr-2"></i>Agregar Pregunta
                       </button>
                     ) : (
-                      <button type="button" onClick={addQuestionToEdit} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                      <button type="button" onClick={addQuestionToEdit} className="px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 font-semibold shadow-md transition">
                         <i className="fas fa-plus mr-2"></i>Agregar Nueva Pregunta
                       </button>
                     )}
@@ -817,9 +875,10 @@ const handleShare = async (templateId: number) => {
                   )}
 
                   {selectedTemplate && existingQuestions.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <i className="fas fa-question-circle text-4xl mb-3"></i>
-                      <p>No hay preguntas en esta plantilla</p>
+                    <div className="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                      <i className="fas fa-question-circle text-5xl mb-3 block"></i>
+                      <p className="font-medium text-gray-500">No hay preguntas en esta plantilla</p>
+                      <p className="text-sm text-gray-400 mt-1">Haz clic en "Agregar Nueva Pregunta" para comenzar</p>
                     </div>
                   )}
 
@@ -973,14 +1032,30 @@ const handleShare = async (templateId: number) => {
                     </div>
                   )}
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                  <button type="button" onClick={() => { setShowModal(false); setSelectedTemplate(null); }} className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">{selectedTemplate ? "Actualizar" : "Crear"}</button>
-                </div>
               </form>
             </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => { setShowModal(false); setSelectedTemplate(null); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => formRef.current?.requestSubmit()}
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:from-indigo-700 hover:to-blue-700 font-semibold shadow-lg transition"
+              >
+                <i className="fas fa-save mr-2"></i>
+                {selectedTemplate ? "Actualizar Plantilla" : "Crear Plantilla"}
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal de Compartir */}
