@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { apiClient } from "@/lib/api";
 import ClientDetail from "./ClientDetail";
 import ClientForm from "./ClientForm";
@@ -934,38 +935,46 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
           />
         )}
 
-      {/* PDF Preview Modal */}
-      {pdfPreviewUrl && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-[95vw] h-[92vh] max-w-6xl flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      {/* PDF Preview Modal - rendered via Portal to escape stacking context */}
+      {pdfPreviewUrl && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          style={{ zIndex: 9999 }}
+          onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+            style={{ width: "95vw", height: "92vh", maxWidth: "1200px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+            <div className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-gray-50 flex-shrink-0">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
                   <i className="fas fa-file-pdf text-indigo-600 text-lg"></i>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">{pdfPreviewTitle}</h3>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate">{pdfPreviewTitle}</h3>
                   <p className="text-xs text-gray-500">Vista previa del documento</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-shrink-0">
                 <a
                   href={pdfPreviewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                 >
                   <i className="fas fa-external-link-alt"></i>
-                  Abrir en nueva pestaña
+                  <span className="hidden sm:inline">Abrir en nueva pestaña</span>
                 </a>
                 <a
                   href={pdfPreviewUrl}
                   download
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
                 >
                   <i className="fas fa-download"></i>
-                  Descargar
+                  <span className="hidden sm:inline">Descargar</span>
                 </a>
                 <button
                   onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}
@@ -977,15 +986,24 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
               </div>
             </div>
             {/* PDF Viewer */}
-            <div className="flex-1 bg-gray-100">
-              <iframe
-                src={pdfPreviewUrl}
-                className="w-full h-full border-0"
-                title={`Vista previa: ${pdfPreviewTitle}`}
-              />
+            <div className="flex-1 bg-gray-100 relative" style={{ minHeight: 0 }}>
+              <object
+                data={`${pdfPreviewUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+                type="application/pdf"
+                className="w-full h-full"
+                style={{ position: "absolute", inset: 0 }}
+              >
+                <embed
+                  src={`${pdfPreviewUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+                  type="application/pdf"
+                  className="w-full h-full"
+                  style={{ position: "absolute", inset: 0 }}
+                />
+              </object>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
     
