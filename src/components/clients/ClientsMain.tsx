@@ -53,6 +53,10 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
     end_date: "",
   });
   
+  // PDF Preview state
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewTitle, setPdfPreviewTitle] = useState("");
+
   // Filtros para clients-list
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -832,6 +836,18 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
                                contract.status === 'cancelled' ? 'Cancelado' : 'Borrador'}
                             </span>
                             {contract.file_url && (
+                              <button
+                                onClick={() => {
+                                  setPdfPreviewUrl(contract.file_url);
+                                  setPdfPreviewTitle(contract.title);
+                                }}
+                                className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                title="Ver documento"
+                              >
+                                <i className="fas fa-eye"></i>
+                              </button>
+                            )}
+                            {contract.file_url && (
                               <a
                                 href={contract.file_url}
                                 target="_blank"
@@ -917,6 +933,60 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
             }}
           />
         )}
+
+      {/* PDF Preview Modal */}
+      {pdfPreviewUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-[95vw] h-[92vh] max-w-6xl flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <i className="fas fa-file-pdf text-indigo-600 text-lg"></i>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{pdfPreviewTitle}</h3>
+                  <p className="text-xs text-gray-500">Vista previa del documento</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={pdfPreviewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                >
+                  <i className="fas fa-external-link-alt"></i>
+                  Abrir en nueva pestaña
+                </a>
+                <a
+                  href={pdfPreviewUrl}
+                  download
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                >
+                  <i className="fas fa-download"></i>
+                  Descargar
+                </a>
+                <button
+                  onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}
+                  className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg transition-colors ml-1"
+                  title="Cerrar"
+                >
+                  <i className="fas fa-times text-lg"></i>
+                </button>
+              </div>
+            </div>
+            {/* PDF Viewer */}
+            <div className="flex-1 bg-gray-100">
+              <iframe
+                src={pdfPreviewUrl}
+                className="w-full h-full border-0"
+                title={`Vista previa: ${pdfPreviewTitle}`}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     
   );
