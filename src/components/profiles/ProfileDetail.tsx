@@ -577,60 +577,96 @@ export default function ProfileDetail({ profileId, onBack }: ProfileDetailProps)
       )}
 
       {/* Status Change Modal */}
-      {showStatusModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4">Cambiar Estado</h3>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nuevo Estado
-              </label>
-              <select
-                value={newStatus}
-                onChange={(e) => setNewStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="">Seleccionar...</option>
-                <option value="draft">Borrador</option>
-                <option value="pending">Pendiente</option>
-                <option value="approved">Aprobado</option>
-                <option value="in_progress">En Proceso</option>
-                <option value="candidates_found">Candidatos Encontrados</option>
-                <option value="in_evaluation">Aplicación de Pruebas</option>
-                <option value="in_interview">En Entrevista</option>
-                <option value="finalists">Finalistas</option>
-                <option value="completed">Completado</option>
-                <option value="cancelled">Cancelado</option>
-              </select>
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Notas
-              </label>
-              <textarea
-                value={statusNotes}
-                onChange={(e) => setStatusNotes(e.target.value)}
-                rows={3}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                placeholder="Notas sobre el cambio de estado..."
-              />
-            </div>
-            <div className="flex justify-end space-x-3">
+      {showStatusModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => setShowStatusModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '700px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-exchange-alt"></i>
+                  Cambiar Estado del Perfil
+                </h2>
+                <p className="text-orange-100 text-sm mt-1">Selecciona el nuevo estado para este perfil</p>
+              </div>
               <button
                 onClick={() => setShowStatusModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="text-white hover:bg-orange-700 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {/* New Status */}
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-list-alt text-orange-600"></i>
+                  Nuevo Estado
+                </h3>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+                >
+                  <option value="">Seleccionar...</option>
+                  <option value="draft">Borrador</option>
+                  <option value="pending">Pendiente</option>
+                  <option value="approved">Aprobado</option>
+                  <option value="in_progress">En Proceso</option>
+                  <option value="candidates_found">Candidatos Encontrados</option>
+                  <option value="in_evaluation">Aplicación de Pruebas</option>
+                  <option value="in_interview">En Entrevista</option>
+                  <option value="finalists">Finalistas</option>
+                  <option value="completed">Completado</option>
+                  <option value="cancelled">Cancelado</option>
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-sticky-note text-gray-600"></i>
+                  Notas <span className="text-sm font-normal text-gray-500">(opcional)</span>
+                </h3>
+                <textarea
+                  value={statusNotes}
+                  onChange={(e) => setStatusNotes(e.target.value)}
+                  rows={6}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
+                  placeholder="Notas sobre el cambio de estado..."
+                />
+              </div>
+            </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleChangeStatus}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 font-semibold shadow-lg transition flex items-center gap-2"
               >
-                Guardar
+                <i className="fas fa-save"></i>
+                Guardar Cambio
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Auto Recommend Modal */}
