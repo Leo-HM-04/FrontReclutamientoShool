@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useModal } from '@/context/ModalContext';
 import Pagination from './ui/Pagination';
 
@@ -1042,107 +1043,125 @@ export default function ShortlistedCandidatesDashboard() {
       </div>
 
       {/* Modal: Cambiar Estado de Candidatos */}
-      {showStatusModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Cambiar Estado de Candidatos</h3>
-                <button
-                  onClick={() => {
-                    setShowStatusModal(false);
-                    setNewStatus('');
-                    setStatusNotes('');
-                    setRejectionReason('');
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times" />
-                </button>
-              </div>
-
-              <div className="mb-4">
-                <p className="text-sm text-gray-600">
-                  Actualizando <strong>{selectedCandidates.size}</strong> candidato(s)
+      {showStatusModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => { setShowStatusModal(false); setNewStatus(''); setStatusNotes(''); setRejectionReason(''); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '750px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className={`flex-shrink-0 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl ${
+              newStatus === 'rejected'
+                ? 'bg-gradient-to-r from-red-500 to-rose-600'
+                : 'bg-gradient-to-r from-purple-600 to-violet-700'
+            }`}>
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-users-cog"></i>
+                  Cambiar Estado de Candidatos
+                </h2>
+                <p className={`text-sm mt-1 ${newStatus === 'rejected' ? 'text-red-100' : 'text-purple-100'}`}>
+                  Actualizando <strong>{selectedCandidates.size}</strong> candidato(s) seleccionado(s)
                 </p>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nuevo Estatus</label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  >
-                    <option value="">Seleccionar estatus...</option>
-                    <option value="applied">Aplicó</option>
-                    <option value="screening">En Revisión</option>
-                    <option value="shortlisted">Pre-seleccionado</option>
-                    <option value="interview_scheduled">Entrevista Agendada</option>
-                    <option value="interviewed">Entrevistado</option>
-                    <option value="offered">Oferta Extendida</option>
-                    <option value="accepted">Oferta Aceptada</option>
-                    <option value="rejected">Rechazado</option>
-                    <option value="withdrawn">Retirado</option>
-                  </select>
-                </div>
-                
-                {newStatus === 'rejected' && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <i className="fas fa-exclamation-triangle text-red-600 mr-2" />
-                      Motivo de Rechazo (requerido)
-                    </label>
-                    <textarea
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Explica el motivo del rechazo..."
-                    />
-                  </div>
-                )}
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notas (opcional)</label>
+              <button
+                onClick={() => { setShowStatusModal(false); setNewStatus(''); setStatusNotes(''); setRejectionReason(''); }}
+                className={`text-white rounded-full w-10 h-10 flex items-center justify-center transition ${
+                  newStatus === 'rejected' ? 'hover:bg-red-700' : 'hover:bg-purple-800'
+                }`}
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {/* New Status */}
+              <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-list-alt text-purple-600"></i>
+                  Nuevo Estatus
+                </h3>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                >
+                  <option value="">Seleccionar estatus...</option>
+                  <option value="applied">Aplicó</option>
+                  <option value="screening">En Revisión</option>
+                  <option value="shortlisted">Pre-seleccionado</option>
+                  <option value="interview_scheduled">Entrevista Agendada</option>
+                  <option value="interviewed">Entrevistado</option>
+                  <option value="offered">Oferta Extendida</option>
+                  <option value="accepted">Oferta Aceptada</option>
+                  <option value="rejected">Rechazado</option>
+                  <option value="withdrawn">Retirado</option>
+                </select>
+              </div>
+
+              {/* Rejection Reason (conditional) */}
+              {newStatus === 'rejected' && (
+                <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-6 border border-red-300">
+                  <h3 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-exclamation-triangle text-red-600"></i>
+                    Motivo de Rechazo <span className="text-sm font-semibold text-red-600">(requerido)</span>
+                  </h3>
                   <textarea
-                    value={statusNotes}
-                    onChange={(e) => setStatusNotes(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Agrega notas sobre este cambio..."
+                    value={rejectionReason}
+                    onChange={(e) => setRejectionReason(e.target.value)}
+                    rows={5}
+                    className="w-full px-4 py-3 border border-red-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
+                    placeholder="Explica el motivo del rechazo..."
                   />
                 </div>
-              </div>
-              
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowStatusModal(false);
-                    setNewStatus('');
-                    setStatusNotes('');
-                    setRejectionReason('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleUpdateStatus}
-                  disabled={actionLoading}
-                  className={`px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 ${
-                    newStatus === 'rejected' 
-                      ? 'bg-red-600 hover:bg-red-700' 
-                      : 'bg-purple-600 hover:bg-purple-700'
-                  }`}
-                >
-                  {actionLoading ? 'Actualizando...' : 'Actualizar'}
-                </button>
+              )}
+
+              {/* Notes */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-sticky-note text-gray-600"></i>
+                  Notas <span className="text-sm font-normal text-gray-500">(opcional)</span>
+                </h3>
+                <textarea
+                  value={statusNotes}
+                  onChange={(e) => setStatusNotes(e.target.value)}
+                  rows={5}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                  placeholder="Agrega notas sobre este cambio..."
+                />
               </div>
             </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => { setShowStatusModal(false); setNewStatus(''); setStatusNotes(''); setRejectionReason(''); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleUpdateStatus}
+                disabled={actionLoading}
+                className={`px-6 py-3 text-white rounded-xl font-semibold shadow-lg transition flex items-center gap-2 disabled:opacity-50 ${
+                  newStatus === 'rejected'
+                    ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
+                    : 'bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800'
+                }`}
+              >
+                <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : 'fa-check'}`}></i>
+                {actionLoading ? 'Actualizando...' : 'Actualizar Estado'}
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal: Subir Documento */}
