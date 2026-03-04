@@ -63,13 +63,19 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
 
   // Función para abrir el previsualizador de PDF (descarga como blob para evitar X-Frame-Options)
   const openPdfPreview = async (fileUrl: string, title: string) => {
+    // Forzar HTTPS si la página actual es HTTPS (evitar Mixed Content)
+    let secureUrl = fileUrl;
+    if (typeof window !== "undefined" && window.location.protocol === "https:" && fileUrl.startsWith("http://")) {
+      secureUrl = fileUrl.replace("http://", "https://");
+    }
+    
     setPdfPreviewTitle(title);
-    setPdfPreviewUrl(fileUrl);
+    setPdfPreviewUrl(secureUrl);
     setPdfLoading(true);
     setPdfLoadError(false);
 
     try {
-      const response = await fetch(fileUrl);
+      const response = await fetch(secureUrl);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
