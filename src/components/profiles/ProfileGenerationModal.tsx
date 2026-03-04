@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from '@/context/ModalContext';
 import { generateProfileFromTranscription, getClients } from "@/lib/api";
 
@@ -28,6 +29,7 @@ export default function ProfileGenerationModal({
   const [additionalNotes, setAdditionalNotes] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [loadingClients, setLoadingClients] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -94,140 +96,170 @@ export default function ProfileGenerationModal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-35 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-8 py-6 flex justify-between items-center rounded-t-2xl">
-          <div>
-            <h2 className="text-2xl font-bold">Generar Perfil con IA</h2>
-            <p className="text-purple-100 text-sm mt-1">Crea perfiles automáticamente desde transcripciones de reuniones</p>
+  const modalContent = (
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      style={{ zIndex: 9999 }}
+      onClick={!loading ? onClose : undefined}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        style={{ width: "95vw", height: "92vh", maxWidth: "900px" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-600 to-purple-700 flex-shrink-0 rounded-t-2xl">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <i className="fas fa-wand-magic-sparkles text-white text-lg"></i>
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-lg font-bold text-white truncate">Generar Perfil con IA</h3>
+              <p className="text-xs text-purple-100">Crea perfiles automáticamente desde transcripciones de reuniones</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-purple-800 rounded-full w-10 h-10 flex items-center justify-center transition"
+            className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
             disabled={loading}
+            title="Cerrar"
           >
-            <i className="fas fa-times text-xl"></i>
+            <i className="fas fa-times text-lg"></i>
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8">
-          {/* Client Selection (Optional) */}
-          <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">
-              <i className="fas fa-building mr-2 text-purple-600"></i>
-              Cliente (Opcional)
-            </label>
-            {loadingClients ? (
-              <div className="flex items-center justify-center py-4">
-                <i className="fas fa-spinner fa-spin text-purple-600 mr-2"></i>
-                <span className="text-gray-600">Cargando clientes...</span>
-              </div>
-            ) : (
-              <select
-                value={selectedClient}
-                onChange={(e) => setSelectedClient(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+        {/* Content - scrollable */}
+        <div className="flex-1 overflow-y-auto" style={{ minHeight: 0 }}>
+          <form ref={formRef} onSubmit={handleSubmit} className="p-6 lg:p-8">
+            {/* Client Selection (Optional) */}
+            <div className="mb-6">
+              <label className="block text-gray-700 font-semibold mb-2">
+                <i className="fas fa-building mr-2 text-purple-600"></i>
+                Cliente (Opcional)
+              </label>
+              {loadingClients ? (
+                <div className="flex items-center justify-center py-4">
+                  <i className="fas fa-spinner fa-spin text-purple-600 mr-2"></i>
+                  <span className="text-gray-600">Cargando clientes...</span>
+                </div>
+              ) : (
+                <select
+                  value={selectedClient}
+                  onChange={(e) => setSelectedClient(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  disabled={loading}
+                >
+                  <option value="">Seleccionar cliente (opcional)...</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.commercial_name || client.business_name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Transcription */}
+            <div className="mb-6">
+              <label className="block text-gray-700 font-semibold mb-2">
+                <i className="fas fa-microphone mr-2 text-purple-600"></i>
+                Transcripción de la Reunión *
+              </label>
+              <textarea
+                value={transcription}
+                onChange={(e) => setTranscription(e.target.value)}
+                rows={10}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+                placeholder="Pega aquí la transcripción completa de la reunión con el cliente donde se discutió el perfil de reclutamiento..."
+                required
                 disabled={loading}
-              >
-                <option value="">Seleccionar cliente (opcional)...</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.commercial_name || client.business_name}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                {transcription.length} caracteres
+              </p>
+            </div>
 
-          {/* Transcription */}
-          <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">
-              <i className="fas fa-microphone mr-2 text-purple-600"></i>
-              Transcripción de la Reunión *
-            </label>
-            <textarea
-              value={transcription}
-              onChange={(e) => setTranscription(e.target.value)}
-              rows={12}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-              placeholder="Pega aquí la transcripción completa de la reunión con el cliente donde se discutió el perfil de reclutamiento..."
-              required
-              disabled={loading}
-            />
-            <p className="mt-2 text-sm text-gray-500">
-              {transcription.length} caracteres
-            </p>
-          </div>
+            {/* Additional Notes */}
+            <div className="mb-6">
+              <label className="block text-gray-700 font-semibold mb-2">
+                <i className="fas fa-sticky-note mr-2 text-purple-600"></i>
+                Notas Adicionales (Opcional)
+              </label>
+              <textarea
+                value={additionalNotes}
+                onChange={(e) => setAdditionalNotes(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                placeholder="Agrega cualquier contexto adicional, requisitos especiales, o información que no esté en la transcripción..."
+                disabled={loading}
+              />
+            </div>
 
-          {/* Additional Notes */}
-          <div className="mb-6">
-            <label className="block text-gray-700 font-semibold mb-2">
-              <i className="fas fa-sticky-note mr-2 text-purple-600"></i>
-              Notas Adicionales (Opcional)
-            </label>
-            <textarea
-              value={additionalNotes}
-              onChange={(e) => setAdditionalNotes(e.target.value)}
-              rows={4}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              placeholder="Agrega cualquier contexto adicional, requisitos especiales, o información que no esté en la transcripción..."
-              disabled={loading}
-            />
-          </div>
-
-          {/* Info Box */}
-          <div className="bg-purple-50 border-l-4 border-purple-500 p-4 mb-6">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <i className="fas fa-magic text-purple-500 text-xl"></i>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-purple-700">
-                  <strong>Claude AI</strong> generará automáticamente:
-                </p>
-                <ul className="list-disc list-inside text-sm text-purple-600 mt-2 space-y-1">
-                  <li>Título del puesto y descripción completa</li>
-                  <li>Responsabilidades principales</li>
-                  <li>Requisitos técnicos y experiencia necesaria</li>
-                  <li>Habilidades requeridas</li>
-                  <li>Rango salarial y beneficios</li>
-                  <li>Modalidad de trabajo y ubicación</li>
-                </ul>
+            {/* Info Box */}
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-5">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <i className="fas fa-magic text-purple-600 text-sm"></i>
+                </div>
+                <div>
+                  <p className="text-sm text-purple-800 font-semibold">
+                    Claude AI generará automáticamente:
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-3">
+                    {[
+                      'Título del puesto y descripción',
+                      'Responsabilidades principales',
+                      'Requisitos técnicos y experiencia',
+                      'Habilidades requeridas',
+                      'Rango salarial y beneficios',
+                      'Modalidad de trabajo y ubicación'
+                    ].map((item, i) => (
+                      <p key={i} className="text-xs text-purple-600 flex items-center">
+                        <i className="fas fa-check-circle text-purple-400 mr-1.5 text-[10px]"></i>
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          </form>
+        </div>
 
-          {/* Buttons */}
-          <div className="flex gap-4">
+        {/* Footer - fixed at bottom */}
+        <div className="flex-shrink-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition"
+              className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition"
               disabled={loading}
             >
               Cancelar
             </button>
             <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 font-semibold shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              onClick={() => formRef.current?.requestSubmit()}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 font-semibold shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               disabled={loading || !transcription.trim()}
             >
               {loading ? (
                 <>
-                  <i className="fas fa-spinner fa-spin mr-2"></i>
+                  <i className="fas fa-spinner fa-spin"></i>
                   Generando con IA...
                 </>
               ) : (
                 <>
-                  <i className="fas fa-magic mr-2"></i>
+                  <i className="fas fa-wand-magic-sparkles"></i>
                   Generar Perfil con IA
                 </>
               )}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalContent, document.body) : null;
 }
