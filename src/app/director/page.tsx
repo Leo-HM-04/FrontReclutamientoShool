@@ -25,8 +25,8 @@ import ShareLinkModal from '@/components/ShareLinkModal';
 import ShareDocumentLinkModal from '@/components/ShareDocumentLinkModal';
 import EmailManagement from '@/components/EmailManagement';
 import DocumentShareLinksDashboard from '@/components/DocumentShareLinksDashboard';
-import UserProfileModal from '@/components/UserProfileModal';
-import SettingsModal from '@/components/SettingsModal';
+import UserProfileModal from '@/components/UserProfileModal'; // Mi Perfil modal
+import SettingsModal from '@/components/SettingsModal'; // Configuración modal
 import NextImage from "next/image";
 import { HybridMetricsDashboard } from "@/components/ui/AIMethodBadge";
 
