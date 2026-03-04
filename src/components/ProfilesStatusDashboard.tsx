@@ -12,6 +12,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useModal } from '@/context/ModalContext';
 import Pagination from './ui/Pagination';
 
@@ -1002,75 +1003,144 @@ export default function ProfilesStatusDashboard() {
       )}
 
       {/* Modal: Aprobar/Rechazar */}
-      {showApprovalModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Aprobar/Rechazar Perfil</h3>
-                <button
-                  onClick={() => {
-                    setShowApprovalModal(false);
-                    setApprovalFeedback('');
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times" />
-                </button>
+      {showApprovalModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => { setShowApprovalModal(false); setApprovalFeedback(''); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '700px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className={`flex-shrink-0 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl ${
+              approvalAction === 'approve'
+                ? 'bg-gradient-to-r from-green-600 to-emerald-600'
+                : 'bg-gradient-to-r from-red-500 to-rose-600'
+            }`}>
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className={`fas ${approvalAction === 'approve' ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
+                  Aprobar / Rechazar Perfil
+                </h2>
+                <p className={`text-sm mt-1 ${approvalAction === 'approve' ? 'text-green-100' : 'text-red-100'}`}>
+                  {approvalAction === 'approve' ? 'Confirma la aprobación de este perfil de reclutamiento' : 'Indica el motivo del rechazo del perfil'}
+                </p>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Acción</label>
-                  <select
-                    value={approvalAction}
-                    onChange={(e) => setApprovalAction(e.target.value as 'approve' | 'reject')}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              <button
+                onClick={() => { setShowApprovalModal(false); setApprovalFeedback(''); }}
+                className={`text-white rounded-full w-10 h-10 flex items-center justify-center transition ${
+                  approvalAction === 'approve' ? 'hover:bg-green-800' : 'hover:bg-red-700'
+                }`}
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {/* Action Selection */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-hand-pointer text-gray-600"></i>
+                  Tipo de Acción
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setApprovalAction('approve')}
+                    className={`flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 font-semibold transition ${
+                      approvalAction === 'approve'
+                        ? 'border-green-500 bg-green-50 text-green-700 shadow-md'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-green-300 hover:bg-green-50'
+                    }`}
                   >
-                    <option value="approve">Aprobar</option>
-                    <option value="reject">Rechazar</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Comentarios del Cliente
-                  </label>
-                  <textarea
-                    value={approvalFeedback}
-                    onChange={(e) => setApprovalFeedback(e.target.value)}
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="Agrega comentarios o retroalimentación del cliente..."
-                  />
+                    <i className="fas fa-check-circle text-xl"></i>
+                    Aprobar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setApprovalAction('reject')}
+                    className={`flex items-center justify-center gap-3 px-6 py-4 rounded-xl border-2 font-semibold transition ${
+                      approvalAction === 'reject'
+                        ? 'border-red-500 bg-red-50 text-red-700 shadow-md'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-red-300 hover:bg-red-50'
+                    }`}
+                  >
+                    <i className="fas fa-times-circle text-xl"></i>
+                    Rechazar
+                  </button>
                 </div>
               </div>
-              
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={() => {
-                    setShowApprovalModal(false);
-                    setApprovalFeedback('');
-                  }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={() => handleToggleClientApproval()}
-                  disabled={actionLoading}
-                  className={`px-4 py-2 text-white rounded-lg hover:opacity-90 disabled:opacity-50 ${
-                    approvalAction === 'approve' 
-                      ? 'bg-green-600 hover:bg-green-700' 
-                      : 'bg-red-600 hover:bg-red-700'
+
+              {/* Feedback */}
+              <div className={`rounded-xl p-6 border ${
+                approvalAction === 'approve'
+                  ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                  : 'bg-gradient-to-r from-red-50 to-rose-50 border-red-200'
+              }`}>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className={`fas fa-comment-dots ${
+                    approvalAction === 'approve' ? 'text-green-600' : 'text-red-600'
+                  }`}></i>
+                  Comentarios del Cliente
+                </h3>
+                <textarea
+                  value={approvalFeedback}
+                  onChange={(e) => setApprovalFeedback(e.target.value)}
+                  rows={6}
+                  className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-transparent transition focus:ring-2 ${
+                    approvalAction === 'approve' ? 'focus:ring-green-500' : 'focus:ring-red-500'
                   }`}
-                >
-                  {actionLoading ? 'Procesando...' : approvalAction === 'approve' ? 'Aprobar' : 'Rechazar'}
-                </button>
+                  placeholder="Agrega comentarios o retroalimentación del cliente..."
+                />
+              </div>
+
+              {/* Confirmation info */}
+              <div className={`rounded-xl p-5 border flex items-start gap-4 ${
+                approvalAction === 'approve'
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-amber-50 border-amber-200'
+              }`}>
+                <i className={`fas fa-info-circle text-lg mt-0.5 ${
+                  approvalAction === 'approve' ? 'text-green-600' : 'text-amber-600'
+                }`}></i>
+                <p className={`text-sm ${
+                  approvalAction === 'approve' ? 'text-green-800' : 'text-amber-800'
+                }`}>
+                  {approvalAction === 'approve'
+                    ? 'Al aprobar, el cliente confirma que el perfil de búsqueda es correcto y se puede continuar el proceso de reclutamiento.'
+                    : 'Al rechazar, el perfil regresará al equipo de reclutamiento con tus comentarios para correcciones.'}
+                </p>
               </div>
             </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => { setShowApprovalModal(false); setApprovalFeedback(''); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleToggleClientApproval()}
+                disabled={actionLoading}
+                className={`px-6 py-3 text-white rounded-xl font-semibold shadow-lg transition flex items-center gap-2 disabled:opacity-50 ${
+                  approvalAction === 'approve'
+                    ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
+                    : 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700'
+                }`}
+              >
+                <i className={`fas ${actionLoading ? 'fa-spinner fa-spin' : approvalAction === 'approve' ? 'fa-check' : 'fa-times'}`}></i>
+                {actionLoading ? 'Procesando...' : approvalAction === 'approve' ? 'Aprobar Perfil' : 'Rechazar Perfil'}
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal: Agregar Plataforma */}

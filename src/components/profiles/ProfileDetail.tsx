@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from '@/context/ModalContext';
 import { getProfile, approveProfile, changeProfileStatus } from "@/lib/api";
 import AutoRecommendModal from "./AutoRecommendModal";
@@ -479,44 +480,100 @@ export default function ProfileDetail({ profileId, onBack }: ProfileDetailProps)
       </div>
 
       {/* Approval Modal */}
-      {showApprovalModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4">Aprobar/Rechazar Perfil</h3>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Retroalimentación
-              </label>
-              <textarea
-                value={approvalFeedback}
-                onChange={(e) => setApprovalFeedback(e.target.value)}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                placeholder="Comentarios sobre la decisión..."
-              />
-            </div>
-            <div className="flex justify-end space-x-3">
+      {showApprovalModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => setShowApprovalModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '700px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-clipboard-check"></i>
+                  Aprobar / Rechazar Perfil
+                </h2>
+                <p className="text-green-100 text-sm mt-1">Revisa y emite tu decisión sobre este perfil</p>
+              </div>
               <button
                 onClick={() => setShowApprovalModal(false)}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="text-white hover:bg-green-800 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {/* Feedback */}
+              <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-comment-dots text-gray-600"></i>
+                  Retroalimentación
+                </h3>
+                <textarea
+                  value={approvalFeedback}
+                  onChange={(e) => setApprovalFeedback(e.target.value)}
+                  rows={7}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
+                  placeholder="Comentarios sobre la decisión..."
+                />
+              </div>
+
+              {/* Info cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-full bg-green-200 flex items-center justify-center">
+                      <i className="fas fa-check text-green-700"></i>
+                    </div>
+                    <span className="font-bold text-green-900">Aprobar</span>
+                  </div>
+                  <p className="text-xs text-green-800">El perfil es correcto y el proceso de reclutamiento puede continuar.</p>
+                </div>
+                <div className="bg-gradient-to-r from-red-50 to-rose-50 rounded-xl p-5 border border-red-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-full bg-red-200 flex items-center justify-center">
+                      <i className="fas fa-times text-red-700"></i>
+                    </div>
+                    <span className="font-bold text-red-900">Rechazar</span>
+                  </div>
+                  <p className="text-xs text-red-800">El perfil regresará al equipo con tus comentarios para correcciones.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => setShowApprovalModal(false)}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={() => handleApprove(false)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white rounded-xl hover:from-red-600 hover:to-rose-700 font-semibold shadow-lg transition flex items-center gap-2"
               >
-                Rechazar
+                <i className="fas fa-times"></i>
+                Rechazar Perfil
               </button>
               <button
                 onClick={() => handleApprove(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg transition flex items-center gap-2"
               >
-                Aprobar
+                <i className="fas fa-check"></i>
+                Aprobar Perfil
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Status Change Modal */}
