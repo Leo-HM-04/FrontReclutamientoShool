@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from '@/context/ModalContext';
 import { bulkUploadCVs, getBulkUploadStatus, getProfiles } from "@/lib/api";
 
@@ -232,14 +233,28 @@ export default function BulkCVUploadModal({
     }
   };
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-35 p-4 overflow-y-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full my-8">
-        <div className="sticky top-0 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-6 flex justify-between items-center rounded-t-2xl">
+  const modalContent = (
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      onClick={(e) => { if (e.target === e.currentTarget && !loading && !isAsyncProcessing) handleClose(); }}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl flex flex-col"
+        style={{ width: '95vw', height: '92vh', maxWidth: '1100px' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
           <div>
-            <h2 className="text-2xl font-bold">Carga Masiva de CVs con IA</h2>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <i className="fas fa-cloud-upload-alt"></i>
+              Carga Masiva de CVs con IA
+            </h2>
             <p className="text-green-100 text-sm mt-1">Analiza múltiples CVs automáticamente y crea candidatos</p>
           </div>
           <button
@@ -251,9 +266,10 @@ export default function BulkCVUploadModal({
           </button>
         </div>
 
-        <div className="p-8">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-8">
           {!results ? (
-            <form onSubmit={handleSubmit}>
+            <form ref={formRef} onSubmit={handleSubmit}>
               {/* Profile Selection */}
               <div className="mb-6">
                 <label className="block text-gray-700 font-semibold mb-2">
@@ -269,7 +285,7 @@ export default function BulkCVUploadModal({
                   <select
                     value={selectedProfile}
                     onChange={(e) => setSelectedProfile(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
                     disabled={loading || isAsyncProcessing}
                   >
                     <option value="">Sin asignar a perfil (solo crear candidatos)</option>
@@ -291,9 +307,11 @@ export default function BulkCVUploadModal({
                   <i className="fas fa-file-upload mr-2 text-green-600"></i>
                   Archivos CV (PDF o DOCX)
                 </label>
-                <div className="border-2 border-dashed border-green-300 rounded-lg p-8 text-center bg-green-50 hover:bg-green-100 transition">
-                  <i className="fas fa-cloud-upload-alt text-5xl text-green-600 mb-4"></i>
-                  <p className="text-gray-700 font-semibold mb-2">
+                <div className="border-2 border-dashed border-green-300 rounded-xl p-10 text-center bg-green-50 hover:bg-green-100 transition cursor-pointer">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-cloud-upload-alt text-3xl text-green-600"></i>
+                  </div>
+                  <p className="text-gray-700 font-semibold mb-3">
                     Arrastra archivos aquí o haz clic para seleccionar
                   </p>
                   <input
@@ -307,11 +325,12 @@ export default function BulkCVUploadModal({
                   />
                   <label
                     htmlFor="cv-files-input"
-                    className="inline-block px-6 py-3 bg-green-600 text-white rounded-lg cursor-pointer hover:bg-green-700 transition"
+                    className="inline-block px-8 py-3 bg-green-600 text-white rounded-xl cursor-pointer hover:bg-green-700 transition font-semibold shadow-lg"
                   >
+                    <i className="fas fa-folder-open mr-2"></i>
                     Seleccionar CVs
                   </label>
-                  <p className="text-sm text-gray-500 mt-3">
+                  <p className="text-sm text-gray-500 mt-4">
                     Máximo 50 archivos | 10MB por archivo | Formatos: PDF, DOCX
                   </p>
                 </div>
@@ -322,12 +341,13 @@ export default function BulkCVUploadModal({
                       <i className="fas fa-check-circle text-green-600 mr-2"></i>
                       {cvFiles.length} archivo(s) seleccionado(s):
                     </p>
-                    <div className="max-h-40 overflow-y-auto bg-gray-50 rounded-lg p-4">
-                      <ul className="space-y-1">
+                    <div className="max-h-48 overflow-y-auto bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <ul className="space-y-2">
                         {cvFiles.map((file, index) => (
-                          <li key={index} className="text-sm text-gray-600 flex items-center">
-                            <i className="fas fa-file-pdf text-red-500 mr-2"></i>
-                            {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          <li key={index} className="text-sm text-gray-600 flex items-center bg-white px-3 py-2 rounded-lg border border-gray-100">
+                            <i className={`${file.name.endsWith('.pdf') ? 'fas fa-file-pdf text-red-500' : 'fas fa-file-word text-blue-500'} mr-2`}></i>
+                            <span className="flex-1 truncate">{file.name}</span>
+                            <span className="text-gray-400 text-xs ml-2">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                           </li>
                         ))}
                       </ul>
@@ -337,29 +357,40 @@ export default function BulkCVUploadModal({
               </div>
 
               {/* Info Box */}
-              <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <i className="fas fa-robot text-green-500 text-xl"></i>
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200 mb-6">
+                <p className="text-sm font-bold text-green-800 mb-3 flex items-center gap-2">
+                  <i className="fas fa-robot text-green-600"></i>
+                  ¿Cómo funciona?
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-start gap-2">
+                    <i className="fas fa-brain text-green-500 mt-0.5"></i>
+                    <span className="text-sm text-green-700">Claude AI extrae automáticamente toda la información de cada CV</span>
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-green-700">
-                      <strong>¿Cómo funciona?</strong>
-                    </p>
-                    <ul className="list-disc list-inside text-sm text-green-600 mt-2 space-y-1">
-                      <li>Claude AI extrae automáticamente toda la información de cada CV</li>
-                      <li>Crea candidatos completos con experiencia, educación y habilidades</li>
-                      <li>Si asignas un perfil, calcula el matching con IA</li>
-                      <li>Procesa ≤3 CVs inmediatamente, 3 en segundo plano</li>
-                    </ul>
+                  <div className="flex items-start gap-2">
+                    <i className="fas fa-user-plus text-green-500 mt-0.5"></i>
+                    <span className="text-sm text-green-700">Crea candidatos completos con experiencia, educación y habilidades</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <i className="fas fa-chart-line text-green-500 mt-0.5"></i>
+                    <span className="text-sm text-green-700">Si asignas un perfil, calcula el matching con IA</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <i className="fas fa-bolt text-green-500 mt-0.5"></i>
+                    <span className="text-sm text-green-700">Procesa ≤3 CVs inmediatamente, &gt;3 en segundo plano</span>
                   </div>
                 </div>
               </div>
 
               {/* Progress */}
               {uploadProgress && (
-                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-blue-800 whitespace-pre-line">{uploadProgress}</p>
+                <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    {(loading || isAsyncProcessing) && (
+                      <i className="fas fa-spinner fa-spin text-blue-600 text-lg"></i>
+                    )}
+                    <p className="text-blue-800 whitespace-pre-line font-medium">{uploadProgress}</p>
+                  </div>
                   {(loading || isAsyncProcessing) && (
                     <div className="mt-3">
                       <div className="w-full bg-blue-200 rounded-full h-2">
@@ -369,38 +400,9 @@ export default function BulkCVUploadModal({
                   )}
                 </div>
               )}
-
-              {/* Buttons */}
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition"
-                  disabled={loading || isAsyncProcessing}
-                >
-                  {loading || isAsyncProcessing ? 'Procesando...' : 'Cancelar'}
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 font-semibold shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={loading || isAsyncProcessing || cvFiles.length === 0}
-                >
-                  {loading || isAsyncProcessing ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin mr-2"></i>
-                      Procesando...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-rocket mr-2"></i>
-                      Procesar {cvFiles.length} CV(s) con IA
-                    </>
-                  )}
-                </button>
-              </div>
             </form>
           ) : (
-            /* Results View - Enhanced */
+            /* Results View */
             <div>
               {/* Summary Stats */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
@@ -429,7 +431,7 @@ export default function BulkCVUploadModal({
                 Detalle por CV
               </h3>
 
-              <div className="space-y-3 max-h-[28rem] overflow-y-auto pr-1">
+              <div className="space-y-3">
                 {results.map((result, index) => (
                   <div
                     key={index}
@@ -439,7 +441,7 @@ export default function BulkCVUploadModal({
                         : 'bg-red-50 border-red-300'
                     }`}
                   >
-                    {/* Header */}
+                    {/* Result Header */}
                     <div className={`px-4 py-3 flex items-center justify-between ${
                       result.success ? 'bg-green-50' : 'bg-red-100'
                     }`}>
@@ -583,31 +585,67 @@ export default function BulkCVUploadModal({
 
               {results.length === 0 && (
                 <div className="text-center py-12 text-gray-400">
-                  <i className="fas fa-inbox text-4xl mb-3"></i>
+                  <i className="fas fa-inbox text-4xl mb-3 block"></i>
                   <p>No se obtuvieron resultados del procesamiento</p>
                 </div>
               )}
-
-              <div className="mt-6 flex gap-4">
-                <button
-                  onClick={() => { setResults(null); setCvFiles([]); }}
-                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition"
-                >
-                  <i className="fas fa-redo mr-2"></i>
-                  Cargar más CVs
-                </button>
-                <button
-                  onClick={handleClose}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 font-semibold shadow-lg transition"
-                >
-                  <i className="fas fa-check mr-2"></i>
-                  Finalizar
-                </button>
-              </div>
             </div>
+          )}
+        </div>
+
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex gap-4">
+          {!results ? (
+            <>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+                disabled={loading || isAsyncProcessing}
+              >
+                {loading || isAsyncProcessing ? 'Procesando...' : 'Cancelar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => formRef.current?.requestSubmit()}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 font-semibold shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || isAsyncProcessing || cvFiles.length === 0}
+              >
+                {loading || isAsyncProcessing ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin mr-2"></i>
+                    Procesando...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-rocket mr-2"></i>
+                    Procesar {cvFiles.length} CV(s) con IA
+                  </>
+                )}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => { setResults(null); setCvFiles([]); }}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                <i className="fas fa-redo mr-2"></i>
+                Cargar más CVs
+              </button>
+              <button
+                onClick={handleClose}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 font-semibold shadow-lg transition"
+              >
+                <i className="fas fa-check mr-2"></i>
+                Finalizar
+              </button>
+            </>
           )}
         </div>
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
