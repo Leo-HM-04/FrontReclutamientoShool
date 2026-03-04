@@ -57,6 +57,41 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
   // PDF Preview state
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfPreviewTitle, setPdfPreviewTitle] = useState("");
+  const [pdfLoadError, setPdfLoadError] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+
+  // Función para abrir el previsualizador de PDF (descarga como blob para evitar X-Frame-Options)
+  const openPdfPreview = async (fileUrl: string, title: string) => {
+    setPdfPreviewTitle(title);
+    setPdfPreviewUrl(fileUrl);
+    setPdfLoading(true);
+    setPdfLoadError(false);
+
+    try {
+      const response = await fetch(fileUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfBlobUrl(blobUrl);
+    } catch (err) {
+      console.error("Error fetching PDF:", err);
+      setPdfLoadError(true);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const closePdfPreview = () => {
+    if (pdfBlobUrl) {
+      URL.revokeObjectURL(pdfBlobUrl);
+    }
+    setPdfPreviewUrl(null);
+    setPdfPreviewTitle("");
+    setPdfBlobUrl(null);
+    setPdfLoadError(false);
+    setPdfLoading(false);
+  };
 
   // Filtros para clients-list
   const [searchTerm, setSearchTerm] = useState("");
@@ -839,8 +874,7 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
                             {contract.file_url && (
                               <button
                                 onClick={() => {
-                                  setPdfPreviewUrl(contract.file_url);
-                                  setPdfPreviewTitle(contract.title);
+                                  openPdfPreview(contract.file_url, contract.title);
                                 }}
                                 className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                 title="Ver documento"
@@ -940,7 +974,7 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
         <div
           className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
           style={{ zIndex: 9999 }}
-          onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}
+          onClick={closePdfPreview}
         >
           <div
             className="bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
@@ -966,7 +1000,7 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
                   className="flex items-center gap-2 px-3 py-2 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
                 >
                   <i className="fas fa-external-link-alt"></i>
-                  <span className="hidden sm:inline">Abrir en nueva pestaña</span>
+                  <span className="hidden sm:inline">Nueva pestaña</span>
                 </a>
                 <a
                   href={pdfPreviewUrl}
@@ -977,7 +1011,7 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
                   <span className="hidden sm:inline">Descargar</span>
                 </a>
                 <button
-                  onClick={() => { setPdfPreviewUrl(null); setPdfPreviewTitle(""); }}
+                  onClick={closePdfPreview}
                   className="p-2 text-gray-500 hover:bg-gray-200 rounded-lg transition-colors ml-1"
                   title="Cerrar"
                 >
@@ -986,20 +1020,49 @@ export default function ClientsMain({ onClose }: ClientsMainProps) {
               </div>
             </div>
             {/* PDF Viewer */}
-            <div className="flex-1 bg-gray-100 relative" style={{ minHeight: 0 }}>
-              <object
-                data={`${pdfPreviewUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-                type="application/pdf"
-                className="w-full h-full"
-                style={{ position: "absolute", inset: 0 }}
-              >
-                <embed
-                  src={`${pdfPreviewUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-                  type="application/pdf"
-                  className="w-full h-full"
+            <div className="flex-1 bg-gray-100 relative flex items-center justify-center" style={{ minHeight: 0 }}>
+              {pdfLoading ? (
+                <div className="text-center p-8">
+                  <i className="fas fa-spinner fa-spin text-4xl text-indigo-500 mb-4"></i>
+                  <p className="text-gray-600 font-medium">Cargando documento...</p>
+                </div>
+              ) : pdfLoadError ? (
+                <div className="text-center p-8 max-w-md">
+                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i className="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">No se pudo cargar la vista previa</h4>
+                  <p className="text-sm text-gray-600 mb-6">
+                    Puedes abrirlo en una nueva pestaña o descargarlo directamente.
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <a
+                      href={pdfPreviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
+                    >
+                      <i className="fas fa-external-link-alt"></i>
+                      Abrir en nueva pestaña
+                    </a>
+                    <a
+                      href={pdfPreviewUrl}
+                      download
+                      className="flex items-center gap-2 px-4 py-2 text-sm bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
+                    >
+                      <i className="fas fa-download"></i>
+                      Descargar
+                    </a>
+                  </div>
+                </div>
+              ) : pdfBlobUrl ? (
+                <iframe
+                  src={pdfBlobUrl}
+                  className="w-full h-full border-0"
                   style={{ position: "absolute", inset: 0 }}
+                  title={`Vista previa: ${pdfPreviewTitle}`}
                 />
-              </object>
+              ) : null}
             </div>
           </div>
         </div>,
