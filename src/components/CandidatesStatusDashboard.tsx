@@ -1089,107 +1089,180 @@ export default function CandidatesStatusDashboard() {
       )}
 
       {/* Modal: Perfil de Candidato */}
-      {showCandidateModal && selectedCandidate && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50 overflow-y-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900">{selectedCandidate.full_name}</h3>
-                  <p className="text-gray-600 mt-1">{selectedCandidate.current_position} en {selectedCandidate.current_company}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowCandidateModal(false);
-                    setSelectedCandidate(null);
-                    setCandidateDocuments([]);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times text-xl" />
-                </button>
+      {showCandidateModal && selectedCandidate && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => { setShowCandidateModal(false); setSelectedCandidate(null); setCandidateDocuments([]); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '1000px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-slate-700 to-slate-900 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center">
+                    <i className="fas fa-user text-lg"></i>
+                  </div>
+                  {selectedCandidate.full_name}
+                </h2>
+                <p className="text-slate-300 text-sm mt-1 ml-14">{selectedCandidate.current_position} en {selectedCandidate.current_company}</p>
               </div>
-              
-              {/* Info Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">Información de Contacto</h4>
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium text-gray-900">{selectedCandidate.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Teléfono</p>
-                    <p className="font-medium text-gray-900">{selectedCandidate.phone || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Ubicación</p>
-                    <p className="font-medium text-gray-900">{selectedCandidate.city}, {selectedCandidate.state}</p>
-                  </div>
-                  {selectedCandidate.linkedin_url && (
-                    <div>
-                      <p className="text-sm text-gray-600">LinkedIn</p>
-                      <a href={selectedCandidate.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        Ver perfil
-                      </a>
+              <button
+                onClick={() => { setShowCandidateModal(false); setSelectedCandidate(null); setCandidateDocuments([]); }}
+                className="text-white hover:bg-slate-600 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8 space-y-6">
+              {/* Info Grid — 2 cards side by side */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Contact Info Card */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                    <i className="fas fa-address-card text-blue-600"></i>
+                    Información de Contacto
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-envelope text-blue-600 text-sm"></i>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</p>
+                        <p className="font-medium text-gray-900 break-all">{selectedCandidate.email}</p>
+                      </div>
                     </div>
-                  )}
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-phone text-blue-600 text-sm"></i>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Teléfono</p>
+                        <p className="font-medium text-gray-900">{selectedCandidate.phone || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-map-marker-alt text-blue-600 text-sm"></i>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ubicación</p>
+                        <p className="font-medium text-gray-900">{selectedCandidate.city}, {selectedCandidate.state}</p>
+                      </div>
+                    </div>
+                    {selectedCandidate.linkedin_url && (
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <i className="fab fa-linkedin text-blue-600 text-sm"></i>
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">LinkedIn</p>
+                          <a href={selectedCandidate.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+                            Ver perfil <i className="fas fa-external-link-alt text-xs ml-1"></i>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">Experiencia y Educación</h4>
-                  <div>
-                    <p className="text-sm text-gray-600">Años de Experiencia</p>
-                    <p className="font-medium text-gray-900">{formatNumber(selectedCandidate.years_of_experience)} años</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Nivel de Educación</p>
-                    <p className="font-medium text-gray-900">{selectedCandidate.education_level}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Expectativa Salarial</p>
-                    <p className="font-medium text-gray-900">
-                      ${formatNumber(selectedCandidate.salary_expectation_min ?? 0)} - ${formatNumber(selectedCandidate.salary_expectation_max ?? 0)} {selectedCandidate.salary_currency}
-                    </p>
+
+                {/* Experience & Education Card */}
+                <div className="bg-gradient-to-r from-purple-50 to-violet-50 rounded-xl p-6 border border-purple-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-5 flex items-center gap-2">
+                    <i className="fas fa-graduation-cap text-purple-600"></i>
+                    Experiencia y Educación
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-clock text-purple-600 text-sm"></i>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Años de Experiencia</p>
+                        <p className="font-medium text-gray-900">{formatNumber(selectedCandidate.years_of_experience)} años</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-user-graduate text-purple-600 text-sm"></i>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nivel de Educación</p>
+                        <p className="font-medium text-gray-900">{selectedCandidate.education_level}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i className="fas fa-dollar-sign text-purple-600 text-sm"></i>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Expectativa Salarial</p>
+                        <p className="font-medium text-gray-900">
+                          ${formatNumber(selectedCandidate.salary_expectation_min ?? 0)} - ${formatNumber(selectedCandidate.salary_expectation_max ?? 0)} {selectedCandidate.salary_currency}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              
-              {/* Habilidades */}
+
+              {/* Skills */}
               {selectedCandidate.skills.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="font-semibold text-gray-900 mb-3">Habilidades</h4>
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-tools text-green-600"></i>
+                    Habilidades
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedCandidate.skills.map((skill, idx) => (
-                      <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
+                      <span key={idx} className="px-4 py-1.5 bg-white border border-green-300 text-green-800 text-sm rounded-full font-medium shadow-sm">
                         {skill}
                       </span>
                     ))}
                   </div>
                 </div>
               )}
-              
-              {/* Documentos */}
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-3">Documentos</h4>
+
+              {/* Documents */}
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <i className="fas fa-folder-open text-amber-600"></i>
+                  Documentos
+                  {candidateDocuments.length > 0 && (
+                    <span className="ml-2 px-2.5 py-0.5 bg-amber-200 text-amber-800 text-xs rounded-full font-bold">
+                      {candidateDocuments.length}
+                    </span>
+                  )}
+                </h3>
                 {candidateDocuments.length === 0 ? (
-                  <p className="text-gray-600">No hay documentos disponibles</p>
+                  <div className="text-center py-8">
+                    <i className="fas fa-file-excel text-amber-300 text-4xl mb-3"></i>
+                    <p className="text-gray-500 font-medium">No hay documentos disponibles</p>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {candidateDocuments.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <div className="flex items-center space-x-3 flex-1">
-                          <i className={`fas ${getDocumentIcon(doc.document_type)} ${getDocumentColor(doc.document_type)} text-2xl`} />
+                      <div key={doc.id} className="flex items-center justify-between bg-white p-4 rounded-xl border border-amber-200 hover:shadow-md transition">
+                        <div className="flex items-center space-x-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                            <i className={`fas ${getDocumentIcon(doc.document_type)} ${getDocumentColor(doc.document_type)} text-lg`} />
+                          </div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">{doc.original_filename}</p>
+                            <p className="font-medium text-gray-900 truncate text-sm">{doc.original_filename}</p>
                             <p className="text-xs text-gray-500">{doc.description || 'Sin descripción'}</p>
                           </div>
                         </div>
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-1 ml-2">
                           <button
                             onClick={() => handlePreviewDocument(doc)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
                             title="Vista previa"
                           >
                             <i className="fas fa-eye" />
@@ -1197,7 +1270,7 @@ export default function CandidatesStatusDashboard() {
                           <a
                             href={doc.file_url}
                             download
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
                             title="Descargar"
                           >
                             <i className="fas fa-download" />
@@ -1208,85 +1281,103 @@ export default function CandidatesStatusDashboard() {
                   </div>
                 )}
               </div>
-              
-              {/* Footer Actions */}
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setShowCandidateModal(false);
-                    setSelectedCandidate(null);
-                    setCandidateDocuments([]);
-                  }}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cerrar
-                </button>
-              </div>
+            </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => { setShowCandidateModal(false); setSelectedCandidate(null); setCandidateDocuments([]); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal: Vista Previa de Documento */}
-      {showDocumentPreview && previewDocument && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Vista Previa: {previewDocument.original_filename}</h3>
-                <button
-                  onClick={() => {
-                    setShowDocumentPreview(false);
-                    setPreviewDocument(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times" />
-                </button>
+      {showDocumentPreview && previewDocument && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 10000, backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={() => { setShowDocumentPreview(false); setPreviewDocument(null); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '1000px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div className="min-w-0 flex-1 mr-4">
+                <h2 className="text-2xl font-bold flex items-center gap-2 truncate">
+                  <i className="fas fa-file-alt"></i>
+                  Vista Previa
+                </h2>
+                <p className="text-teal-100 text-sm mt-1 truncate">{previewDocument.original_filename}</p>
               </div>
-              
-              <div className="bg-gray-50 rounded-lg p-4 min-h-[400px]">
+              <button
+                onClick={() => { setShowDocumentPreview(false); setPreviewDocument(null); }}
+                className="text-white hover:bg-teal-800 rounded-full w-10 h-10 flex items-center justify-center transition flex-shrink-0"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="bg-gray-50 rounded-xl border border-gray-200 min-h-[400px] flex items-center justify-center">
                 {previewDocument.file_url.endsWith('.pdf') ? (
                   <iframe
                     src={previewDocument.file_url}
-                    className="w-full h-[600px] rounded-lg"
+                    className="w-full h-[65vh] rounded-xl"
                     title="Vista previa PDF"
                   />
                 ) : previewDocument.file_url.match(/\.(jpg|jpeg|png|gif)$/i) ? (
                   <img
                     src={previewDocument.file_url}
                     alt={previewDocument.original_filename}
-                    className="max-w-full h-auto rounded-lg mx-auto"
+                    className="max-w-full max-h-[65vh] rounded-xl mx-auto object-contain"
                   />
                 ) : (
                   <div className="text-center py-12">
-                    <i className="fas fa-file text-gray-400 text-5xl mb-4" />
-                    <p className="text-gray-600">Vista previa no disponible para este tipo de archivo</p>
+                    <i className="fas fa-file text-gray-300 text-6xl mb-4"></i>
+                    <p className="text-gray-500 font-medium mb-4">Vista previa no disponible para este tipo de archivo</p>
                     <a
                       href={previewDocument.file_url}
                       download
-                      className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:from-teal-700 hover:to-cyan-700 font-semibold shadow-lg transition"
                     >
-                      <i className="fas fa-download mr-2" />
+                      <i className="fas fa-download"></i>
                       Descargar Archivo
                     </a>
                   </div>
                 )}
               </div>
-              
-              <div className="flex justify-end mt-4">
-                <a
-                  href={previewDocument.file_url}
-                  download
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  <i className="fas fa-download mr-2" />
-                  Descargar
-                </a>
-              </div>
+            </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => { setShowDocumentPreview(false); setPreviewDocument(null); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cerrar
+              </button>
+              <a
+                href={previewDocument.file_url}
+                download
+                className="px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:from-teal-700 hover:to-cyan-700 font-semibold shadow-lg transition flex items-center gap-2"
+              >
+                <i className="fas fa-download"></i>
+                Descargar
+              </a>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
