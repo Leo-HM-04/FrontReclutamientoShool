@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from '@/context/ModalContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -27,6 +28,7 @@ export default function EvaluationQuestions() {
   const [showModal, setShowModal] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<EvaluationQuestion | null>(null);
   const { showAlert, showConfirm } = useModal();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const questionTypes = [
     { value: "multiple_choice", label: "Opción Múltiple" },
@@ -274,26 +276,39 @@ export default function EvaluationQuestions() {
       )}
 
       {/* Modal para Crear/Editar Pregunta */}
-      {showModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900">
+      {showModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowModal(false); setSelectedQuestion(null); } }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '900px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-question-circle"></i>
                   {selectedQuestion ? "Editar Pregunta" : "Nueva Pregunta"}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setSelectedQuestion(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times text-xl"></i>
-                </button>
+                </h2>
+                <p className="text-teal-100 text-sm mt-1">
+                  {selectedQuestion ? "Modifica los datos de la pregunta" : "Configura una nueva pregunta para tus evaluaciones"}
+                </p>
               </div>
+              <button
+                onClick={() => { setShowModal(false); setSelectedQuestion(null); }}
+                className="text-white hover:bg-teal-800 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
 
-              <form onSubmit={async (e) => {
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <form ref={formRef} onSubmit={async (e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 
@@ -301,7 +316,6 @@ export default function EvaluationQuestions() {
                 let options: string[] = [];
                 let correctAnswer = "";
 
-                // Si es opción múltiple, obtener las opciones
                 if (questionType === "multiple_choice") {
                   const optionsInput = formData.get("options") as string;
                   options = optionsInput.split("\n").filter(opt => opt.trim());
@@ -353,17 +367,23 @@ export default function EvaluationQuestions() {
                   await showAlert("Error al guardar la pregunta");
                 }
               }}>
-                <div className="space-y-4">
+                {/* Template & Question Section */}
+                <div className="bg-gradient-to-r from-teal-50 to-cyan-50 rounded-xl p-6 border border-teal-100 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-clipboard-list text-teal-600"></i>
+                    Información de la Pregunta
+                  </h3>
+
                   {/* Plantilla */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Plantilla *
+                  <div className="mb-4">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-file-alt mr-1 text-teal-500"></i> Plantilla *
                     </label>
                     <select
                       name="template"
                       defaultValue={selectedQuestion?.template || ""}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
                     >
                       <option value="">Seleccionar plantilla...</option>
                       {templates.map((template) => (
@@ -376,80 +396,139 @@ export default function EvaluationQuestions() {
 
                   {/* Texto de la pregunta */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Pregunta *
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-pen mr-1 text-teal-500"></i> Pregunta *
                     </label>
                     <textarea
                       name="question_text"
                       defaultValue={selectedQuestion?.question_text || ""}
                       required
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Escribe la pregunta aquí"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                      placeholder="Escribe la pregunta aquí..."
                     />
                   </div>
+                </div>
 
-                  {/* Tipo de pregunta */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Tipo de Pregunta *
-                    </label>
-                    <select
-                      name="question_type"
-                      defaultValue={selectedQuestion?.question_type || "multiple_choice"}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      onChange={(e) => {
-                        // Mostrar/ocultar campos según el tipo
-                        const optionsDiv = document.getElementById("options-section");
-                        const answerDiv = document.getElementById("answer-section");
-                        
-                        if (e.target.value === "multiple_choice") {
-                          optionsDiv?.classList.remove("hidden");
-                          answerDiv?.classList.remove("hidden");
-                        } else if (e.target.value === "true_false") {
-                          optionsDiv?.classList.add("hidden");
-                          answerDiv?.classList.remove("hidden");
-                        } else {
-                          optionsDiv?.classList.add("hidden");
-                          answerDiv?.classList.add("hidden");
-                        }
-                      }}
-                    >
-                      {questionTypes.map((type) => (
-                        <option key={type.value} value={type.value}>
-                          {type.label}
-                        </option>
-                      ))}
-                    </select>
+                {/* Configuration Section */}
+                <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-cog text-gray-600"></i>
+                    Configuración
+                  </h3>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    {/* Tipo de pregunta */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <i className="fas fa-list mr-1 text-teal-500"></i> Tipo *
+                      </label>
+                      <select
+                        name="question_type"
+                        defaultValue={selectedQuestion?.question_type || "multiple_choice"}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                        onChange={(e) => {
+                          const optionsDiv = document.getElementById("options-section");
+                          const answerDiv = document.getElementById("answer-section");
+                          
+                          if (e.target.value === "multiple_choice") {
+                            optionsDiv?.classList.remove("hidden");
+                            answerDiv?.classList.remove("hidden");
+                          } else if (e.target.value === "true_false") {
+                            optionsDiv?.classList.add("hidden");
+                            answerDiv?.classList.remove("hidden");
+                          } else {
+                            optionsDiv?.classList.add("hidden");
+                            answerDiv?.classList.add("hidden");
+                          }
+                        }}
+                      >
+                        {questionTypes.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Puntos */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <i className="fas fa-star mr-1 text-teal-500"></i> Puntos *
+                      </label>
+                      <input
+                        type="number"
+                        name="points"
+                        defaultValue={selectedQuestion?.points || 10}
+                        required
+                        min="0"
+                        step="0.5"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                      />
+                    </div>
+
+                    {/* Orden */}
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-1">
+                        <i className="fas fa-sort-numeric-up mr-1 text-teal-500"></i> Orden
+                      </label>
+                      <input
+                        type="number"
+                        name="order"
+                        defaultValue={selectedQuestion?.order || 0}
+                        min="0"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+                      />
+                    </div>
                   </div>
 
+                  {/* Es requerida - styled as card */}
+                  <label className="flex items-center gap-3 px-4 py-3 bg-white rounded-xl border border-gray-300 cursor-pointer hover:bg-gray-50 transition w-fit">
+                    <input
+                      type="checkbox"
+                      name="is_required"
+                      id="is_required"
+                      defaultChecked={selectedQuestion?.is_required !== false}
+                      className="h-5 w-5 rounded text-teal-600 focus:ring-teal-500"
+                    />
+                    <span className="text-sm font-semibold text-gray-700">Pregunta obligatoria</span>
+                  </label>
+                </div>
+
+                {/* Options & Answer Section */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-check-double text-amber-600"></i>
+                    Opciones y Respuesta
+                  </h3>
+
                   {/* Opciones (solo para opción múltiple) */}
-                  <div id="options-section" className={selectedQuestion?.question_type === "multiple_choice" ? "" : "hidden"}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Opciones (una por línea)
+                  <div id="options-section" className={`mb-4 ${selectedQuestion?.question_type === "multiple_choice" || !selectedQuestion ? "" : "hidden"}`}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-list-ol mr-1 text-amber-500"></i> Opciones (una por línea)
                     </label>
                     <textarea
                       name="options"
                       defaultValue={selectedQuestion?.options?.join("\n") || ""}
                       rows={5}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="A) Opción 1&#10;B) Opción 2&#10;C) Opción 3&#10;D) Opción 4"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
+                      placeholder="Opción A&#10;Opción B&#10;Opción C&#10;Opción D"
                     />
                   </div>
 
                   {/* Respuesta correcta */}
                   <div id="answer-section" className={
-                    selectedQuestion?.question_type === "multiple_choice" || selectedQuestion?.question_type === "true_false" ? "" : "hidden"
+                    selectedQuestion?.question_type === "multiple_choice" || selectedQuestion?.question_type === "true_false" || !selectedQuestion ? "" : "hidden"
                   }>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Respuesta Correcta
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-check-circle mr-1 text-green-500"></i> Respuesta Correcta
                     </label>
                     {(!selectedQuestion || selectedQuestion.question_type === "true_false") && (
                       <select
                         name="correct_answer"
                         defaultValue={selectedQuestion?.correct_answer || ""}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Verdadero">Verdadero</option>
@@ -461,93 +540,55 @@ export default function EvaluationQuestions() {
                         type="text"
                         name="correct_answer"
                         defaultValue={selectedQuestion?.correct_answer || ""}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        placeholder="Ej: A) Opción 1"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
+                        placeholder="Ej: Opción A"
                       />
                     )}
                   </div>
+                </div>
 
-                  {/* Puntos */}
+                {/* Help Text Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-lightbulb text-blue-600"></i>
+                    Ayuda para el Candidato
+                  </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Puntos *
-                    </label>
-                    <input
-                      type="number"
-                      name="points"
-                      defaultValue={selectedQuestion?.points || 10}
-                      required
-                      min="0"
-                      step="0.5"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Orden */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Orden
-                    </label>
-                    <input
-                      type="number"
-                      name="order"
-                      defaultValue={selectedQuestion?.order || 0}
-                      min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Texto de ayuda */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Texto de Ayuda (opcional)
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-comment-dots mr-1 text-blue-500"></i> Texto de Ayuda (opcional)
                     </label>
                     <textarea
                       name="help_text"
                       rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="Instrucciones o pistas para el candidato"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      placeholder="Instrucciones o pistas para el candidato..."
                     />
                   </div>
-
-                  {/* Es requerida */}
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="is_required"
-                      id="is_required"
-                      defaultChecked={selectedQuestion?.is_required !== false}
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="is_required" className="ml-2 block text-sm text-gray-700">
-                      Pregunta obligatoria
-                    </label>
-                  </div>
-                </div>
-
-                {/* Botones */}
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      setSelectedQuestion(null);
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    {selectedQuestion ? "Actualizar" : "Crear"} Pregunta
-                  </button>
                 </div>
               </form>
             </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => { setShowModal(false); setSelectedQuestion(null); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => formRef.current?.requestSubmit()}
+                className="px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:from-teal-700 hover:to-cyan-700 font-semibold shadow-lg transition"
+              >
+                <i className="fas fa-save mr-2"></i>
+                {selectedQuestion ? "Actualizar" : "Crear"} Pregunta
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
