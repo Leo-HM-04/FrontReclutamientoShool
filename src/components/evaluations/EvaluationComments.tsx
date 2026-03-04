@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from '@/context/ModalContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -31,6 +32,7 @@ export default function EvaluationComments() {
   const [filterType, setFilterType] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const { showAlert, showConfirm } = useModal();
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     fetchData();
@@ -246,26 +248,39 @@ export default function EvaluationComments() {
       )}
 
       {/* Modal para Crear/Editar Comentario */}
-      {showModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900">
+      {showModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowModal(false); setSelectedComment(null); } }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '800px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-comment-dots"></i>
                   {selectedComment ? "Editar Comentario" : "Nuevo Comentario"}
-                </h3>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    setSelectedComment(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times text-xl"></i>
-                </button>
+                </h2>
+                <p className="text-orange-100 text-sm mt-1">
+                  {selectedComment ? "Modifica el contenido del comentario" : "Agrega un comentario a una evaluación"}
+                </p>
               </div>
+              <button
+                onClick={() => { setShowModal(false); setSelectedComment(null); }}
+                className="text-white hover:bg-orange-700 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
 
-              <form
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <form ref={formRef}
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -307,17 +322,21 @@ export default function EvaluationComments() {
                   }
                 }}
               >
-                <div className="space-y-4">
-                  {/* Seleccionar Evaluación */}
+                {/* Evaluation Selection */}
+                <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-xl p-6 border border-orange-200 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-clipboard-list text-orange-600"></i>
+                    Evaluación Asociada
+                  </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Evaluación *
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-file-alt mr-1 text-orange-500"></i> Evaluación *
                     </label>
                     <select
                       name="evaluation"
                       defaultValue={selectedComment?.evaluation || ""}
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
                     >
                       <option value="">Seleccionar evaluación...</option>
                       {evaluations.map((evaluation) => (
@@ -327,67 +346,76 @@ export default function EvaluationComments() {
                       ))}
                     </select>
                   </div>
+                </div>
 
-                  {/* Comentario */}
+                {/* Comment Content */}
+                <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-pen text-gray-600"></i>
+                    Contenido del Comentario
+                  </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Comentario *
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-comment mr-1 text-orange-500"></i> Comentario *
                     </label>
                     <textarea
                       name="comment"
                       defaultValue={selectedComment?.comment || ""}
                       required
-                      rows={5}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      rows={6}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition"
                       placeholder="Escribe tu comentario aquí..."
                     />
                   </div>
+                </div>
 
-                  {/* Es interno */}
-                  <div className="flex items-start">
-                    <div className="flex items-center h-5">
-                      <input
-                        type="checkbox"
-                        name="is_internal"
-                        id="is_internal"
-                        defaultChecked={selectedComment?.is_internal || false}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                    </div>
-                    <div className="ml-3">
-                      <label htmlFor="is_internal" className="text-sm font-medium text-gray-700">
-                        Comentario interno
-                      </label>
-                      <p className="text-xs text-gray-500">
+                {/* Visibility Settings */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-eye text-blue-600"></i>
+                    Visibilidad
+                  </h3>
+                  <label className="flex items-start gap-4 px-4 py-4 bg-white rounded-xl border border-gray-300 cursor-pointer hover:bg-gray-50 transition">
+                    <input
+                      type="checkbox"
+                      name="is_internal"
+                      id="is_internal"
+                      defaultChecked={selectedComment?.is_internal || false}
+                      className="h-5 w-5 rounded text-orange-600 focus:ring-orange-500 mt-0.5"
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-gray-700">Comentario interno</span>
+                      <p className="text-xs text-gray-500 mt-1">
+                        <i className="fas fa-lock mr-1"></i>
                         Los comentarios internos solo son visibles para el equipo de reclutamiento
                       </p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Botones */}
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowModal(false);
-                      setSelectedComment(null);
-                    }}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    {selectedComment ? "Actualizar" : "Crear"} Comentario
-                  </button>
+                  </label>
                 </div>
               </form>
             </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => { setShowModal(false); setSelectedComment(null); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => formRef.current?.requestSubmit()}
+                className="px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 font-semibold shadow-lg transition"
+              >
+                <i className="fas fa-save mr-2"></i>
+                {selectedComment ? "Actualizar" : "Crear"} Comentario
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

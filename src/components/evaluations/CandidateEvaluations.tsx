@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useModal } from '@/context/ModalContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -47,6 +48,7 @@ export default function CandidateEvaluations() {
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState<CandidateEvaluation | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const statusOptions = [
     { value: "pending", label: "Pendiente", color: "yellow" },
@@ -320,26 +322,41 @@ export default function CandidateEvaluations() {
       )}
 
       {/* Modal para Asignar Evaluación */}
-      {showModal && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900">Asignar Evaluación a Candidato</h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times text-xl"></i>
-                </button>
+      {showModal && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '800px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-violet-600 to-purple-600 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-user-check"></i>
+                  Asignar Evaluación a Candidato
+                </h2>
+                <p className="text-violet-100 text-sm mt-1">Selecciona la plantilla, el candidato y el plazo para completarla</p>
               </div>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-white hover:bg-violet-800 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
 
-              <form
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <form ref={formRef}
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
 
-                  // Calcular fecha de expiración (7 días desde ahora)
                   const expiresAt = new Date();
                   const daysToExpire = parseInt(formData.get("days_to_expire") as string) || 7;
                   expiresAt.setDate(expiresAt.getDate() + daysToExpire);
@@ -378,16 +395,20 @@ export default function CandidateEvaluations() {
                   }
                 }}
               >
-                <div className="space-y-4">
-                  {/* Seleccionar Plantilla */}
+                {/* Template Selection */}
+                <div className="bg-gradient-to-r from-violet-50 to-purple-50 rounded-xl p-6 border border-violet-200 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-file-alt text-violet-600"></i>
+                    Plantilla de Evaluación
+                  </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Plantilla de Evaluación *
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-clipboard-list mr-1 text-violet-500"></i> Plantilla *
                     </label>
                     <select
                       name="template"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent transition"
                     >
                       <option value="">Seleccionar plantilla...</option>
                       {templates.map((template) => (
@@ -397,16 +418,22 @@ export default function CandidateEvaluations() {
                       ))}
                     </select>
                   </div>
+                </div>
 
-                  {/* Seleccionar Candidato */}
+                {/* Candidate Selection */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 mb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-user text-blue-600"></i>
+                    Candidato
+                  </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Candidato *
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-user-tie mr-1 text-blue-500"></i> Candidato *
                     </label>
                     <select
                       name="candidate"
                       required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     >
                       <option value="">Seleccionar candidato...</option>
                       {candidates.map((candidate) => (
@@ -416,11 +443,17 @@ export default function CandidateEvaluations() {
                       ))}
                     </select>
                   </div>
+                </div>
 
-                  {/* Días para expirar */}
+                {/* Expiration Config */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <i className="fas fa-calendar-alt text-amber-600"></i>
+                    Plazo de Entrega
+                  </h3>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Días para completar la evaluación
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                      <i className="fas fa-hourglass-half mr-1 text-amber-500"></i> Días para completar
                     </label>
                     <input
                       type="number"
@@ -428,62 +461,72 @@ export default function CandidateEvaluations() {
                       defaultValue={7}
                       min="1"
                       max="90"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent transition"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                      <i className="fas fa-info-circle text-amber-400"></i>
                       El candidato tendrá este número de días para completar la evaluación
                     </p>
                   </div>
                 </div>
-
-                {/* Botones */}
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    Asignar Evaluación
-                  </button>
-                </div>
               </form>
             </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => formRef.current?.requestSubmit()}
+                className="px-6 py-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl hover:from-violet-700 hover:to-purple-700 font-semibold shadow-lg transition"
+              >
+                <i className="fas fa-paper-plane mr-2"></i>
+                Asignar Evaluación
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
 
       {/* Modal de Detalle de Evaluación */}
-      {showDetailModal && selectedEvaluation && (
-        <div className="fixed top-16 left-0 right-0 bottom-0  flex items-center justify-center z-50 p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    Detalles de Evaluación
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    ID: {selectedEvaluation.id}
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    setSelectedEvaluation(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <i className="fas fa-times text-xl"></i>
-                </button>
+      {showDetailModal && selectedEvaluation && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowDetailModal(false); setSelectedEvaluation(null); } }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl flex flex-col"
+            style={{ width: '95vw', height: '92vh', maxWidth: '900px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Fixed Header */}
+            <div className="flex-shrink-0 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl">
+              <div>
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <i className="fas fa-chart-bar"></i>
+                  Detalles de Evaluación
+                </h2>
+                <p className="text-blue-100 text-sm mt-1">ID: {selectedEvaluation.id}</p>
               </div>
+              <button
+                onClick={() => { setShowDetailModal(false); setSelectedEvaluation(null); }}
+                className="text-white hover:bg-blue-800 rounded-full w-10 h-10 flex items-center justify-center transition"
+              >
+                <i className="fas fa-times text-xl"></i>
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-8">
 
               {/* Información Principal */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -606,32 +649,31 @@ export default function CandidateEvaluations() {
               )}
 
               {/* Botones de acción */}
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+            </div>
+
+            {/* Fixed Footer */}
+            <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+              <button
+                onClick={() => { setShowDetailModal(false); setSelectedEvaluation(null); }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+              >
+                Cerrar
+              </button>
+              {selectedEvaluation.status === 'completed' && (
                 <button
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    setSelectedEvaluation(null);
+                  onClick={async () => {
+                    await showAlert('Funcionalidad de ver respuestas por implementar');
                   }}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 font-semibold shadow-lg transition"
                 >
-                  Cerrar
+                  <i className="fas fa-eye mr-2"></i>
+                  Ver Respuestas
                 </button>
-                {selectedEvaluation.status === 'completed' && (
-                  <button
-                    onClick={async () => {
-                      // Aquí puedes agregar navegación a la vista de respuestas
-                      await showAlert('Funcionalidad de ver respuestas por implementar');
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  >
-                    <i className="fas fa-eye mr-2"></i>
-                    Ver Respuestas
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
