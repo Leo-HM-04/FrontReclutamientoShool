@@ -155,6 +155,16 @@ class ApiClient {
   }
 
   /**
+   * Change password for the current user
+   */
+  async changePassword(oldPassword: string, newPassword: string): Promise<{ message: string }> {
+    return this.makeRequest<{ message: string }>('/accounts/users/change_password/', {
+      method: 'POST',
+      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+    });
+  }
+
+  /**
    * Logout user (clear tokens)
    */
   logout(): void {

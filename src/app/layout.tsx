@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ModalProvider } from "@/context/ModalContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,9 +32,11 @@ export default function RootLayout({
         <Script src="https://cdn.jsdelivr.net/npm/chart.js" strategy="afterInteractive" />
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <ModalProvider>
-          {children}
-        </ModalProvider>
+        <ThemeProvider>
+          <ModalProvider>
+            {children}
+          </ModalProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

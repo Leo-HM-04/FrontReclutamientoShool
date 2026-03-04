@@ -25,6 +25,8 @@ import ShareLinkModal from '@/components/ShareLinkModal';
 import ShareDocumentLinkModal from '@/components/ShareDocumentLinkModal';
 import EmailManagement from '@/components/EmailManagement';
 import DocumentShareLinksDashboard from '@/components/DocumentShareLinksDashboard';
+import UserProfileModal from '@/components/UserProfileModal';
+import SettingsModal from '@/components/SettingsModal';
 import NextImage from "next/image";
 import { HybridMetricsDashboard } from "@/components/ui/AIMethodBadge";
 
@@ -325,6 +327,15 @@ export default function Page() {
     }
   }, []);
 
+  // Cargar datos del usuario autenticado
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
+    apiClient.getCurrentUser().then((user: any) => {
+      setCurrentUser(user);
+    }).catch(() => { /* silencioso */ });
+  }, []);
+
   useEffect(() => {
     if (currentView === 'client-progress') {
       loadClientProgressProfiles();
@@ -474,6 +485,11 @@ export default function Page() {
     loading: true
   });
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  // Current logged-in user info
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userProfileModalOpen, setUserProfileModalOpen] = useState(false);
+  const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
   // Dropdowns
   const [notifOpen, setNotifOpen] = useState(false);
@@ -2292,27 +2308,46 @@ export default function Page() {
                   className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">DR</span>
+                    <span className="text-white text-sm font-medium">
+                      {currentUser
+                        ? `${currentUser.first_name?.[0] || ''}${currentUser.last_name?.[0] || ''}`.toUpperCase() || currentUser.email?.[0]?.toUpperCase() || 'U'
+                        : 'DR'}
+                    </span>
                   </div>
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium text-gray-900">Director RH</p>
-                    <p className="text-xs text-gray-500">Director</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {currentUser
+                        ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+                        : 'Director RH'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {currentUser?.role === 'admin' ? 'Administrador'
+                        : currentUser?.role === 'director' ? 'Director'
+                        : currentUser?.role === 'supervisor' ? 'Supervisor'
+                        : 'Director'}
+                    </p>
                   </div>
                   <i className="fas fa-chevron-down text-gray-400 text-xs"></i>
                 </button>
 
                 {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      <i className="fas fa-user mr-2"></i>Mi Perfil
-                    </a>
-                    <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                      <i className="fas fa-cog mr-2"></i>Configuración
-                    </a>
+                  <div className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                    <button
+                      onClick={() => { setProfileOpen(false); setUserProfileModalOpen(true); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <i className="fas fa-user mr-2 text-blue-500"></i>Mi Perfil
+                    </button>
+                    <button
+                      onClick={() => { setProfileOpen(false); setSettingsModalOpen(true); }}
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <i className="fas fa-cog mr-2 text-slate-500"></i>Configuración
+                    </button>
                     <hr className="my-2" />
                     <button
                       onClick={logout}
-                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
                     >
                       <i className="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
                     </button>
@@ -2349,7 +2384,11 @@ export default function Page() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="font-semibold text-gray-900 truncate">Panel de Control</h2>
-                  <p className="text-xs text-gray-500 truncate">Director RH</p>
+                  <p className="text-xs text-gray-500 truncate">
+                    {currentUser
+                      ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
+                      : 'Director RH'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -5198,6 +5237,19 @@ export default function Page() {
             // NO cerrar el modal aquí - dejar que el usuario vea y copie el link
             success('Link de documento generado exitosamente');
           }}
+        />
+
+        {/* Mi Perfil */}
+        <UserProfileModal
+          isOpen={userProfileModalOpen}
+          onClose={() => setUserProfileModalOpen(false)}
+          onUserUpdated={(updated: any) => setCurrentUser((prev: any) => prev ? { ...prev, ...updated } : updated)}
+        />
+
+        {/* Configuración */}
+        <SettingsModal
+          isOpen={settingsModalOpen}
+          onClose={() => setSettingsModalOpen(false)}
         />
 
       </div>
