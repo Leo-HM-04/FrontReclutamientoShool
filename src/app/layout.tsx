@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { ModalProvider } from "@/context/ModalContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,9 +34,11 @@ export default function RootLayout({
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>
         <ThemeProvider>
-          <ModalProvider>
-            {children}
-          </ModalProvider>
+          <LanguageProvider>
+            <ModalProvider>
+              {children}
+            </ModalProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

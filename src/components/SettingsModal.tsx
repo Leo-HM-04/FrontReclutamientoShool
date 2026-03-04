@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTheme, ThemeMode } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -38,16 +39,17 @@ const defaultPrefs: UserPrefs = {
   dateFormat: 'DD/MM/YYYY',
 };
 
-// Notification config descriptors
-const NOTIF_CONFIG: { key: keyof NotifPrefs; label: string; desc: string; icon: string; iconColor: string }[] = [
-  { key: 'email_new_candidates', label: 'Nuevos candidatos', desc: 'Recibe notificaciones cuando un nuevo candidato aplique a una vacante.', icon: 'fa-user-plus', iconColor: 'text-blue-500 bg-blue-50 dark:bg-blue-900/30' },
-  { key: 'email_profile_updates', label: 'Actualizaciones de perfil', desc: 'Alertas cuando un candidato actualice su información o documentos.', icon: 'fa-pen-to-square', iconColor: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' },
-  { key: 'email_reports', label: 'Reportes semanales', desc: 'Resumen semanal con métricas clave del proceso de reclutamiento.', icon: 'fa-chart-bar', iconColor: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' },
-  { key: 'browser_notifications', label: 'Notificaciones del navegador', desc: 'Muestra notificaciones push en tu navegador cuando estés conectado.', icon: 'fa-bell', iconColor: 'text-amber-500 bg-amber-50 dark:bg-amber-900/30' },
+// Notification config descriptors — labels/descs are i18n keys resolved at render time
+const NOTIF_CONFIG: { key: keyof NotifPrefs; labelKey: string; descKey: string; icon: string; iconColor: string }[] = [
+  { key: 'email_new_candidates', labelKey: 'notif.newCandidates', descKey: 'notif.newCandidatesDesc', icon: 'fa-user-plus', iconColor: 'text-blue-500 bg-blue-50 dark:bg-blue-900/30' },
+  { key: 'email_profile_updates', labelKey: 'notif.profileUpdates', descKey: 'notif.profileUpdatesDesc', icon: 'fa-pen-to-square', iconColor: 'text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' },
+  { key: 'email_reports', labelKey: 'notif.weeklyReports', descKey: 'notif.weeklyReportsDesc', icon: 'fa-chart-bar', iconColor: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' },
+  { key: 'browser_notifications', labelKey: 'notif.browserNotif', descKey: 'notif.browserNotifDesc', icon: 'fa-bell', iconColor: 'text-amber-500 bg-amber-50 dark:bg-amber-900/30' },
 ];
 
 export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { theme, resolvedTheme, setTheme } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
   const [activeSection, setActiveSection] = useState<'appearance' | 'notifications' | 'preferences'>('appearance');
   const [closing, setClosing] = useState(false);
   const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>(defaultNotifPrefs);
@@ -99,26 +101,30 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
+    // When language changes, propagate to the LanguageContext so the whole app re-renders
+    if (key === 'language' && (value === 'es' || value === 'en')) {
+      setLanguage(value);
+    }
     showSavedFlash();
   };
 
   const showSavedFlash = () => {
-    setSavedFeedback('Guardado');
+    setSavedFeedback(t('settings.saved'));
     setTimeout(() => setSavedFeedback(null), 1500);
   };
 
   if (!isOpen) return null;
 
   const sections = [
-    { id: 'appearance' as const, label: 'Apariencia', icon: 'fa-palette', desc: 'Tema y colores' },
-    { id: 'notifications' as const, label: 'Notificaciones', icon: 'fa-bell', desc: 'Alertas y correos' },
-    { id: 'preferences' as const, label: 'Preferencias', icon: 'fa-sliders', desc: 'Idioma y región' },
+    { id: 'appearance' as const, label: t('settings.appearance'), icon: 'fa-palette', desc: t('settings.appearanceDesc') },
+    { id: 'notifications' as const, label: t('settings.notifications'), icon: 'fa-bell', desc: t('settings.notificationsDesc') },
+    { id: 'preferences' as const, label: t('settings.preferences'), icon: 'fa-sliders', desc: t('settings.preferencesDesc') },
   ];
 
   const themeOptions: { mode: ThemeMode; label: string; desc: string; icon: string; gradient: string }[] = [
-    { mode: 'light', label: 'Claro', desc: 'Interfaz clara y luminosa', icon: 'fa-sun', gradient: 'from-amber-400 to-orange-500' },
-    { mode: 'dark', label: 'Oscuro', desc: 'Modo oscuro para tus ojos', icon: 'fa-moon', gradient: 'from-indigo-500 to-purple-600' },
-    { mode: 'system', label: 'Sistema', desc: 'Sincronizado con tu OS', icon: 'fa-laptop', gradient: 'from-slate-400 to-slate-600' },
+    { mode: 'light', label: t('appearance.light'), desc: t('appearance.lightDesc'), icon: 'fa-sun', gradient: 'from-amber-400 to-orange-500' },
+    { mode: 'dark', label: t('appearance.dark'), desc: t('appearance.darkDesc'), icon: 'fa-moon', gradient: 'from-indigo-500 to-purple-600' },
+    { mode: 'system', label: t('appearance.system'), desc: t('appearance.systemDesc'), icon: 'fa-laptop', gradient: 'from-slate-400 to-slate-600' },
   ];
 
   const modal = (
@@ -141,8 +147,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <i className="fas fa-gear text-white text-lg"></i>
               </div>
               <div>
-                <h2 className="text-base font-bold text-gray-900 dark:text-white">Configuración</h2>
-                <p className="text-[11px] text-gray-400">Personaliza tu experiencia</p>
+                <h2 className="text-base font-bold text-gray-900 dark:text-white">{t('settings.title')}</h2>
+                <p className="text-[11px] text-gray-400">{t('settings.personalizeSubtitle')}</p>
               </div>
             </div>
 
@@ -176,7 +182,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           <div className="mt-auto p-5 border-t border-gray-100 dark:border-slate-700">
             <div className="flex items-center gap-2 text-gray-400 text-[11px]">
               <i className="fas fa-circle-info text-[10px]"></i>
-              <span>Los cambios se guardan automáticamente</span>
+              <span>{t('settings.autoSave')}</span>
             </div>
           </div>
         </div>
@@ -189,7 +195,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                 <i className="fas fa-gear text-white text-sm"></i>
               </div>
-              <h2 className="text-white font-semibold text-sm">Configuración</h2>
+              <h2 className="text-white font-semibold text-sm">{t('settings.title')}</h2>
             </div>
             <button onClick={handleClose} className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
               <i className="fas fa-times text-white text-sm"></i>
@@ -217,14 +223,14 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                  {activeSection === 'appearance' && 'Apariencia'}
-                  {activeSection === 'notifications' && 'Notificaciones'}
-                  {activeSection === 'preferences' && 'Preferencias Regionales'}
+                  {activeSection === 'appearance' && t('settings.appearance')}
+                  {activeSection === 'notifications' && t('settings.notifications')}
+                  {activeSection === 'preferences' && t('prefs.title')}
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                  {activeSection === 'appearance' && 'Elige cómo se ve la interfaz del sistema.'}
-                  {activeSection === 'notifications' && 'Controla cuándo y cómo recibes alertas.'}
-                  {activeSection === 'preferences' && 'Configura idioma, zona horaria y formato de fecha.'}
+                  {activeSection === 'appearance' && (language === 'en' ? 'Choose how the interface looks.' : 'Elige cómo se ve la interfaz del sistema.')}
+                  {activeSection === 'notifications' && (language === 'en' ? 'Control when and how you receive alerts.' : 'Controla cuándo y cómo recibes alertas.')}
+                  {activeSection === 'preferences' && t('prefs.subtitle')}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -250,7 +256,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <div className="space-y-6 mt-2">
                 {/* Theme picker */}
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Tema de la interfaz</p>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">{t('appearance.interfaceTheme')}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {themeOptions.map(opt => {
                       const isActive = theme === opt.mode;
@@ -354,10 +360,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         <i className={`fas ${resolvedTheme === 'dark' ? 'fa-moon' : 'fa-sun'} text-white`}></i>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">Tema activo</p>
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{t('appearance.activeTheme')}</p>
                         <p className="text-xs text-gray-400 dark:text-gray-500">
-                          {resolvedTheme === 'dark' ? 'Modo oscuro' : 'Modo claro'}
-                          {theme === 'system' && ' (sincronizado con el sistema)'}
+                          {resolvedTheme === 'dark' ? t('appearance.darkMode') : t('appearance.lightMode')}
+                          {theme === 'system' && ` ${t('appearance.syncedWithSystem')}`}
                         </p>
                       </div>
                     </div>
@@ -366,7 +372,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                         ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300'
                         : 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
                     }`}>
-                      {resolvedTheme === 'dark' ? 'Oscuro' : 'Claro'}
+                      {resolvedTheme === 'dark' ? t('appearance.dark') : t('appearance.light')}
                     </span>
                   </div>
                 </div>
@@ -378,10 +384,10 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       <i className="fas fa-swatchbook text-gray-400 text-sm"></i>
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Color de acento</p>
-                      <p className="text-[11px] text-gray-400 dark:text-gray-500">Personaliza el color principal — próximamente</p>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('appearance.accentColor')}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500">{t('appearance.accentColorDesc')}</p>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Próximo</span>
+                    <span className="px-2.5 py-1 rounded-full bg-gray-100 dark:bg-slate-800 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{t('appearance.comingSoon')}</span>
                   </div>
                 </div>
               </div>
@@ -396,8 +402,8 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       <i className={`fas ${notif.icon} text-sm`}></i>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{notif.label}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-relaxed">{notif.desc}</p>
+                      <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{t(notif.labelKey)}</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-relaxed">{t(notif.descKey)}</p>
                     </div>
                     {/* Toggle switch */}
                     <button
@@ -421,7 +427,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 <div className="mt-4 flex items-center gap-2 px-4 py-3 rounded-xl bg-blue-50/50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50">
                   <i className="fas fa-info-circle text-blue-400 text-sm"></i>
                   <p className="text-xs text-blue-600 dark:text-blue-400">
-                    {Object.values(notifPrefs).filter(Boolean).length} de {Object.values(notifPrefs).length} notificaciones activadas
+                    {Object.values(notifPrefs).filter(Boolean).length} {t('notif.of')} {Object.values(notifPrefs).length} {t('notif.enabledCount')}
                   </p>
                 </div>
               </div>
@@ -432,7 +438,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <div className="space-y-5 mt-2 max-w-lg">
                 {/* Language */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Idioma de la interfaz</label>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('prefs.interfaceLang')}</label>
                   <div className="relative">
                     <i className="fas fa-language absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
                     <select
@@ -449,7 +455,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 {/* Timezone */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Zona horaria</label>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('prefs.timezone')}</label>
                   <div className="relative">
                     <i className="fas fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                     <select
@@ -473,7 +479,7 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 {/* Date format */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Formato de fecha</label>
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{t('prefs.dateFormat')}</label>
                   <div className="relative">
                     <i className="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
                     <select
@@ -491,22 +497,22 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
                 {/* Preview card */}
                 <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-4 border border-gray-100 dark:border-slate-700">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Vista previa</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">{t('prefs.preview')}</p>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Idioma</p>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">{t('prefs.language')}</p>
                       <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-0.5">
                         {prefs.language === 'es' ? '🇲🇽 Español' : '🇺🇸 English'}
                       </p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Zona horaria</p>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">{t('prefs.timezone')}</p>
                       <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-0.5">
                         {prefs.timezone.split('/').pop()?.replace(/_/g, ' ')}
                       </p>
                     </div>
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-gray-100 dark:border-slate-700">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">Fecha ejemplo</p>
+                      <p className="text-[10px] text-gray-400 uppercase tracking-wider font-medium">{t('prefs.sampleDate')}</p>
                       <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mt-0.5">
                         {prefs.dateFormat === 'DD/MM/YYYY' ? '15/03/2025' : prefs.dateFormat === 'MM/DD/YYYY' ? '03/15/2025' : '2025-03-15'}
                       </p>
@@ -520,13 +526,13 @@ export default function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           {/* ====== FOOTER ====== */}
           <div className="flex-shrink-0 px-6 py-3.5 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
             <p className="text-[11px] text-gray-400 dark:text-gray-500 hidden sm:block">
-              <i className="fas fa-keyboard mr-1.5"></i>Presiona <kbd className="text-[10px] bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono mx-0.5">Esc</kbd> para cerrar
+              <i className="fas fa-keyboard mr-1.5"></i>{t('settings.pressEsc')} <kbd className="text-[10px] bg-gray-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono mx-0.5">Esc</kbd> {t('settings.toClose')}
             </p>
             <button
               onClick={handleClose}
               className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-md hover:shadow-blue-500/25 transition-all shadow-sm flex items-center gap-2"
             >
-              <i className="fas fa-check"></i> Listo
+              <i className="fas fa-check"></i> {t('settings.done')}
             </button>
           </div>
         </div>

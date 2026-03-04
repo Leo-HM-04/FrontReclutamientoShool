@@ -27,6 +27,7 @@ import EmailManagement from '@/components/EmailManagement';
 import DocumentShareLinksDashboard from '@/components/DocumentShareLinksDashboard';
 import UserProfileModal from '@/components/UserProfileModal'; // Mi Perfil modal
 import SettingsModal from '@/components/SettingsModal'; // Configuración modal
+import { useLanguage } from '@/context/LanguageContext';
 import NextImage from "next/image";
 import { HybridMetricsDashboard } from "@/components/ui/AIMethodBadge";
 
@@ -312,6 +313,7 @@ export default function Page() {
   const router = useRouter();
   const { showAlert, showConfirm } = useModal();
   const { toasts, info, success, warning, error } = useToasts();
+  const { t } = useLanguage();
 
   // ====== State principal (equivalente a directorApp) ======
   // Intentar restaurar la vista desde localStorage, si no existe usar "dashboard"
@@ -2100,7 +2102,7 @@ export default function Page() {
         <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4" />
-            <p className="text-gray-600">Cargando dashboard...</p>
+            <p className="text-gray-600">{t('dashboard.loading')}</p>
           </div>
         </div>
       )}
@@ -2179,7 +2181,7 @@ export default function Page() {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Buscar candidatos, procesos..."
+                    placeholder={t('header.searchPlaceholder')}
                     className="w-64 px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={searchQuery}
                     onChange={(e) => {
@@ -2206,9 +2208,9 @@ export default function Page() {
                 {notifOpen && (
                   <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
                     <div className="px-4 py-2 border-b border-gray-200 flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+                      <h3 className="font-semibold text-gray-900">{t('header.notifications')}</h3>
                       <div className="text-xs text-gray-500 flex items-center space-x-3">
-                        <span>{notifications.unread} sin leer • {notifications.readItems.length} leídas</span>
+                        <span>{notifications.unread} {t('header.unread')} • {notifications.readItems.length} {t('header.read')}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); loadNotificationsFromAPI(true); }}
                           className="p-1 rounded hover:bg-blue-50 flex items-center"
@@ -2232,7 +2234,7 @@ export default function Page() {
                       {/* Unread section */}
                       <div className="py-2">
                         <div className="flex items-center justify-between px-3 mb-2">
-                          <div className="text-sm font-medium text-gray-700">No leídas</div>
+                          <div className="text-sm font-medium text-gray-700">{t('header.unreadSection')}</div>
                           <button
                             onClick={(e) => { e.stopPropagation(); markAllNotificationsRead(); }}
                             disabled={markingAll || notifications.unreadItems.length === 0}
@@ -2245,12 +2247,12 @@ export default function Page() {
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                               </svg>
-                            ) : 'Marcar todas como leídas'}
+                            ) : t('header.markAllRead')}
                           </button>
                         </div>
 
                         {notifications.unreadItems.length === 0 ? (
-                          <div className="px-3 py-4 text-center text-sm text-gray-500">No hay notificaciones sin leer</div>
+                          <div className="px-3 py-4 text-center text-sm text-gray-500">{t('header.noUnread')}</div>
                         ) : (
                           notifications.unreadItems.map((n) => (
                             <div id={`notif-${n.id}`} key={n.id} onClick={() => handleNotificationClick(n)} className="px-3 py-2 hover:bg-gray-50 cursor-pointer rounded">
@@ -2271,13 +2273,13 @@ export default function Page() {
                       {/* Read section */}
                       <div className="py-2">
                         <div className="flex items-center justify-between px-3 mb-2">
-                          <div className="text-sm font-medium text-gray-700">Leídas</div>
+                          <div className="text-sm font-medium text-gray-700">{t('header.readSection')}</div>
                           <div className="flex items-center space-x-3">
-                            <button onClick={() => clearReadNotifications()} className="text-xs text-red-600 hover:underline">Borrar historial</button>
+                            <button onClick={() => clearReadNotifications()} className="text-xs text-red-600 hover:underline">{t('header.clearHistory')}</button>
                           </div>
                         </div>
                         {notifications.readItems.length === 0 ? (
-                          <div className="px-3 py-4 text-center text-sm text-gray-500">No hay notificaciones leídas</div>
+                          <div className="px-3 py-4 text-center text-sm text-gray-500">{t('header.noRead')}</div>
                         ) : (
                           notifications.readItems.map((n) => (
                             <div id={`read-notif-${n.id}`} key={`read-${n.id}`} className="px-3 py-2 rounded hover:bg-gray-50 cursor-pointer opacity-80 flex items-start justify-between transition-all duration-300">
@@ -2289,7 +2291,7 @@ export default function Page() {
                                 </div>
                               </div>
                               <div className="ml-3 flex items-center space-x-2">
-                                <button onClick={() => markNotificationUnread(n)} className="text-xs text-blue-600 hover:underline">Marcar no leído</button>
+                                <button onClick={() => markNotificationUnread(n)} className="text-xs text-blue-600 hover:underline">{t('header.markUnread')}</button>
                               </div>
                             </div>
                           ))
@@ -2318,13 +2320,13 @@ export default function Page() {
                     <p className="text-sm font-medium text-gray-900">
                       {currentUser
                         ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
-                        : 'Director RH'}
+                        : t('user.defaultName')}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {currentUser?.role === 'admin' ? 'Administrador'
-                        : currentUser?.role === 'director' ? 'Director'
-                        : currentUser?.role === 'supervisor' ? 'Supervisor'
-                        : 'Director'}
+                      {currentUser?.role === 'admin' ? t('user.admin')
+                        : currentUser?.role === 'director' ? t('user.director')
+                        : currentUser?.role === 'supervisor' ? t('user.supervisor')
+                        : t('user.director')}
                     </p>
                   </div>
                   <i className="fas fa-chevron-down text-gray-400 text-xs"></i>
@@ -2336,20 +2338,20 @@ export default function Page() {
                       onClick={() => { setProfileOpen(false); setUserProfileModalOpen(true); }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     >
-                      <i className="fas fa-user mr-2 text-blue-500"></i>Mi Perfil
+                      <i className="fas fa-user mr-2 text-blue-500"></i>{t('user.myProfile')}
                     </button>
                     <button
                       onClick={() => { setProfileOpen(false); setSettingsModalOpen(true); }}
                       className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                     >
-                      <i className="fas fa-cog mr-2 text-slate-500"></i>Configuración
+                      <i className="fas fa-cog mr-2 text-slate-500"></i>{t('user.settings')}
                     </button>
                     <hr className="my-2" />
                     <button
                       onClick={logout}
                       className="flex items-center w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 transition-colors"
                     >
-                      <i className="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                      <i className="fas fa-sign-out-alt mr-2"></i>{t('user.logout')}
                     </button>
                   </div>
                 )}
@@ -2383,11 +2385,11 @@ export default function Page() {
                   <i className="fas fa-chart-line text-white text-sm"></i>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="font-semibold text-gray-900 truncate">Panel de Control</h2>
+                  <h2 className="font-semibold text-gray-900 truncate">{t('sidebar.controlPanel')}</h2>
                   <p className="text-xs text-gray-500 truncate">
                     {currentUser
                       ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email
-                      : 'Director RH'}
+                      : t('user.defaultName')}
                   </p>
                 </div>
               </div>
@@ -2406,7 +2408,7 @@ export default function Page() {
                       }
                     }} className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("dashboard")}`}>
                       <i className="fas fa-chart-line mr-3 w-5" />
-                      <span className="flex-1 text-left">Dashboard</span>
+                      <span className="flex-1 text-left">{t('sidebar.dashboard')}</span>
                     </button>
                   </li>
 
@@ -2422,7 +2424,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("clients")}`}
                     >
                       <i className="fas fa-building mr-3 w-5" />
-                      <span className="flex-1 text-left">Clientes</span>
+                      <span className="flex-1 text-left">{t('sidebar.clients')}</span>
                     </button>
                   </li>
 
@@ -2438,7 +2440,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("profiles")}`}
                     >
                       <i className="fas fa-briefcase mr-3 w-5" />
-                      <span className="flex-1 text-left">Perfiles de Reclutamiento</span>
+                      <span className="flex-1 text-left">{t('sidebar.recruitmentProfiles')}</span>
                       {stats.activeProfiles > 0 && (
                         <span className="ml-auto bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
                           {stats.activeProfiles}
@@ -2459,7 +2461,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("candidates")}`}
                     >
                       <i className="fas fa-user-tie mr-3 w-5" />
-                      <span className="flex-1 text-left">Candidatos</span>
+                      <span className="flex-1 text-left">{t('sidebar.candidates')}</span>
                     </button>
                   </li>
 
@@ -2475,7 +2477,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("evaluations")}`}
                     >
                       <i className="fas fa-clipboard-check mr-3 w-5" />
-                      <span className="flex-1 text-left">Sistema de Evaluaciones</span>
+                      <span className="flex-1 text-left">{t('sidebar.evaluations')}</span>
                     </button>
                   </li>
 
@@ -2491,7 +2493,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("client-progress")}`}
                     >
                       <i className="fas fa-chart-area mr-3 w-5" />
-                      <span className="flex-1 text-left">Avance de Cliente</span>
+                      <span className="flex-1 text-left">{t('sidebar.clientProgress')}</span>
                     </button>
                   </li>
 
@@ -2507,7 +2509,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("reports")}`}
                     >
                       <i className="fas fa-chart-bar mr-3 w-5" />
-                      <span className="flex-1 text-left">Reportes</span>
+                      <span className="flex-1 text-left">{t('sidebar.reports')}</span>
                     </button>
                   </li>
 
@@ -2523,7 +2525,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("profiles-status")}`}
                     >
                       <i className="fas fa-tasks mr-3 w-5" />
-                      <span className="flex-1 text-left">Estatus de Perfiles</span>
+                      <span className="flex-1 text-left">{t('sidebar.profilesStatus')}</span>
                     </button>
                   </li>
 
@@ -2539,7 +2541,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("candidates-status")}`}
                     >
                       <i className="fas fa-user-check mr-3 w-5" />
-                      <span className="flex-1 text-left">Estatus de Candidatos</span>
+                      <span className="flex-1 text-left">{t('sidebar.candidatesStatus')}</span>
                     </button>
                   </li>
 
@@ -2555,7 +2557,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("shortlisted-candidates")}`}
                     >
                       <i className="fas fa-star mr-3 w-5" />
-                      <span className="flex-1 text-left">Preseleccionados</span>
+                      <span className="flex-1 text-left">{t('sidebar.shortlisted')}</span>
                     </button>
                   </li>
 
@@ -2571,7 +2573,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("selected-candidates")}`}
                     >
                       <i className="fas fa-user-check mr-3 w-5" />
-                      <span className="flex-1 text-left">Candidatos Seleccionados</span>
+                      <span className="flex-1 text-left">{t('sidebar.selectedCandidates')}</span>
                     </button>
                   </li>
 
@@ -2587,7 +2589,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("individual-reports")}`}
                     >
                       <i className="fas fa-file-alt mr-3 w-5" />
-                      <span className="flex-1 text-left">Reportes Individuales</span>
+                      <span className="flex-1 text-left">{t('sidebar.individualReports')}</span>
                     </button>
                   </li>
                   <li>
@@ -2602,7 +2604,7 @@ export default function Page() {
                       className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("email-management")}`}
                     >
                       <i className="fas fa-envelope mr-3 w-5" />
-                      <span className="flex-1 text-left">Gestión de Correos</span>
+                      <span className="flex-1 text-left">{t('sidebar.emailManagement')}</span>
                     </button>
                   </li>
 
@@ -2622,15 +2624,15 @@ export default function Page() {
               <div className="mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-3xl font-bold text-gray-900">Panel Directivo</h2>
-                    <p className="text-gray-600 mt-1">Resumen ejecutivo</p>
+                    <h2 className="text-3xl font-bold text-gray-900">{t('dashboard.title')}</h2>
+                    <p className="text-gray-600 mt-1">{t('dashboard.subtitle')}</p>
                   </div>
                   <div className="mt-4 sm:mt-0 flex space-x-3">
                     <button onClick={refreshDashboard} disabled={dashboardLoading} className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50">
-                      <i className={`fas fa-sync mr-2 ${dashboardLoading ? 'animate-spin' : ''}`} /> Actualizar
+                      <i className={`fas fa-sync mr-2 ${dashboardLoading ? 'animate-spin' : ''}`} /> {t('dashboard.refresh')}
                     </button>
                     <button onClick={exportDashboard} className="px-4 py-2 btn-primary text-white rounded-lg">
-                      <i className="fas fa-download mr-2" /> Exportar
+                      <i className="fas fa-download mr-2" /> {t('dashboard.export')}
                     </button>
                   </div>
                 </div>
@@ -2645,7 +2647,7 @@ export default function Page() {
                     {(() => { const prev = lastMonthData.profiles || 1; const pct = Math.round(((stats.activeProcesses - prev) / prev) * 100); const up = pct >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(pct)}%</span>); })()}
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{stats.activeProcesses}</p>
-                  <p className="text-xs text-gray-500 mt-1">Procesos Activos</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('kpi.activeProcesses')}</p>
                 </div>
                 {/* Total Candidatos */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
@@ -2654,7 +2656,7 @@ export default function Page() {
                     {(() => { const prev = lastMonthData.candidates || 1; const pct = Math.round(((candidates.length - prev) / prev) * 100); const up = pct >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(pct)}%</span>); })()}
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{candidates.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Total Candidatos</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('kpi.totalCandidates')}</p>
                 </div>
                 {/* Tasa de Exito */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
@@ -2663,7 +2665,7 @@ export default function Page() {
                     {(() => { const prev = lastMonthData.success_rate || 0; const diff = stats.successRate - prev; const up = diff >= 0; return (<span className={`text-xs font-semibold ${up ? 'text-green-600' : 'text-red-600'}`}><i className={`fas fa-arrow-${up ? 'up' : 'down'} mr-1`} />{Math.abs(Math.round(diff))}%</span>); })()}
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{stats.successRate}%</p>
-                  <p className="text-xs text-gray-500 mt-1">Tasa de Exito</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('kpi.successRate')}</p>
                 </div>
                 {/* Contratados Este Mes */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
@@ -2671,7 +2673,7 @@ export default function Page() {
                     <div className="p-2 bg-emerald-50 rounded-lg"><i className="fas fa-user-check text-emerald-600" /></div>
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{stats.completedCandidates}</p>
-                  <p className="text-xs text-gray-500 mt-1">Contratados (mes)</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('kpi.hiredMonth')}</p>
                 </div>
                 {/* Aprobaciones Pendientes */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
@@ -2680,7 +2682,7 @@ export default function Page() {
                     {pendingApprovals.length > 0 && <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">{pendingApprovals.length}</span>}
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{pendingApprovals.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Pend. Aprobacion</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('kpi.pendingApproval')}</p>
                 </div>
                 {/* Candidatos Estancados */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition">
@@ -2689,7 +2691,7 @@ export default function Page() {
                     {stagnantCandidates.length > 0 && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-full">{stagnantCandidates.length}</span>}
                   </div>
                   <p className="text-2xl font-bold text-gray-900">{stagnantCandidates.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">Cand. Estancados</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('kpi.stagnantCandidates')}</p>
                 </div>
               </div>
 
