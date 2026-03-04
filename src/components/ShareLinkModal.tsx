@@ -16,6 +16,7 @@
  */
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
 // ============================================================
 // INTERFACES
@@ -83,179 +84,178 @@ export default function ShareLinkModal({
 
   if (!isOpen) return null;
 
-  return (
-    <>
-      {/* Overlay */}
-      <div 
-        className="fixed inset-0 z-50  transition-opacity" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-        onClick={onClose}
-      />
+  const isForm = mode === 'form';
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div 
-          className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-auto transform transition-all"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
-            <div className="flex items-center">
-              <div className={`w-12 h-12 rounded-lg flex items-center justify-center mr-4 ${mode === 'form' ? 'bg-orange-600' : 'bg-blue-600'}`}>
-                <i className="fas fa-share-alt text-white text-xl"></i>
+  return createPortal(
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ zIndex: 9999, backgroundColor: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl flex flex-col"
+        style={{ width: '95vw', height: '92vh', maxWidth: '900px' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Fixed Header */}
+        <div className={`flex-shrink-0 text-white px-8 py-5 flex justify-between items-center rounded-t-2xl ${isForm ? 'bg-gradient-to-r from-orange-500 to-amber-500' : 'bg-gradient-to-r from-blue-600 to-indigo-600'}`}>
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <i className={`fas ${isForm ? 'fa-file-alt' : 'fa-share-alt'}`}></i>
+              {isForm ? 'Compartir Formulario Público' : 'Compartir Avance'}
+            </h2>
+            <p className={`text-sm mt-1 ${isForm ? 'text-orange-100' : 'text-blue-100'}`}>
+              {isForm ? 'Enlace público para que cualquiera complete el formulario' : 'Enlace público del progreso'}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className={`text-white rounded-full w-10 h-10 flex items-center justify-center transition ${isForm ? 'hover:bg-orange-700' : 'hover:bg-blue-800'}`}
+          >
+            <i className="fas fa-times text-xl"></i>
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-8 space-y-6">
+          {/* Profile/Client Info */}
+          <div className={`rounded-xl p-6 border ${isForm ? 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
+                  <i className={`fas fa-briefcase mr-1 ${isForm ? 'text-orange-500' : 'text-blue-500'}`}></i> Perfil
+                </label>
+                <p className="text-lg font-semibold text-gray-900">{profileTitle}</p>
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{mode === 'form' ? 'Compartir Formulario Público' : 'Compartir Avance'}</h2>
-                <p className="text-sm text-gray-600 mt-1">{mode === 'form' ? 'Enlace público para que cualquiera complete el formulario y cree un perfil' : 'Enlace público del progreso'}</p>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
+                  <i className={`fas fa-building mr-1 ${isForm ? 'text-orange-500' : 'text-blue-500'}`}></i> Cliente
+                </label>
+                <p className="text-lg font-semibold text-gray-900">{clientName}</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-2"
-            >
-              <i className="fas fa-times text-xl"></i>
-            </button>
           </div>
 
-          {/* Body */}
-          <div className="p-6 space-y-6">
-            {/* Información del Perfil */}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1">
-                    Perfil
-                  </label>
-                  <p className="text-sm font-semibold text-gray-900">{profileTitle}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-500 uppercase mb-1">
-                    Cliente
-                  </label>
-                  <p className="text-sm font-semibold text-gray-900">{clientName}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Enlace para Compartir */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <i className={`fas fa-link mr-2 ${mode === 'form' ? 'text-orange-600' : 'text-blue-600'}`}></i>
-                Enlace para Compartir
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={shareLink}
-                  readOnly
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button
-                  onClick={handleCopy}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap ${
-                    copied
-                      ? 'bg-green-600 text-white'
-                      : `${mode === 'form' ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'}`
-                  }`}
-                >
-                  <i className={`fas ${copied ? 'fa-check-circle' : 'fa-copy'}`}></i>
-                  {copied ? '¡Copiado!' : 'Copiar'}
-                </button>
-              </div>
-            </div>
-
-            {/* Información del Enlace */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start">
-                <i className="fas fa-info-circle text-blue-600 text-lg mt-0.5 mr-3"></i>
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-2">
-                    Información del Enlace Compartible
-                  </h3>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li className="flex items-start">
-                      <i className="fas fa-check text-blue-600 mr-2 mt-0.5"></i>
-                      <span>Este enlace puede ser compartido con tu cliente de forma segura</span>
-                    </li>
-                    <li className="flex items-start">
-                      <i className="fas fa-check text-blue-600 mr-2 mt-0.5"></i>
-                      <span>No requiere inicio de sesión ni credenciales</span>
-                    </li>
-                    <li className="flex items-start">
-                      <i className="fas fa-check text-blue-600 mr-2 mt-0.5"></i>
-                      <span>Se actualiza automáticamente en tiempo real</span>
-                    </li>
-                    <li className="flex items-start">
-                      <i className="fas fa-check text-blue-600 mr-2 mt-0.5"></i>
-                      <span>Válido indefinidamente hasta que lo revoque</span>
-                    </li>
-                    <li className="flex items-start">
-                      <i className="fas fa-check text-blue-600 mr-2 mt-0.5"></i>
-                      <span>Protege la privacidad de los candidatos (sin nombres reales)</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Acciones Rápidas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Shareable Link */}
+          <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-6 border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i className={`fas fa-link ${isForm ? 'text-orange-600' : 'text-blue-600'}`}></i>
+              Enlace para Compartir
+            </h3>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                value={shareLink}
+                readOnly
+                className={`flex-1 px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-700 text-sm focus:outline-none focus:ring-2 focus:border-transparent ${isForm ? 'focus:ring-orange-500' : 'focus:ring-blue-500'}`}
+              />
               <button
-                onClick={handleShare}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                onClick={handleCopy}
+                className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2 whitespace-nowrap shadow-md ${
+                  copied
+                    ? 'bg-green-600 text-white'
+                    : isForm
+                      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:from-orange-600 hover:to-amber-600'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                }`}
               >
-                <i className="fas fa-share-square"></i>
-                Compartir
-              </button>
-              <button
-                onClick={handleOpenInNewTab}
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-              >
-                <i className="fas fa-external-link-alt"></i>
-                Abrir Vista Previa
+                <i className={`fas ${copied ? 'fa-check-circle' : 'fa-copy'}`}></i>
+                {copied ? '¡Copiado!' : 'Copiar'}
               </button>
             </div>
+          </div>
 
-            {/* Opción de Revocar (si está habilitada) */}
-            {onRevoke && (
-              <div className="pt-4 border-t border-gray-200">
-                <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-lg p-4">
-                  <i className="fas fa-exclamation-triangle text-red-600 text-lg mt-0.5"></i>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-red-900 mb-1">Zona de Peligro</h4>
-                    <p className="text-sm text-red-700 mb-3">
-                      Revocar el enlace generará uno nuevo y el enlace actual dejará de funcionar.
-                    </p>
-                    <button
-                      onClick={onRevoke}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-                    >
-                      <i className="fas fa-ban mr-2"></i>
-                      Revocar Enlace
-                    </button>
-                  </div>
+          {/* Link Info */}
+          <div className={`rounded-xl p-6 border ${isForm ? 'bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200' : 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200'}`}>
+            <h3 className={`font-bold text-lg mb-4 flex items-center gap-2 ${isForm ? 'text-orange-900' : 'text-blue-900'}`}>
+              <i className={`fas fa-info-circle ${isForm ? 'text-orange-600' : 'text-blue-600'}`}></i>
+              Información del Enlace Compartible
+            </h3>
+            <ul className="space-y-3">
+              {[
+                'Este enlace puede ser compartido con tu cliente de forma segura',
+                'No requiere inicio de sesión ni credenciales',
+                'Se actualiza automáticamente en tiempo real',
+                'Válido indefinidamente hasta que lo revoque',
+                'Protege la privacidad de los candidatos (sin nombres reales)',
+              ].map((text, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5 ${isForm ? 'bg-orange-200 text-orange-700' : 'bg-blue-200 text-blue-700'}`}>
+                    <i className="fas fa-check text-xs"></i>
+                  </span>
+                  <span className={`text-sm ${isForm ? 'text-orange-800' : 'text-blue-800'}`}>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={handleShare}
+              className="flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition font-semibold shadow-sm"
+            >
+              <i className="fas fa-share-square text-lg text-gray-500"></i>
+              Compartir
+            </button>
+            <button
+              onClick={handleOpenInNewTab}
+              className="flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition font-semibold shadow-sm"
+            >
+              <i className="fas fa-external-link-alt text-lg text-gray-500"></i>
+              Abrir Vista Previa
+            </button>
+          </div>
+
+          {/* Revoke Zone (optional) */}
+          {onRevoke && (
+            <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <i className="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-red-900 text-lg mb-1">Zona de Peligro</h4>
+                  <p className="text-sm text-red-700 mb-4">
+                    Revocar el enlace generará uno nuevo y el enlace actual dejará de funcionar.
+                  </p>
+                  <button
+                    onClick={onRevoke}
+                    className="px-5 py-2.5 bg-red-600 text-white rounded-xl hover:bg-red-700 transition text-sm font-semibold shadow-md"
+                  >
+                    <i className="fas fa-ban mr-2"></i>
+                    Revocar Enlace
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-            <button
-              onClick={onClose}
-              className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-            >
-              Cerrar
-            </button>
-            <button
-              onClick={handleCopy}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center gap-2 transition-colors"
-            >
-              <i className="fas fa-copy"></i>
-              Copiar Enlace
-            </button>
-          </div>
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 px-8 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-4">
+          <button
+            onClick={onClose}
+            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-100 font-semibold transition"
+          >
+            Cerrar
+          </button>
+          <button
+            onClick={handleCopy}
+            className={`px-6 py-3 text-white rounded-xl font-semibold shadow-lg transition flex items-center gap-2 ${
+              copied
+                ? 'bg-green-600'
+                : isForm
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700'
+            }`}
+          >
+            <i className={`fas ${copied ? 'fa-check-circle' : 'fa-copy'}`}></i>
+            {copied ? '¡Enlace Copiado!' : 'Copiar Enlace'}
+          </button>
         </div>
       </div>
-    </>
+    </div>,
+    document.body
   );
 }
