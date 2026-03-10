@@ -249,7 +249,7 @@ export default function LoginPage() {
                 <div className="space-y-3 animate-[fadeIn_0.4s_ease-out]">
                   <RoleCard
                     id="director"
-                    title="Director RH"
+                    title="Director"
                     description="Acceso completo al sistema"
                     icon={<DirectorIcon className="w-6 h-6" />}
                     color="blue"
