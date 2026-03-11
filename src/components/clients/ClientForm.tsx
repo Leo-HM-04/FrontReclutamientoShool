@@ -219,11 +219,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                RFC
+                RFC <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="rfc"
+                required
                 value={formData.rfc}
                 onChange={(e) => {
                   const value = e.target.value.toUpperCase();
@@ -237,11 +238,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Industria
+                Industria <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="industry"
+                required
                 value={formData.industry}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -251,11 +253,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sitio Web
+                Sitio Web <span className="text-red-500">*</span>
               </label>
               <input
                 type="url"
                 name="website"
+                required
                 value={formData.website}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -291,11 +294,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del Contacto
+                Nombre del Contacto <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="contact_name"
+                required
                 value={formData.contact_name}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -305,11 +309,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Posición
+                Posición <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="contact_position"
+                required
                 value={formData.contact_position}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -319,11 +324,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email de Contacto
+                Email de Contacto <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
                 name="contact_email"
+                required
                 value={formData.contact_email}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -333,7 +339,7 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Teléfono de Contacto
+                Teléfono de Contacto <span className="text-gray-400 font-normal text-xs">(opcional)</span>
               </label>
               <input
                 type="text"
@@ -359,11 +365,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Calle y Número
+                Calle y Número <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="address_street"
+                required
                 value={formData.address_street}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -373,11 +380,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ciudad
+                Ciudad <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="address_city"
+                required
                 value={formData.address_city}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -387,11 +395,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estado
+                Estado <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="address_state"
+                required
                 value={formData.address_state}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -401,11 +410,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Código Postal
+                Código Postal <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="address_zip"
+                required
                 value={formData.address_zip}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -415,11 +425,12 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                País
+                País <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 name="address_country"
+                required
                 value={formData.address_country}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
@@ -440,9 +451,10 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
           
           <div className="p-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Asignar a
+              Asignar a <span className="text-red-500">*</span>
             </label>
             <select
+              required
               name="assigned_to"
               value={formData.assigned_to}
               onChange={handleChange}
@@ -469,7 +481,7 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
           
           <div className="p-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notas
+              Notas <span className="text-gray-400 font-normal text-xs">(opcional)</span>
             </label>
             <textarea
               name="notes"
