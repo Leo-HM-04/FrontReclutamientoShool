@@ -579,6 +579,31 @@ export async function getCombinedMetrics() {
 }
 
 // ════════════════════════════════════════════════════════════════════
+// REPORTE INTERNO PARA DIRECTORES/SUPERVISORES
+// ════════════════════════════════════════════════════════════════════
+
+export async function getInternalReportData() {
+  try {
+    const response = await fetch(
+      `${API_URL}/director/reports/internal-report/`,
+      {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching internal report data:', error);
+    throw error;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
 // HELPERS DE CÁLCULO (NUEVOS)
 // ════════════════════════════════════════════════════════════════════
 

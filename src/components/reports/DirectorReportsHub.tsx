@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
-import { getCombinedMetrics, calculateTrend, formatPercentage } from '@/lib/api-reports';
+import { getCombinedMetrics, calculateTrend, formatPercentage, getInternalReportData } from '@/lib/api-reports';
+import { downloadInternalReportPDF } from '@/lib/pdf-internal-report';
 import KPICard from './KPICard';
 import FunnelChart from './FunnelChart';
 import AlertsPanel from './AlertsPanel';
@@ -13,6 +14,7 @@ export default function DirectorReportsHub() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [generatingInternal, setGeneratingInternal] = useState(false);
 
   // Helper local para formatear moneda en USD
   const formatCurrencyUSD = (value: number): string => {
@@ -47,6 +49,20 @@ export default function DirectorReportsHub() {
     console.log(`Generando reporte: ${type} en formato ${format}`);
     // TODO: Implementar generación de reportes
     await showAlert(`Generando reporte ${type} en ${format}...`);
+  };
+
+  const handleGenerateInternalReport = async () => {
+    setGeneratingInternal(true);
+    try {
+      const reportData = await getInternalReportData();
+      downloadInternalReportPDF(reportData);
+      await showAlert('Reporte interno generado exitosamente.');
+    } catch (err: any) {
+      console.error('Error generando reporte interno:', err);
+      await showAlert('Error al generar el reporte interno. Intenta de nuevo.');
+    } finally {
+      setGeneratingInternal(false);
+    }
   };
 
   if (loading) {
@@ -220,8 +236,45 @@ export default function DirectorReportsHub() {
         </div>
       </div>
 
-      {/* SECCIÓN 8: Generador de Reportes */}
-      <div className="max-w-md">
+      {/* SECCIÓN: Reporte Interno PDF */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg p-6 text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+              <i className="fas fa-file-pdf text-2xl" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold">Reporte Interno PDF</h3>
+              <p className="text-blue-200 text-sm">Solo para Directores y Supervisores</p>
+            </div>
+          </div>
+          <p className="text-blue-100 text-sm mb-4">
+            Reporte completo con dashboard de KPIs, detalle de clientes, candidatos con historial de estados, perfiles con cumplimiento, y alertas de perfiles/clientes estancados.
+          </p>
+          <button
+            onClick={handleGenerateInternalReport}
+            disabled={generatingInternal}
+            className={`w-full py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
+              generatingInternal
+                ? 'bg-white/30 cursor-not-allowed'
+                : 'bg-white text-blue-900 hover:bg-blue-50'
+            }`}
+          >
+            {generatingInternal ? (
+              <>
+                <i className="fas fa-spinner fa-spin" />
+                Generando reporte...
+              </>
+            ) : (
+              <>
+                <i className="fas fa-download" />
+                Descargar Reporte Interno
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* SECCIÓN 8: Generador de Reportes */}
         <ReportGenerator onGenerate={handleGenerateReport} />
       </div>
     </div>
