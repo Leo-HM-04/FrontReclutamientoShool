@@ -113,6 +113,8 @@ interface StalledProfile {
   status: string;
   status_display: string;
   days_stalled: number;
+  deadline: string | null;
+  days_overdue: number;
   assigned_to: string;
   last_update: string;
 }
@@ -377,8 +379,8 @@ class InternalReportPDF {
     const halfW = (this.cw - 4) / 2;
     const cardH = 40;
 
-    this.drawStatusCard(this.M, this.y, halfW, cardH, 'PERFILES POR ESTADO', profilesStatus, kpis.total_profiles);
-    this.drawStatusCard(this.M + halfW + 4, this.y, halfW, cardH, 'CANDIDATOS POR ESTADO', candidatesStatus, kpis.total_candidates);
+    this.drawStatusCard(this.M, this.y, halfW, cardH, 'PERFILES POR ESTATUS', profilesStatus, kpis.total_profiles);
+    this.drawStatusCard(this.M + halfW + 4, this.y, halfW, cardH, 'CANDIDATOS POR ESTATUS', candidatesStatus, kpis.total_candidates);
 
     this.y += cardH + 5;
   }
@@ -499,7 +501,7 @@ class InternalReportPDF {
 
     autoTable(this.doc, {
       startY: this.y,
-      head: [['#', 'Posición', 'Cliente', 'Estado', 'Prioridad', 'Cand.', 'Cumpl.', 'Resta', 'Supervisor']],
+      head: [['#', 'Posición', 'Cliente', 'Estatus', 'Prioridad', 'Cand.', 'Cumpl.', 'Resta', 'Supervisor']],
       body,
       theme: 'grid',
       styles: { fontSize: 6, cellPadding: 1.5, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
@@ -522,82 +524,46 @@ class InternalReportPDF {
         8: { cellWidth: 30 },
       },
       margin: { left: this.M, right: this.M },
-      didDrawCell: (data) => {
-        // Color de estado inline
-        if (data.section === 'body' && data.column.index === 3) {
+      willDrawCell: (data) => {
+        if (data.section !== 'body') return;
+        // Color de estatus
+        if (data.column.index === 3) {
           const profile = profiles[data.row.index];
           if (profile) {
             const sc = statusColor(profile.status);
-            const cell = data.cell;
-            this.doc.setTextColor(sc.r, sc.g, sc.b);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.setFontSize(6);
-            this.doc.text(
-              safe(profile.status_display),
-              cell.x + cell.width / 2,
-              cell.y + cell.height / 2 + 1,
-              { align: 'center' }
-            );
-            // Return false to prevent default rendering
-            cell.text = [];
+            data.cell.styles.textColor = [sc.r, sc.g, sc.b];
+            data.cell.styles.fontStyle = 'bold';
           }
         }
         // Color de prioridad
-        if (data.section === 'body' && data.column.index === 4) {
+        if (data.column.index === 4) {
           const profile = profiles[data.row.index];
           if (profile) {
             const prio = (profile.priority || '').toLowerCase();
             const pc = prio === 'urgent' || prio === 'high' ? C.error
               : prio === 'medium' ? C.warning : C.success;
-            const cell = data.cell;
-            this.doc.setTextColor(pc.r, pc.g, pc.b);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.setFontSize(6);
-            this.doc.text(
-              safe(profile.priority_display),
-              cell.x + cell.width / 2,
-              cell.y + cell.height / 2 + 1,
-              { align: 'center' }
-            );
-            cell.text = [];
+            data.cell.styles.textColor = [pc.r, pc.g, pc.b];
+            data.cell.styles.fontStyle = 'bold';
           }
         }
         // Color de cumplimiento
-        if (data.section === 'body' && data.column.index === 6) {
+        if (data.column.index === 6) {
           const profile = profiles[data.row.index];
           if (profile) {
             const rate = profile.fulfillment_rate;
             const rc = rate >= 100 ? C.success : rate >= 50 ? C.warning : C.gray500;
-            const cell = data.cell;
-            this.doc.setTextColor(rc.r, rc.g, rc.b);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.setFontSize(6);
-            this.doc.text(
-              `${rate}%`,
-              cell.x + cell.width / 2,
-              cell.y + cell.height / 2 + 1,
-              { align: 'center' }
-            );
-            cell.text = [];
+            data.cell.styles.textColor = [rc.r, rc.g, rc.b];
+            data.cell.styles.fontStyle = 'bold';
           }
         }
         // Color de días restantes
-        if (data.section === 'body' && data.column.index === 7) {
+        if (data.column.index === 7) {
           const profile = profiles[data.row.index];
           if (profile && profile.days_remaining !== null) {
             const dc = profile.days_remaining <= 0 ? C.error
               : profile.days_remaining <= 7 ? C.warning : C.success;
-            const cell = data.cell;
-            this.doc.setTextColor(dc.r, dc.g, dc.b);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.setFontSize(6);
-            this.doc.text(
-              `${profile.days_remaining}d`,
-              cell.x + cell.width / 2,
-              cell.y + cell.height / 2 + 1,
-              { align: 'center' }
-            );
-            cell.text = [];
+            data.cell.styles.textColor = [dc.r, dc.g, dc.b];
+            data.cell.styles.fontStyle = 'bold';
           }
         }
       },
@@ -614,7 +580,7 @@ class InternalReportPDF {
       this.doc.setFont('helvetica', 'bold');
       this.doc.setFontSize(8);
       this.doc.setTextColor(C.gray700.r, C.gray700.g, C.gray700.b);
-      this.doc.text('HISTORIAL DE CAMBIOS DE ESTADO (ÚLTIMOS 5 POR PERFIL)', this.M, this.y);
+      this.doc.text('HISTORIAL DE CAMBIOS DE ESTATUS (ÚLTIMOS 5 POR PERFIL)', this.M, this.y);
       this.y += 4;
 
       const historyBody: string[][] = [];
@@ -632,7 +598,7 @@ class InternalReportPDF {
 
       autoTable(this.doc, {
         startY: this.y,
-        head: [['Perfil', 'Estado Anterior', 'Estado Nuevo', 'Cambió', 'Fecha']],
+        head: [['Perfil', 'Estatus Anterior', 'Nuevo Estatus', 'Cambió', 'Fecha']],
         body: historyBody.slice(0, 50),
         theme: 'grid',
         styles: { fontSize: 5.5, cellPadding: 1.2, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
@@ -679,7 +645,7 @@ class InternalReportPDF {
 
     autoTable(this.doc, {
       startY: this.y,
-      head: [['#', 'Candidato', 'Perfil', 'Cliente', 'Estado', 'Match', 'Exp.', 'Fecha']],
+      head: [['#', 'Candidato', 'Perfil', 'Cliente', 'Estatus', 'Match', 'Exp.', 'Fecha']],
       body,
       theme: 'grid',
       styles: { fontSize: 5.5, cellPadding: 1.2, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
@@ -701,40 +667,23 @@ class InternalReportPDF {
         7: { cellWidth: 22, halign: 'center' },
       },
       margin: { left: this.M, right: this.M },
-      didDrawCell: (data) => {
-        if (data.section === 'body' && data.column.index === 4) {
+      willDrawCell: (data) => {
+        if (data.section !== 'body') return;
+        if (data.column.index === 4) {
           const cand = candidates[data.row.index];
           if (cand) {
             const sc = statusColor(cand.application_status);
-            const cell = data.cell;
-            this.doc.setTextColor(sc.r, sc.g, sc.b);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.setFontSize(5.5);
-            this.doc.text(
-              safe(cand.application_status_display),
-              cell.x + cell.width / 2,
-              cell.y + cell.height / 2 + 1,
-              { align: 'center' }
-            );
-            cell.text = [];
+            data.cell.styles.textColor = [sc.r, sc.g, sc.b];
+            data.cell.styles.fontStyle = 'bold';
           }
         }
-        if (data.section === 'body' && data.column.index === 5) {
+        if (data.column.index === 5) {
           const cand = candidates[data.row.index];
           if (cand) {
             const mc = cand.match_percentage >= 70 ? C.success
               : cand.match_percentage >= 40 ? C.warning : C.gray500;
-            const cell = data.cell;
-            this.doc.setTextColor(mc.r, mc.g, mc.b);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.setFontSize(5.5);
-            this.doc.text(
-              `${cand.match_percentage}%`,
-              cell.x + cell.width / 2,
-              cell.y + cell.height / 2 + 1,
-              { align: 'center' }
-            );
-            cell.text = [];
+            data.cell.styles.textColor = [mc.r, mc.g, mc.b];
+            data.cell.styles.fontStyle = 'bold';
           }
         }
       },
@@ -766,24 +715,45 @@ class InternalReportPDF {
         safe(p.client_name),
         safe(p.status_display),
         `${p.days_stalled} días`,
+        p.deadline ? safe(p.deadline) : 'Sin fecha',
+        p.days_overdue > 0 ? `${p.days_overdue} días` : '-',
         safe(p.assigned_to),
         safe(p.last_update),
       ]);
 
       autoTable(this.doc, {
         startY: this.y,
-        head: [['Posición', 'Cliente', 'Estado', 'Estancado', 'Supervisor', 'Últ. Actualización']],
+        head: [['Posición', 'Cliente', 'Estatus', 'Estancado', 'Fecha Límite', 'Días Retraso', 'Supervisor', 'Últ. Actualización']],
         body,
         theme: 'grid',
-        styles: { fontSize: 6, cellPadding: 1.5, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
+        styles: { fontSize: 5.5, cellPadding: 1.5, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
         headStyles: {
           fillColor: [C.error.r, C.error.g, C.error.b],
           textColor: [255, 255, 255],
           fontStyle: 'bold',
-          fontSize: 6,
+          fontSize: 5.5,
         },
         alternateRowStyles: { fillColor: [249, 240, 240] },
+        columnStyles: {
+          0: { cellWidth: 30 },
+          1: { cellWidth: 25 },
+          2: { cellWidth: 20, halign: 'center' },
+          3: { cellWidth: 18, halign: 'center' },
+          4: { cellWidth: 20, halign: 'center' },
+          5: { cellWidth: 18, halign: 'center' },
+          6: { cellWidth: 28 },
+          7: { cellWidth: 24, halign: 'center' },
+        },
         margin: { left: this.M, right: this.M },
+        willDrawCell: (data) => {
+          if (data.section === 'body' && data.column.index === 5) {
+            const sp = stalledProfiles[data.row.index];
+            if (sp && sp.days_overdue > 0) {
+              data.cell.styles.textColor = [C.error.r, C.error.g, C.error.b];
+              data.cell.styles.fontStyle = 'bold';
+            }
+          }
+        },
         didDrawPage: () => { this.page++; },
       });
 
