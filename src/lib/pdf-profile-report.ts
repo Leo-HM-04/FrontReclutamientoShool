@@ -16,6 +16,7 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
 import { drawReportCover } from './pdf-cover-utils';
 
@@ -441,9 +442,8 @@ export class ProfileReportPDF {
     drawReportCover(this.pdf, {
       title: 'Reporte de Perfil',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de vacante y requerimientos de reclutamiento',
-      logoBase64: BAUSEN_LOGO_BASE64,
-      logoRatio: BAUSEN_LOGO_RATIO,
-      useWhiteVectorLogo: true,
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
         { label: 'Vacante', value: data.puesto },

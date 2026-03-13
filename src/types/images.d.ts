@@ -32,3 +32,8 @@ declare module "*.svg" {
   const src: import("next/image").StaticImageData;
   export default src;
 }
+
+declare module "*.txt" {
+  const content: string;
+  export default content;
+}
