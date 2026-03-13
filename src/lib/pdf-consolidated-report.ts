@@ -6,7 +6,9 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════════════
 // COLORES DEL TEMA
@@ -125,6 +127,8 @@ export interface ConsolidatedReportData {
   profiles: ProfileData[];
   clients: ClientData[];
   candidates: CandidateData[];
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -323,6 +327,7 @@ class ConsolidatedReportPDF {
   private contentWidth: number;
   private currentPage: number;
   private totalPages: number;
+  private includeCover: boolean = true;
   private data: ConsolidatedReportData;
 
   constructor() {
@@ -414,8 +419,16 @@ class ConsolidatedReportPDF {
   }
 
   public generate(data: ConsolidatedReportData): jsPDF {
+    this.includeCover = data.includeCover !== false;
     this.data = this.normalizeData(data);
     this.totalPages = this.estimatePages();
+
+    if (this.includeCover) {
+      this.drawCoverPage(this.data);
+      this.doc.addPage();
+      this.currentPage = 2;
+      this.currentY = this.margin;
+    }
 
     this.drawHeader();
     this.drawFilterInfo();
@@ -438,13 +451,41 @@ class ConsolidatedReportPDF {
     }
 
     const totalPagesActual = this.doc.getNumberOfPages();
-    for (let i = 1; i <= totalPagesActual; i++) {
+    const firstContentPage = this.includeCover ? 2 : 1;
+    const totalContentPages = totalPagesActual - (this.includeCover ? 1 : 0);
+
+    for (let i = firstContentPage; i <= totalPagesActual; i++) {
       this.doc.setPage(i);
-      this.drawFooter(i, totalPagesActual);
+      this.drawFooter(i - firstContentPage + 1, totalContentPages);
       this.aplicarMarcaAgua();
     }
 
     return this.doc;
+  }
+
+  private drawCoverPage(data: ConsolidatedReportData): void {
+    const scope = !data.filter || data.filter.type === 'all'
+      ? 'Consolidado global de operación'
+      : data.filter.type === 'client'
+        ? `Cliente: ${data.filter.clientName || data.filter.clientId || 'N/A'}`
+        : data.filter.type === 'profile'
+          ? `Perfil: ${data.filter.profileTitle || data.filter.profileId || 'N/A'}`
+          : `Cliente + Perfil: ${data.filter.clientName || data.filter.clientId || 'N/A'}`;
+
+    drawReportCover(this.doc, {
+      title: 'Reporte General Consolidado',
+      subtitle: data.cover_subtitle || 'Resumen ejecutivo de perfiles, clientes y candidatos',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Alcance', value: scope },
+        { label: 'Perfiles', value: data.summary.total_profiles },
+        { label: 'Clientes', value: data.summary.total_clients },
+        { label: 'Candidatos', value: data.summary.total_candidates },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
   }
 
   private estimatePages(): number {

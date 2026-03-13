@@ -11,7 +11,9 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════════════
 // COLORES
@@ -145,6 +147,8 @@ export interface InternalReportData {
   stalled_profiles: StalledProfile[];
   stalled_clients: StalledClient[];
   generated_at: string;
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -203,6 +207,7 @@ class InternalReportPDF {
   private y: number;
   private cw: number;
   private page = 1;
+  private includeCover: boolean = true;
 
   constructor() {
     this.doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
@@ -250,6 +255,15 @@ class InternalReportPDF {
   // GENERAR
   // ═══════════════════════════════════════════════════════════════════════
   public generate(data: InternalReportData): jsPDF {
+    this.includeCover = data.includeCover !== false;
+
+    if (this.includeCover) {
+      this.drawCoverPage(data);
+      this.doc.addPage();
+      this.page = 2;
+      this.y = this.M;
+    }
+
     this.drawHeader();
     this.drawKPIs(data.kpis);
     this.drawStatusSummary(data.profiles_by_status, data.candidates_by_status, data.kpis);
@@ -260,13 +274,33 @@ class InternalReportPDF {
 
     // Footer + watermark en todas las páginas
     const totalPages = this.doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
+    const firstContentPage = this.includeCover ? 2 : 1;
+    const totalContentPages = totalPages - (this.includeCover ? 1 : 0);
+
+    for (let i = firstContentPage; i <= totalPages; i++) {
       this.doc.setPage(i);
-      this.drawFooter(i, totalPages);
+      this.drawFooter(i - firstContentPage + 1, totalContentPages);
       this.drawWatermark();
     }
 
     return this.doc;
+  }
+
+  private drawCoverPage(data: InternalReportData): void {
+    drawReportCover(this.doc, {
+      title: 'Reporte Interno',
+      subtitle: data.cover_subtitle || 'Reporte ejecutivo para dirección y supervisión de operación',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Clientes', value: data.kpis.total_clients },
+        { label: 'Perfiles', value: data.kpis.total_profiles },
+        { label: 'Candidatos', value: data.kpis.total_candidates },
+        { label: 'Cumplimiento', value: `${data.kpis.compliance_rate}%` },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento confidencial',
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════

@@ -15,7 +15,9 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════════════
 // COLORES DEL TEMA
@@ -258,6 +260,8 @@ export interface ExtendedConsolidatedReportData {
   profiles: ProfileDetailData[];
   clients: ClientDetailData[];
   candidates: CandidateData[];
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -457,6 +461,7 @@ class ExtendedConsolidatedReportPDF {
   private currentY: number;
   private contentWidth: number;
   private data: ExtendedConsolidatedReportData;
+  private includeCover: boolean = true;
 
   constructor() {
     this.doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
@@ -655,7 +660,14 @@ class ExtendedConsolidatedReportPDF {
   // METODO PRINCIPAL
   // ══════════════════════════════════════════════════════════════════════════
   public generate(data: ExtendedConsolidatedReportData): jsPDF {
+    this.includeCover = data.includeCover !== false;
     this.data = this.normalizeData(data);
+
+    if (this.includeCover) {
+      this.drawCoverPage(data);
+      this.doc.addPage();
+      this.currentY = this.margin;
+    }
 
     // PAGINA 1: Resumen Ejecutivo
     this.drawMainHeader();
@@ -687,13 +699,41 @@ class ExtendedConsolidatedReportPDF {
 
     // Aplicar footer y marca de agua a todas las paginas
     const totalPages = this.doc.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
+    const firstContentPage = this.includeCover ? 2 : 1;
+    const totalContentPages = totalPages - (this.includeCover ? 1 : 0);
+
+    for (let i = firstContentPage; i <= totalPages; i++) {
       this.doc.setPage(i);
-      this.drawFooter(i, totalPages);
+      this.drawFooter(i - firstContentPage + 1, totalContentPages);
       this.aplicarMarcaAgua();
     }
 
     return this.doc;
+  }
+
+  private drawCoverPage(data: ExtendedConsolidatedReportData): void {
+    const scope = !data.filter || data.filter.type === 'all'
+      ? 'Consolidado global de operación'
+      : data.filter.type === 'client'
+        ? `Cliente: ${data.filter.clientName || data.filter.clientId || 'N/A'}`
+        : data.filter.type === 'profile'
+          ? `Perfil: ${data.filter.profileTitle || data.filter.profileId || 'N/A'}`
+          : `Cliente + Perfil: ${data.filter.clientName || data.filter.clientId || 'N/A'}`;
+
+    drawReportCover(this.doc, {
+      title: 'Reporte Final Consolidado',
+      subtitle: data.cover_subtitle || 'Informe completo de perfiles, clientes, candidatos y análisis ejecutivo',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Alcance', value: scope },
+        { label: 'Perfiles', value: data.summary.total_profiles },
+        { label: 'Clientes', value: data.summary.total_clients },
+        { label: 'Candidatos', value: data.summary.total_candidates },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
   }
 
   // ══════════════════════════════════════════════════════════════════════════

@@ -17,7 +17,9 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════════════
 // COLORES DEL TEMA (ESTILO DASHBOARD MODERNO)
@@ -86,6 +88,8 @@ export interface ClientReportData {
     end_date?: string;
   }>;
   profiles_by_status: Record<string, number>;
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -223,6 +227,7 @@ class ClientReportPDF {
   private margin: number;
   private currentY: number;
   private contentWidth: number;
+  private includeCover: boolean = true;
 
   constructor() {
     this.doc = new jsPDF({
@@ -242,8 +247,16 @@ class ClientReportPDF {
   // MÉTODO PRINCIPAL
   // ══════════════════════════════════════════════════════════════════════════
   public generate(data: ClientReportData): jsPDF {
+    this.includeCover = data.includeCover !== false;
+
     // Normalizar datos
     const cleanData = this.normalizeData(data);
+
+    if (this.includeCover) {
+      this.drawCoverPage(cleanData);
+      this.doc.addPage();
+      this.currentY = this.margin;
+    }
     
     // Dibujar secciones
     this.drawHeader(cleanData);
@@ -256,6 +269,23 @@ class ClientReportPDF {
     this.aplicarMarcaAgua();
 
     return this.doc;
+  }
+
+  private drawCoverPage(data: ClientReportData): void {
+    drawReportCover(this.doc, {
+      title: 'Reporte de Cliente',
+      subtitle: data.cover_subtitle || 'Reporte ejecutivo de desempeño, perfiles y resultados del cliente',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Cliente', value: data.client.company_name },
+        { label: 'Industria', value: data.client.industry },
+        { label: 'Perfiles', value: data.statistics.total_profiles },
+        { label: 'Éxito', value: `${data.statistics.success_rate}%` },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
   }
 
   /**

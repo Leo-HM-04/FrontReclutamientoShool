@@ -20,7 +20,9 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64 } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════════════
 // COLORES CORPORATIVOS
@@ -175,6 +177,8 @@ export interface CandidateReportData {
   
   // Opciones de diseño
   incluirMarcaAgua?: boolean;
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -188,6 +192,7 @@ export class CandidateReportPDF {
   private contentWidth: number;
   private currentY: number;
   private incluirMarcaAgua: boolean = true;
+  private includeCover: boolean = true;
   private pageNumber: number = 1;
 
   constructor() {
@@ -255,6 +260,7 @@ export class CandidateReportPDF {
   generate(data: CandidateReportData): jsPDF {
     // Configurar marca de agua
     this.incluirMarcaAgua = data.incluirMarcaAgua !== false;
+    this.includeCover = data.includeCover !== false;
     
     // Limpiar todos los textos
     const cleanData: CandidateReportData = {
@@ -301,7 +307,16 @@ export class CandidateReportPDF {
         autor: n.autor ? fixMojibake(n.autor) : undefined,
         fecha: n.fecha,
       })),
+      includeCover: data.includeCover,
+      cover_subtitle: data.cover_subtitle ? fixMojibake(data.cover_subtitle) : undefined,
     };
+
+    if (this.includeCover) {
+      this.drawCoverPage(cleanData);
+      this.doc.addPage();
+      this.pageNumber = 2;
+      this.currentY = this.margin;
+    }
     
     // Página 1
     this.drawHeader(cleanData);
@@ -322,7 +337,7 @@ export class CandidateReportPDF {
     
     if (hasAdditionalContent) {
       this.doc.addPage();
-      this.pageNumber = 2;
+      this.pageNumber += 1;
       this.currentY = this.margin;
       this.drawSecondaryHeader(cleanData);
       this.drawEvaluationsSection(cleanData);
@@ -336,6 +351,23 @@ export class CandidateReportPDF {
     this.drawFooter();
     
     return this.doc;
+  }
+
+  private drawCoverPage(data: CandidateReportData): void {
+    drawReportCover(this.doc, {
+      title: 'Reporte de Candidato',
+      subtitle: data.cover_subtitle || 'Reporte ejecutivo de perfil, experiencia y trazabilidad del candidato',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Candidato', value: data.nombre },
+        { label: 'Correo', value: data.contacto.email },
+        { label: 'Ubicación', value: `${data.contacto.ciudad}${data.contacto.estado ? `, ${data.contacto.estado}` : ''}` },
+        { label: 'Fecha', value: data.fecha_reporte },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
   }
 
   // ══════════════════════════════════════════════════════════════════════════

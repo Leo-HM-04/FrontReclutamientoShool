@@ -1,5 +1,7 @@
 import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════
 // HELPERS PARA FORMATEO
@@ -21,12 +23,42 @@ const formatCurrency = (value: number): string => {
   }).format(value);
 };
 
+const createDocWithCover = (
+  title: string,
+  subtitle: string,
+  metadata: Array<{ label: string; value: string | number | undefined | null }>
+): { doc: jsPDF; yPos: number } => {
+  const doc = new jsPDF();
+
+  drawReportCover(doc, {
+    title,
+    subtitle,
+    logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+    logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+    generatedAt: new Date(),
+    metadata,
+    footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+  });
+
+  doc.addPage();
+  return { doc, yPos: 20 };
+};
+
 // ════════════════════════════════════════════════════════════════════
 // 1. REPORTE MENSUAL
 // ════════════════════════════════════════════════════════════════════
 
 export async function generateMonthlyReportPDF(data: any) {
-  const doc = new jsPDF();
+  const { doc } = createDocWithCover(
+    'Reporte Mensual',
+    'Resumen ejecutivo de actividad del período de reclutamiento',
+    [
+      { label: 'Mes', value: data?.period?.month_name },
+      { label: 'Año', value: data?.period?.year },
+      { label: 'Perfiles', value: data?.summary?.profiles_created },
+      { label: 'Contratados', value: data?.summary?.candidates_hired },
+    ]
+  );
   let yPos = 20;
 
   // Header
@@ -178,7 +210,16 @@ export async function generateMonthlyReportExcel(data: any) {
 // ════════════════════════════════════════════════════════════════════
 
 export async function generateDashboardPDF(data: any) {
-  const doc = new jsPDF();
+  const { doc } = createDocWithCover(
+    'Dashboard Completo',
+    'Indicadores clave y vista general de la operación de reclutamiento',
+    [
+      { label: 'Eficiencia', value: `${data?.kpis?.system_efficiency ?? 0}%` },
+      { label: 'Conversión', value: `${data?.kpis?.pipeline_conversion ?? 0}%` },
+      { label: 'Clientes', value: data?.dashboard?.overview?.total_clients },
+      { label: 'Perfiles', value: data?.dashboard?.overview?.total_profiles },
+    ]
+  );
   let yPos = 20;
 
   // Header
@@ -332,7 +373,15 @@ export async function generateDashboardExcel(data: any) {
 // ════════════════════════════════════════════════════════════════════
 
 export async function generateTeamReportPDF(data: any) {
-  const doc = new jsPDF();
+  const { doc } = createDocWithCover(
+    'Rendimiento del Equipo',
+    'Desempeño por supervisor, tasas de éxito y productividad del equipo',
+    [
+      { label: 'Supervisores', value: data?.team_performance?.team_size },
+      { label: 'Perfiles', value: data?.dashboard?.overview?.total_profiles },
+      { label: 'Activos', value: data?.dashboard?.overview?.active_profiles },
+    ]
+  );
   let yPos = 20;
 
   doc.setFontSize(20);
@@ -434,7 +483,15 @@ export async function generateTeamReportExcel(data: any) {
 // ════════════════════════════════════════════════════════════════════
 
 export async function generateClientsReportPDF(data: any) {
-  const doc = new jsPDF();
+  const { doc } = createDocWithCover(
+    'Analytics de Clientes',
+    'Resumen ejecutivo de actividad y métricas generales de clientes',
+    [
+      { label: 'Clientes', value: data?.dashboard?.overview?.total_clients },
+      { label: 'Perfiles', value: data?.dashboard?.overview?.total_profiles },
+      { label: 'Candidatos', value: data?.dashboard?.overview?.total_candidates },
+    ]
+  );
   let yPos = 20;
 
   doc.setFontSize(20);

@@ -17,7 +17,9 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64 } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ════════════════════════════════════════════════════════════════════════════
 // COLORES CORPORATIVOS (Sistema del PDF de referencia)
@@ -106,6 +108,8 @@ export interface TimelineReportData {
   
   // Opciones de diseño
   incluirMarcaAgua?: boolean;
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -121,6 +125,7 @@ export class TimelineReportPDF {
   private pageNumber: number;
   private totalPages: number;
   private incluirMarcaAgua: boolean = true;
+  private includeCover: boolean = true;
 
   constructor() {
     this.doc = new jsPDF({
@@ -198,9 +203,19 @@ export class TimelineReportPDF {
   generate(data: TimelineReportData): jsPDF {
     // Configurar opción de marca de agua
     this.incluirMarcaAgua = data.incluirMarcaAgua !== false;
+    this.includeCover = data.includeCover !== false;
     
     // Limpiar datos
     const cleanData = this.cleanAllData(data);
+
+    if (this.includeCover) {
+      this.drawCoverPage(cleanData);
+      this.doc.addPage();
+      this.currentY = this.margin;
+      this.pageNumber = 2;
+    } else {
+      this.pageNumber = 1;
+    }
     
     // Calcular métricas derivadas
     const metrics = this.calculateMetrics(cleanData);
@@ -216,7 +231,7 @@ export class TimelineReportPDF {
     
     // ─── PÁGINA 2: Candidatos + Eficiencia + Eventos ───
     this.doc.addPage();
-    this.pageNumber = 2;
+    this.pageNumber += 1;
     this.currentY = this.margin;
     
     this.drawPageHeader('CANDIDATOS Y ANÁLISIS', cleanData);
@@ -229,6 +244,23 @@ export class TimelineReportPDF {
     this.aplicarMarcaAgua();
     
     return this.doc;
+  }
+
+  private drawCoverPage(data: TimelineReportData): void {
+    drawReportCover(this.doc, {
+      title: 'Timeline del Proceso',
+      subtitle: data.cover_subtitle || 'Reporte ejecutivo de avance temporal, hitos y eficiencia del proceso',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Vacante', value: data.puesto },
+        { label: 'Cliente', value: data.cliente },
+        { label: 'Días Abierto', value: data.dias_abierto },
+        { label: 'Eventos', value: data.total_eventos },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
   }
 
   private cleanAllData(data: TimelineReportData): TimelineReportData {

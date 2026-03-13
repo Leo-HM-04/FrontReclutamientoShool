@@ -16,7 +16,9 @@
 
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
+import { BAUSEN_LOGO_WHITE_BASE64, BAUSEN_LOGO_WHITE_RATIO } from './logo-white-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COLORES DEL TEMA
@@ -94,6 +96,8 @@ export interface CandidatesReportData {
   cliente: string;
   candidatos: CandidateData[];
   incluirMarcaAgua?: boolean;
+  includeCover?: boolean;
+  cover_subtitle?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -236,6 +240,7 @@ export class CandidatesReportPDF {
   private contentWidth: number;
   private yPos: number = 0;
   private incluirMarcaAgua: boolean = true;
+  private includeCover: boolean = true;
   
   constructor() {
     this.pdf = new jsPDF({
@@ -309,12 +314,15 @@ export class CandidatesReportPDF {
   generate(data: CandidatesReportData): jsPDF {
     // Configurar opción de marca de agua
     this.incluirMarcaAgua = data.incluirMarcaAgua !== false;
+    this.includeCover = data.includeCover !== false;
     
     // Limpiar datos
     const cleanData: CandidatesReportData = {
       puesto: cleanText(data.puesto),
       fecha: cleanText(data.fecha),
       cliente: cleanText(data.cliente),
+      includeCover: data.includeCover,
+      cover_subtitle: data.cover_subtitle ? cleanText(data.cover_subtitle) : undefined,
       candidatos: data.candidatos.map(c => ({
         nombre: cleanText(c.nombre),
         email: cleanText(c.email),
@@ -331,6 +339,12 @@ export class CandidatesReportPDF {
     const stats = this.calculateStats(cleanData.candidatos);
     
     this.yPos = this.margin;
+
+    if (this.includeCover) {
+      this.drawCoverPage(cleanData, stats.total);
+      this.pdf.addPage();
+      this.yPos = this.margin;
+    }
     
     // 1. Header
     this.drawHeader(cleanData);
@@ -354,6 +368,23 @@ export class CandidatesReportPDF {
     this.aplicarMarcaAgua();
     
     return this.pdf;
+  }
+
+  private drawCoverPage(data: CandidatesReportData, totalCandidates: number): void {
+    drawReportCover(this.pdf, {
+      title: 'Candidatos del Perfil',
+      subtitle: data.cover_subtitle || 'Reporte ejecutivo de candidatos, match y estado del pipeline',
+      logoBase64: BAUSEN_LOGO_WHITE_BASE64,
+      logoRatio: BAUSEN_LOGO_WHITE_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Vacante', value: data.puesto },
+        { label: 'Cliente', value: data.cliente },
+        { label: 'Total Candidatos', value: totalCandidates },
+        { label: 'Fecha', value: data.fecha },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
   }
   
   /**
