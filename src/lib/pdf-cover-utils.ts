@@ -1,4 +1,5 @@
 import jsPDF from 'jspdf';
+import { drawBausenLogoWhite } from './pdf-utils';
 
 export interface PdfCoverMetadataItem {
   label: string;
@@ -11,6 +12,7 @@ export interface PdfCoverOptions {
   generatedAt?: Date;
   logoBase64?: string;
   logoRatio?: number;
+  useWhiteVectorLogo?: boolean;
   metadata?: PdfCoverMetadataItem[];
   footerText?: string;
   primaryColor?: { r: number; g: number; b: number };
@@ -62,19 +64,18 @@ export function drawReportCover(doc: jsPDF, options: PdfCoverOptions): void {
     90
   );
 
-  const logoCardW = 96;
-  const logoCardH = 44;
-  const logoCardX = centerX - logoCardW / 2;
-  const logoCardY = 26;
+  const logoAreaW = 108;
+  const logoAreaH = 30;
+  const logoAreaX = centerX - logoAreaW / 2;
+  const logoAreaY = 33;
 
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(logoCardX, logoCardY, logoCardW, logoCardH, 4, 4, 'F');
-
-  if (options.logoBase64) {
+  if (options.useWhiteVectorLogo) {
+    drawBausenLogoWhite(doc, centerX - 42, logoAreaY - 2, 1.15);
+  } else if (options.logoBase64) {
     try {
       const ratio = options.logoRatio && options.logoRatio > 0 ? options.logoRatio : 3.2;
-      const maxW = logoCardW - 10;
-      const maxH = logoCardH - 10;
+      const maxW = logoAreaW;
+      const maxH = logoAreaH;
       let logoW = maxW;
       let logoH = logoW / ratio;
 
@@ -83,14 +84,14 @@ export function drawReportCover(doc: jsPDF, options: PdfCoverOptions): void {
         logoW = logoH * ratio;
       }
 
-      const logoX = logoCardX + (logoCardW - logoW) / 2;
-      const logoY = logoCardY + (logoCardH - logoH) / 2;
+      const logoX = logoAreaX + (logoAreaW - logoW) / 2;
+      const logoY = logoAreaY + (logoAreaH - logoH) / 2;
       doc.addImage(options.logoBase64, 'PNG', logoX, logoY, logoW, logoH, 'BAUSEN_LOGO_COVER', 'FAST');
     } catch {
       doc.setTextColor(255, 255, 255);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
-      doc.text('BAUSEN', centerX, logoCardY + 26, { align: 'center' });
+      doc.text('BAUSEN', centerX, logoAreaY + 18, { align: 'center' });
     }
   }
 

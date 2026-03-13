@@ -443,6 +443,7 @@ export class ProfileReportPDF {
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de vacante y requerimientos de reclutamiento',
       logoBase64: BAUSEN_LOGO_BASE64,
       logoRatio: BAUSEN_LOGO_RATIO,
+      useWhiteVectorLogo: true,
       generatedAt: new Date(),
       metadata: [
         { label: 'Vacante', value: data.puesto },

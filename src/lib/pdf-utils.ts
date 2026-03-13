@@ -107,7 +107,7 @@ function drawBausenLogo(pdf: jsPDF, x: number, y: number, scale: number = 1): vo
 /**
  * Dibuja el logo blanco para usar sobre fondo azul
  */
-function drawBausenLogoWhite(pdf: jsPDF, x: number, y: number, scale: number = 1): void {
+export function drawBausenLogoWhite(pdf: jsPDF, x: number, y: number, scale: number = 1): void {
   const s = scale;
   
   // ─────────────────────────────────────────────────────────────────────────
