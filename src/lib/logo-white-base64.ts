@@ -6,4 +6,3 @@ import BAUSEN_LOGO_WHITE_RAW_BASE64 from '../../../logoblanco_base64.txt';
 
 export const BAUSEN_LOGO_WHITE_BASE64 = `data:image/png;base64,${BAUSEN_LOGO_WHITE_RAW_BASE64.trim()}`;
 export const BAUSEN_LOGO_WHITE_RATIO = 2783 / 768;
-export const BAUSEN_LOGO_WHITE_BASE64 = `data:image/png;base64,${BAUSEN_LOGO_WHITE_RAW_BASE64}`;
