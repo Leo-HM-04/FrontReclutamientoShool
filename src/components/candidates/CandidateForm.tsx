@@ -350,7 +350,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre *
+                Nombre <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -365,7 +365,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Apellido *
+                Apellido <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -380,7 +380,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email *
+                Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -395,7 +395,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Teléfono *
+                Teléfono <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -897,7 +897,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                LinkedIn
+                LinkedIn <span className="text-gray-400 font-normal text-xs">Opcional</span>
               </label>
               <input
                 type="url"
@@ -911,7 +911,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Portafolio
+                Portafolio <span className="text-gray-400 font-normal text-xs">Opcional</span>
               </label>
               <input
                 type="url"
@@ -925,7 +925,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                GitHub
+                GitHub <span className="text-gray-400 font-normal text-xs">Opcional</span>
               </label>
               <input
                 type="url"
@@ -950,7 +950,7 @@ export default function CandidateForm({ candidateId, onSuccess }: CandidateFormP
           
           <div className="p-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notas
+              Notas <span className="text-gray-400 font-normal text-xs">Opcional</span>
             </label>
             <textarea
               name="internal_notes"
