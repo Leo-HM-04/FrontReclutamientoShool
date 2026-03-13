@@ -17,6 +17,7 @@
 import jsPDF from 'jspdf';
 import { BAUSEN_LOGO_BASE64, BAUSEN_LOGO_RATIO } from './logo-base64';
 import { BECHAPRA_WATERMARK_B_BASE64 } from './watermarkBase64';
+import { drawReportCover } from './pdf-cover-utils';
 
 // ═══════════════════════════════════════════════════════════════════════════
 // COLORES DEL TEMA
@@ -67,6 +68,10 @@ export interface ProfileReportData {
   titulo?: string;
   puesto: string;
   fecha: string;
+  profile_id?: string | number;
+  department?: string;
+  cover_subtitle?: string;
+  includeCover?: boolean;
   
   // KPIs
   kpis: {
@@ -263,6 +268,7 @@ export class ProfileReportPDF {
   private contentWidth: number;
   private yPos: number = 0;
   private incluirMarcaAgua: boolean = true; // Por defecto habilitada
+  private includeCover: boolean = true;
   
   constructor() {
     // Tamaño carta: 215.9mm x 279.4mm
@@ -350,6 +356,10 @@ export class ProfileReportPDF {
     const cleanData: ProfileReportData = {
       ...data,
       puesto: cleanText(data.puesto),
+      profile_id: data.profile_id,
+      department: cleanText(data.department || ''),
+      cover_subtitle: cleanText(data.cover_subtitle || ''),
+      includeCover: data.includeCover,
       empresa: cleanText(data.empresa),
       industria: cleanText(data.industria),
       contacto: cleanText(data.contacto),
@@ -384,8 +394,15 @@ export class ProfileReportPDF {
     
     // Configurar opción de marca de agua
     this.incluirMarcaAgua = data.incluirMarcaAgua !== false; // Por defecto true
+    this.includeCover = data.includeCover !== false;
     
     this.yPos = this.margin;
+
+    // 0. Portada profesional (primera página)
+    if (this.includeCover) {
+      this.drawCoverPage(cleanData);
+      this.addNewPage();
+    }
     
     // 1. Header
     this.drawHeader(cleanData);
@@ -408,13 +425,43 @@ export class ProfileReportPDF {
       cleanData.languages || []
     );
     
-    // 6. Footer
-    this.drawFooter();
-    
+    // 6. Footer + numeración
+    this.agregarNumeracionPaginas();
+
     // 7. Aplicar marca de agua AL FINAL (se dibuja encima con opacidad)
     this.aplicarMarcaAgua();
     
     return this.pdf;
+  }
+
+  /**
+   * Carátula profesional reutilizable para reportes
+   */
+  private drawCoverPage(data: ProfileReportData): void {
+    drawReportCover(this.pdf, {
+      title: 'Reporte de Perfil',
+      subtitle: data.cover_subtitle || 'Reporte ejecutivo de vacante y requerimientos de reclutamiento',
+      logoBase64: BAUSEN_LOGO_BASE64,
+      logoRatio: BAUSEN_LOGO_RATIO,
+      generatedAt: new Date(),
+      metadata: [
+        { label: 'Vacante', value: data.puesto },
+        { label: 'Cliente', value: data.empresa },
+        { label: 'Área', value: data.department },
+        { label: 'Estatus', value: data.estado },
+        { label: 'Fecha', value: data.fecha },
+        { label: 'ID', value: data.profile_id },
+      ],
+      footerText: 'Bausen Reclutamiento • Documento ejecutivo',
+    });
+  }
+
+  /**
+   * Crea nueva página y resetea posición vertical
+   */
+  private addNewPage(): void {
+    this.pdf.addPage();
+    this.yPos = this.margin;
   }
   
   /**
@@ -977,7 +1024,7 @@ export class ProfileReportPDF {
   /**
    * Footer
    */
-  private drawFooter(): void {
+  private drawFooterForPage(pageText: string): void {
     const footerY = this.pageHeight - 10;
     
     // Línea superior
@@ -1001,7 +1048,22 @@ export class ProfileReportPDF {
     this.pdf.setFont('helvetica', 'normal');
     this.pdf.setFontSize(7);
     this.pdf.setTextColor(COLORS.gray400.r, COLORS.gray400.g, COLORS.gray400.b);
-    this.pdf.text('Página 1 de 1', this.pageWidth - this.margin, footerY, { align: 'right' });
+    this.pdf.text(pageText, this.pageWidth - this.margin, footerY, { align: 'right' });
+  }
+
+  /**
+   * Aplica pie y numeración correcta después de insertar portada
+   */
+  private agregarNumeracionPaginas(): void {
+    const totalPages = (this.pdf as any).internal.getNumberOfPages();
+    const firstContentPage = this.includeCover ? 2 : 1;
+    const totalContentPages = totalPages - (this.includeCover ? 1 : 0);
+
+    for (let page = firstContentPage; page <= totalPages; page++) {
+      this.pdf.setPage(page);
+      const contentPageNumber = page - firstContentPage + 1;
+      this.drawFooterForPage(`Página ${contentPageNumber} de ${Math.max(totalContentPages, 1)}`);
+    }
   }
   
   /**

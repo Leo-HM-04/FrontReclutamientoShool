@@ -72,6 +72,10 @@ export default function ProfileReport({ profileId, onBack }: Props) {
       const pdfData: PDFProfileData = {
         titulo: 'REPORTE DE PERFIL',
         puesto: profile.position_title,
+        profile_id: profile.id,
+        department: (profile as any).department || (profile as any).area || '',
+        cover_subtitle: 'Reporte ejecutivo de vacante y requerimientos de reclutamiento',
+        includeCover: true,
         fecha: new Date().toLocaleDateString('es-MX', {
           year: 'numeric',
           month: 'long',
@@ -232,6 +236,10 @@ export default function ProfileReport({ profileId, onBack }: Props) {
       const pdfData: PDFProfileData = {
         titulo: 'REPORTE DE PERFIL',
         puesto: profile.position_title,
+        profile_id: profile.id,
+        department: (profile as any).department || (profile as any).area || '',
+        cover_subtitle: 'Reporte ejecutivo de vacante y requerimientos de reclutamiento',
+        includeCover: true,
         fecha: new Date().toLocaleDateString('es-MX', {
           year: 'numeric',
           month: 'long',
