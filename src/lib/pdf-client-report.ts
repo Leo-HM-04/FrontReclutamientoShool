@@ -272,6 +272,28 @@ class ClientReportPDF {
   }
 
   private drawCoverPage(data: ClientReportData): void {
+    const profileRef = data.profiles?.length
+      ? [...data.profiles].sort((a, b) => (b.candidates_count || 0) - (a.candidates_count || 0))[0]
+      : undefined;
+
+    const completionDate = profileRef?.end_date || 'N/D';
+    const profileStatus = profileRef?.status_display || (profileRef ? 'En seguimiento' : 'N/D');
+
+    const complianceStatus = (() => {
+      const status = sanitizePDFText(profileStatus).toLowerCase();
+      if (status.includes('complet') || status.includes('cerrad') || status.includes('cubierto')) return 'Cumplido';
+
+      if (!profileRef?.end_date) return 'Sin fecha definida';
+      const dueDate = new Date(profileRef.end_date);
+      if (Number.isNaN(dueDate.getTime())) return 'Sin fecha definida';
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      dueDate.setHours(0, 0, 0, 0);
+      if (dueDate < now) return 'Atrasado';
+      if (dueDate.getTime() === now.getTime()) return 'Vence hoy';
+      return 'En tiempo';
+    })();
+
     drawReportCover(this.doc, {
       title: 'Reporte de Cliente',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de desempeño, perfiles y resultados del cliente',
@@ -280,9 +302,12 @@ class ClientReportPDF {
       generatedAt: new Date(),
       metadata: [
         { label: 'Cliente', value: data.client.company_name },
-        { label: 'Industria', value: data.client.industry },
-        { label: 'Perfiles', value: data.statistics.total_profiles },
-        { label: 'Éxito', value: `${data.statistics.success_rate}%` },
+        { label: 'Perfil', value: profileRef?.title || 'N/D' },
+        { label: 'Estatus del Perfil', value: profileStatus },
+        { label: 'Fecha de Cumplimiento', value: completionDate },
+        { label: 'Candidatos Aplicados', value: profileRef?.candidates_count ?? data.statistics.total_candidates_managed },
+        { label: 'Match Promedio', value: 'N/D' },
+        { label: 'Cumplimiento vs Fecha', value: complianceStatus },
       ],
       footerText: 'Bausen Reclutamiento • Documento ejecutivo',
     });

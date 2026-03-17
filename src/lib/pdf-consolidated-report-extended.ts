@@ -712,13 +712,49 @@ class ExtendedConsolidatedReportPDF {
   }
 
   private drawCoverPage(data: ExtendedConsolidatedReportData): void {
-    const scope = !data.filter || data.filter.type === 'all'
-      ? 'Consolidado global de operación'
-      : data.filter.type === 'client'
-        ? `Cliente: ${data.filter.clientName || data.filter.clientId || 'N/A'}`
-        : data.filter.type === 'profile'
-          ? `Perfil: ${data.filter.profileTitle || data.filter.profileId || 'N/A'}`
-          : `Cliente + Perfil: ${data.filter.clientName || data.filter.clientId || 'N/A'}`;
+    const selectedProfile =
+      data.filter?.profileId
+        ? data.profiles.find((p) => p.id === data.filter?.profileId)
+        : data.profiles[0];
+
+    const clientValue =
+      data.filter?.clientName ||
+      selectedProfile?.client_name ||
+      'Múltiples clientes';
+
+    const profileValue =
+      data.filter?.profileTitle ||
+      selectedProfile?.position_title ||
+      'Múltiples perfiles';
+
+    const profileStatus = selectedProfile?.status || 'Múltiples';
+    const completionDate = 'N/D';
+
+    const appliedCandidates = selectedProfile?.candidates_report?.total_candidates
+      ?? (data.filter?.profileId
+        ? data.candidates.filter((c) => c.profile_id === data.filter?.profileId).length
+        : data.summary.total_candidates);
+
+    const avgMatch = selectedProfile?.candidates_report?.match_avg
+      ? `${Number(selectedProfile.candidates_report.match_avg).toFixed(1)}%`
+      : (() => {
+          const scores = (data.filter?.profileId
+            ? data.candidates.filter((c) => c.profile_id === data.filter?.profileId)
+            : data.candidates)
+            .map((c) => Number(c.matching_score || 0))
+            .filter((v) => Number.isFinite(v));
+          if (!scores.length) return 'N/D';
+          return `${(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1)}%`;
+        })();
+
+    const complianceStatus = (() => {
+      const st = (selectedProfile?.status || '').toLowerCase();
+      if (st.includes('complet') || st.includes('hired') || st.includes('cerrad')) return 'Cumplido';
+      const days = Number(selectedProfile?.days_open ?? data.summary.avg_time_to_fill ?? 0);
+      if (days <= 30) return 'En tiempo';
+      if (days <= 45) return 'En riesgo';
+      return 'Atrasado';
+    })();
 
     drawReportCover(this.doc, {
       title: 'Reporte Final Consolidado',
@@ -727,10 +763,13 @@ class ExtendedConsolidatedReportPDF {
       logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
-        { label: 'Alcance', value: scope },
-        { label: 'Perfiles', value: data.summary.total_profiles },
-        { label: 'Clientes', value: data.summary.total_clients },
-        { label: 'Candidatos', value: data.summary.total_candidates },
+        { label: 'Cliente', value: clientValue },
+        { label: 'Perfil', value: profileValue },
+        { label: 'Estatus del Perfil', value: profileStatus },
+        { label: 'Fecha de Cumplimiento', value: completionDate },
+        { label: 'Candidatos Aplicados', value: appliedCandidates },
+        { label: 'Match Promedio', value: avgMatch },
+        { label: 'Cumplimiento vs Fecha', value: complianceStatus },
       ],
       footerText: 'Bausen Reclutamiento • Documento ejecutivo',
     });

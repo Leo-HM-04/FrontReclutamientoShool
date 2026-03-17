@@ -112,6 +112,21 @@ export interface TimelineReportData {
   cover_subtitle?: string;
 }
 
+function inferProfileStatusFromTimeline(candidatos: TimelineCandidato[]): string {
+  const states = candidatos.map((c) => fixMojibake(c.estado).toLowerCase());
+  if (states.some((s) => s.includes('contrat') || s.includes('hired'))) return 'Cubierto';
+  if (states.some((s) => s.includes('oferta') || s.includes('offer'))) return 'Con oferta';
+  if (states.some((s) => s.includes('entrevista') || s.includes('interview'))) return 'En entrevistas';
+  if (states.length > 0) return 'En reclutamiento';
+  return 'Sin postulaciones';
+}
+
+function getComplianceStatusByDaysOpen(daysOpen: number): string {
+  if (daysOpen <= 30) return 'En tiempo';
+  if (daysOpen <= 45) return 'En riesgo';
+  return 'Atrasado';
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 // CLASE GENERADORA DEL PDF
 // ════════════════════════════════════════════════════════════════════════════
@@ -247,6 +262,9 @@ export class TimelineReportPDF {
   }
 
   private drawCoverPage(data: TimelineReportData): void {
+    const profileStatus = inferProfileStatusFromTimeline(data.candidatos || []);
+    const complianceStatus = getComplianceStatusByDaysOpen(data.dias_abierto || 0);
+
     drawReportCover(this.doc, {
       title: 'Timeline del Proceso',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de avance temporal, hitos y eficiencia del proceso',
@@ -254,10 +272,13 @@ export class TimelineReportPDF {
       logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
-        { label: 'Vacante', value: data.puesto },
         { label: 'Cliente', value: data.cliente },
-        { label: 'Días Abierto', value: data.dias_abierto },
-        { label: 'Eventos', value: data.total_eventos },
+        { label: 'Perfil', value: data.puesto },
+        { label: 'Estatus del Perfil', value: profileStatus },
+        { label: 'Fecha de Cumplimiento', value: 'N/D' },
+        { label: 'Candidatos Aplicados', value: data.total_candidatos },
+        { label: 'Match Promedio', value: `${(data.match_promedio || 0).toFixed(1)}%` },
+        { label: 'Cumplimiento vs Fecha', value: complianceStatus },
       ],
       footerText: 'Bausen Reclutamiento • Documento ejecutivo',
     });

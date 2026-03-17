@@ -354,6 +354,14 @@ export class CandidateReportPDF {
   }
 
   private drawCoverPage(data: CandidateReportData): void {
+    const appRef = data.aplicaciones?.length
+      ? [...data.aplicaciones].sort((a, b) => {
+          const da = new Date(a.fecha || '').getTime() || 0;
+          const db = new Date(b.fecha || '').getTime() || 0;
+          return db - da;
+        })[0]
+      : undefined;
+
     drawReportCover(this.doc, {
       title: 'Reporte de Candidato',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de perfil, experiencia y trazabilidad del candidato',
@@ -361,10 +369,13 @@ export class CandidateReportPDF {
       logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
-        { label: 'Candidato', value: data.nombre },
-        { label: 'Correo', value: data.contacto.email },
-        { label: 'Ubicación', value: `${data.contacto.ciudad}${data.contacto.estado ? `, ${data.contacto.estado}` : ''}` },
-        { label: 'Fecha', value: data.fecha_reporte },
+        { label: 'Cliente', value: appRef?.cliente || 'N/D' },
+        { label: 'Perfil', value: appRef?.perfil || 'N/D' },
+        { label: 'Estatus del Perfil', value: appRef?.estado || 'N/D' },
+        { label: 'Fecha de Cumplimiento', value: 'N/D' },
+        { label: 'Candidatos Aplicados', value: data.aplicaciones?.length || 0 },
+        { label: 'Match Promedio', value: appRef?.match_porcentaje !== undefined ? `${appRef.match_porcentaje}%` : 'N/D' },
+        { label: 'Cumplimiento vs Fecha', value: 'N/D' },
       ],
       footerText: 'Bausen Reclutamiento • Documento ejecutivo',
     });

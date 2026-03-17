@@ -229,6 +229,48 @@ function getMatchLevel(percentage: number): string {
   return 'BAJO';
 }
 
+function parseFlexibleDate(input?: string): Date | null {
+  if (!input) return null;
+  const direct = new Date(input);
+  if (!Number.isNaN(direct.getTime())) return direct;
+
+  const parts = input.split(/[\/\-]/).map((p) => Number(p));
+  if (parts.length === 3 && parts.every((n) => Number.isFinite(n))) {
+    const [d, m, y] = parts;
+    const parsed = new Date(y, m - 1, d);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+
+  return null;
+}
+
+function inferProfileStatusFromCandidates(candidatos: CandidateData[]): string {
+  const states = candidatos.map((c) => cleanText(c.estado).toLowerCase());
+  if (states.some((s) => s.includes('contrat') || s.includes('hired'))) return 'Cubierto';
+  if (states.some((s) => s.includes('oferta') || s.includes('offer'))) return 'Con oferta';
+  if (states.some((s) => s.includes('entrevista') || s.includes('interview'))) return 'En entrevistas';
+  if (states.length > 0) return 'En reclutamiento';
+  return 'Sin postulaciones';
+}
+
+function getComplianceStatus(fechaCumplimiento?: string, estatusPerfil?: string): string {
+  const status = cleanText(estatusPerfil || '').toLowerCase();
+  if (status.includes('cubierto') || status.includes('complet') || status.includes('cerrad')) {
+    return 'Cumplido';
+  }
+
+  const dueDate = parseFlexibleDate(fechaCumplimiento);
+  if (!dueDate) return 'Sin fecha definida';
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  if (dueDate < now) return 'Atrasado';
+  if (dueDate.getTime() === now.getTime()) return 'Vence hoy';
+  return 'En tiempo';
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // CLASE PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════
@@ -371,6 +413,10 @@ export class CandidatesReportPDF {
   }
 
   private drawCoverPage(data: CandidatesReportData, totalCandidates: number): void {
+    const stats = this.calculateStats(data.candidatos || []);
+    const profileStatus = inferProfileStatusFromCandidates(data.candidatos || []);
+    const complianceStatus = getComplianceStatus(data.fecha, profileStatus);
+
     drawReportCover(this.pdf, {
       title: 'Candidatos del Perfil',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de candidatos, match y estado del pipeline',
@@ -378,10 +424,13 @@ export class CandidatesReportPDF {
       logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
-        { label: 'Vacante', value: data.puesto },
         { label: 'Cliente', value: data.cliente },
-        { label: 'Total Candidatos', value: totalCandidates },
-        { label: 'Fecha', value: data.fecha },
+        { label: 'Perfil', value: data.puesto },
+        { label: 'Estatus del Perfil', value: profileStatus },
+        { label: 'Fecha de Cumplimiento', value: data.fecha || 'N/D' },
+        { label: 'Candidatos Aplicados', value: totalCandidates },
+        { label: 'Match Promedio', value: `${stats.matchPromedio.toFixed(1)}%` },
+        { label: 'Cumplimiento vs Fecha', value: complianceStatus },
       ],
       footerText: 'Bausen Reclutamiento • Documento ejecutivo',
     });

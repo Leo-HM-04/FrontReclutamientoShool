@@ -287,6 +287,33 @@ class InternalReportPDF {
   }
 
   private drawCoverPage(data: InternalReportData): void {
+    const profileRef = data.profiles?.length
+      ? [...data.profiles]
+          .sort((a, b) => {
+            const ar = a.days_remaining ?? 9999;
+            const br = b.days_remaining ?? 9999;
+            return ar - br;
+          })[0]
+      : undefined;
+
+    const clientRef = profileRef?.client_name
+      || (data.clients?.length ? [...data.clients].sort((a, b) => b.active_profiles - a.active_profiles)[0].company_name : 'N/D');
+
+    const avgMatch = data.candidates?.length
+      ? `${(data.candidates.reduce((acc, c) => acc + Number(c.match_percentage || 0), 0) / data.candidates.length).toFixed(1)}%`
+      : 'N/D';
+
+    const complianceStatus = (() => {
+      const st = (profileRef?.status || '').toLowerCase();
+      if (st.includes('complet') || st.includes('hired') || st.includes('cerrad')) return 'Cumplido';
+      const remaining = profileRef?.days_remaining;
+      if (remaining === null || remaining === undefined) return 'Sin fecha definida';
+      if (remaining < 0) return 'Atrasado';
+      if (remaining === 0) return 'Vence hoy';
+      if (remaining <= 7) return 'En riesgo';
+      return 'En tiempo';
+    })();
+
     drawReportCover(this.doc, {
       title: 'Reporte Interno',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo para dirección y supervisión de operación',
@@ -294,10 +321,13 @@ class InternalReportPDF {
       logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
-        { label: 'Clientes', value: data.kpis.total_clients },
-        { label: 'Perfiles', value: data.kpis.total_profiles },
-        { label: 'Candidatos', value: data.kpis.total_candidates },
-        { label: 'Cumplimiento', value: `${data.kpis.compliance_rate}%` },
+        { label: 'Cliente', value: clientRef },
+        { label: 'Perfil', value: profileRef?.position_title || 'N/D' },
+        { label: 'Estatus del Perfil', value: profileRef?.status_display || statusLabel(profileRef?.status || '') || 'N/D' },
+        { label: 'Fecha de Cumplimiento', value: profileRef?.deadline || 'N/D' },
+        { label: 'Candidatos Aplicados', value: profileRef?.candidates_count ?? data.kpis.total_candidates },
+        { label: 'Match Promedio', value: avgMatch },
+        { label: 'Cumplimiento vs Fecha', value: complianceStatus },
       ],
       footerText: 'Bausen Reclutamiento • Documento confidencial',
     });

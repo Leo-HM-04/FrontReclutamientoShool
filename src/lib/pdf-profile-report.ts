@@ -258,6 +258,44 @@ function formatCurrency(amount: string): string {
   return cleanText(amount);
 }
 
+function parseFlexibleDate(input?: string): Date | null {
+  if (!input) return null;
+  const raw = cleanText(input);
+
+  const direct = new Date(raw);
+  if (!Number.isNaN(direct.getTime())) return direct;
+
+  const parts = raw.split(/[\/\-]/);
+  if (parts.length === 3) {
+    const [a, b, c] = parts.map((p) => Number(p));
+    if ([a, b, c].every((n) => Number.isFinite(n))) {
+      const ddmmyyyy = new Date(c, b - 1, a);
+      if (!Number.isNaN(ddmmyyyy.getTime())) return ddmmyyyy;
+    }
+  }
+
+  return null;
+}
+
+function getComplianceStatus(fechaCumplimiento?: string, estatus?: string): string {
+  const dueDate = parseFlexibleDate(fechaCumplimiento);
+  const status = cleanText(estatus || '').toLowerCase();
+
+  if (status.includes('complet') || status.includes('cerrad') || status.includes('aprobad')) {
+    return 'Cumplido';
+  }
+
+  if (!dueDate) return 'Sin fecha definida';
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  if (dueDate < now) return 'Atrasado';
+  if (dueDate.getTime() === now.getTime()) return 'Vence hoy';
+  return 'En tiempo';
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // CLASE PRINCIPAL
 // ═══════════════════════════════════════════════════════════════════════════
@@ -439,6 +477,8 @@ export class ProfileReportPDF {
    * Carátula profesional reutilizable para reportes
    */
   private drawCoverPage(data: ProfileReportData): void {
+    const complianceStatus = getComplianceStatus(data.fecha, data.estado);
+
     drawReportCover(this.pdf, {
       title: 'Reporte de Perfil',
       subtitle: data.cover_subtitle || 'Reporte ejecutivo de vacante y requerimientos de reclutamiento',
@@ -446,12 +486,13 @@ export class ProfileReportPDF {
       logoRatio: BAUSEN_LOGO_WHITE_RATIO,
       generatedAt: new Date(),
       metadata: [
-        { label: 'Vacante', value: data.puesto },
         { label: 'Cliente', value: data.empresa },
-        { label: 'Área', value: data.department },
-        { label: 'Estatus', value: data.estado },
-        { label: 'Fecha', value: data.fecha },
-        { label: 'ID', value: data.profile_id },
+        { label: 'Perfil', value: data.puesto },
+        { label: 'Estatus del Perfil', value: data.estado },
+        { label: 'Fecha de Cumplimiento', value: data.fecha },
+        { label: 'Candidatos Aplicados', value: data.kpis?.candidatos ?? 'N/D' },
+        { label: 'Match Promedio', value: 'N/D' },
+        { label: 'Cumplimiento vs Fecha', value: complianceStatus },
       ],
       footerText: 'Bausen Reclutamiento • Documento ejecutivo',
     });
