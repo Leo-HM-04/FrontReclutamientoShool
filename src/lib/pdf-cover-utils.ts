@@ -130,25 +130,43 @@ export function drawReportCover(doc: jsPDF, options: PdfCoverOptions): void {
     const left = metadata.slice(0, split);
     const right = metadata.slice(split);
 
-    left.forEach((item, index) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.setTextColor(75, 85, 99);
-      doc.text(`${item.label}:`, cardX + 8, y + index * 8);
+    const padX = 8;
+    const gap = 8;
+    const lineH = 8;
+    const colW = (cardW - padX * 2 - gap) / 2;
+    const leftX = cardX + padX;
+    const rightX = leftX + colW + gap;
 
-      doc.setFont('helvetica', 'normal');
-      doc.text(String(item.value), cardX + 34, y + index * 8);
-    });
+    const fitText = (text: string, maxWidth: number): string => {
+      let out = text;
+      while (out.length > 1 && doc.getTextWidth(out) > maxWidth) {
+        out = `${out.slice(0, -2)}…`;
+      }
+      return out;
+    };
 
-    right.forEach((item, index) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.setTextColor(75, 85, 99);
-      doc.text(`${item.label}:`, cardX + cardW / 2 + 2, y + index * 8);
+    const drawColumn = (items: PdfCoverMetadataItem[], x: number) => {
+      items.forEach((item, index) => {
+        const yy = y + index * lineH;
+        const label = `${item.label}:`;
 
-      doc.setFont('helvetica', 'normal');
-      doc.text(String(item.value), cardX + cardW / 2 + 30, y + index * 8);
-    });
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(8.5);
+        doc.setTextColor(75, 85, 99);
+        const labelWidth = Math.min(doc.getTextWidth(label), colW * 0.58);
+        doc.text(fitText(label, colW * 0.58), x, yy);
+
+        const valueX = x + labelWidth + 2;
+        const maxValueW = Math.max(12, colW - (valueX - x));
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(55, 65, 81);
+        doc.text(fitText(String(item.value), maxValueW), valueX, yy);
+      });
+    };
+
+    drawColumn(left, leftX);
+    drawColumn(right, rightX);
   }
 
   const generatedAt = options.generatedAt ?? new Date();
