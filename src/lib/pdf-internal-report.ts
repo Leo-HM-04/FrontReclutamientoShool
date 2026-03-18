@@ -208,6 +208,7 @@ class InternalReportPDF {
   private cw: number;
   private page = 1;
   private includeCover: boolean = true;
+  private introPages = 0;
 
   constructor() {
     this.doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
@@ -257,6 +258,11 @@ class InternalReportPDF {
   public generate(data: InternalReportData): jsPDF {
     // Requisito actual: reporte interno SIN portada
     this.includeCover = false;
+    this.introPages = this.drawClientExecutiveSummaryPages(data);
+
+    this.doc.addPage();
+    this.page = this.introPages + 1;
+    this.y = this.M;
 
     this.drawHeader();
     this.drawExecutiveSummary(data);
@@ -269,8 +275,8 @@ class InternalReportPDF {
 
     // Footer + watermark en todas las páginas
     const totalPages = this.doc.getNumberOfPages();
-    const firstContentPage = this.includeCover ? 2 : 1;
-    const totalContentPages = totalPages - (this.includeCover ? 1 : 0);
+    const firstContentPage = this.introPages + 1;
+    const totalContentPages = Math.max(totalPages - this.introPages, 1);
 
     for (let i = firstContentPage; i <= totalPages; i++) {
       this.doc.setPage(i);
@@ -279,6 +285,169 @@ class InternalReportPDF {
     }
 
     return this.doc;
+  }
+
+  private drawClientExecutiveSummaryPages(data: InternalReportData): number {
+    const candidatesByClient: Record<string, CandidateItem[]> = {};
+    (data.candidates || []).forEach((c) => {
+      const key = safe(c.client_name || 'N/D');
+      if (!candidatesByClient[key]) candidatesByClient[key] = [];
+      candidatesByClient[key].push(c);
+    });
+
+    const profilesByClient: Record<string, ProfileItem[]> = {};
+    (data.profiles || []).forEach((p) => {
+      const key = safe(p.client_name || 'N/D');
+      if (!profilesByClient[key]) profilesByClient[key] = [];
+      profilesByClient[key].push(p);
+    });
+
+    const rows = (data.clients || [])
+      .map((client) => {
+        const clientName = safe(client.company_name || 'N/D');
+        const clientProfiles = profilesByClient[clientName] || [];
+        const clientCandidates = candidatesByClient[clientName] || [];
+
+        const avgMatch = clientCandidates.length
+          ? `${(clientCandidates.reduce((acc, c) => acc + Number(c.match_percentage || 0), 0) / clientCandidates.length).toFixed(1)}%`
+          : 'N/D';
+
+        const avgFulfillment = clientProfiles.length
+          ? `${(clientProfiles.reduce((acc, p) => acc + Number(p.fulfillment_rate || 0), 0) / clientProfiles.length).toFixed(1)}%`
+          : 'N/D';
+
+        const nearestDeadlineProfile = [...clientProfiles]
+          .filter((p) => p.deadline)
+          .sort((a, b) => {
+            const ar = a.days_remaining ?? 9999;
+            const br = b.days_remaining ?? 9999;
+            return ar - br;
+          })[0];
+
+        const statusEntries = Object.entries(client.profiles_by_status || {}).sort((a, b) => b[1] - a[1]);
+        const dominantStatus = statusEntries.length ? statusLabel(statusEntries[0][0]) : 'N/D';
+
+        return {
+          client: clientName,
+          industry: safe(client.industry || 'N/D'),
+          profiles: `${client.total_profiles}/${client.active_profiles}/${client.completed_profiles}`,
+          candidates: String(client.total_candidates ?? 0),
+          successRate: `${client.success_rate ?? 0}%`,
+          avgMatch,
+          avgFulfillment,
+          dominantStatus,
+          nearestDeadline: nearestDeadlineProfile?.deadline || 'N/D',
+        };
+      })
+      .sort((a, b) => {
+        const an = Number(a.candidates || 0);
+        const bn = Number(b.candidates || 0);
+        return bn - an;
+      });
+
+    const rowsPerPage = 11;
+    let pageCount = 0;
+    let index = 0;
+
+    while (index < rows.length || pageCount === 0) {
+      if (pageCount > 0) this.doc.addPage();
+      pageCount++;
+
+      // Fondo azul (mismo estilo visual de portada)
+      this.doc.setFillColor(C.primary.r, C.primary.g, C.primary.b);
+      this.doc.rect(0, 0, this.W, this.H, 'F');
+
+      // Encabezado de página resumen clientes
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setFontSize(22);
+      this.doc.setTextColor(255, 255, 255);
+      this.doc.text('Resumen por Cliente', this.W / 2, 24, { align: 'center' });
+
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFontSize(10);
+      this.doc.text('Reporte interno consolidado de empresas y perfiles', this.W / 2, 30, { align: 'center' });
+
+      // Tarjeta principal
+      const cardX = this.M;
+      const cardY = 36;
+      const cardW = this.cw;
+      const cardH = this.H - 50;
+
+      this.doc.setFillColor(245, 247, 250);
+      this.doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4, 'F');
+      this.doc.setDrawColor(220, 225, 232);
+      this.doc.setLineWidth(0.4);
+      this.doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4, 'S');
+
+      const tableStartY = cardY + 9;
+      const colX = {
+        client: cardX + 4,
+        industry: cardX + 42,
+        profiles: cardX + 66,
+        candidates: cardX + 83,
+        successRate: cardX + 96,
+        avgMatch: cardX + 109,
+        avgFulfillment: cardX + 122,
+        dominant: cardX + 136,
+        deadline: cardX + 157,
+      };
+
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setFontSize(6.3);
+      this.doc.setTextColor(C.gray700.r, C.gray700.g, C.gray700.b);
+      this.doc.text('Cliente', colX.client, tableStartY);
+      this.doc.text('Industria', colX.industry, tableStartY);
+      this.doc.text('P/A/C', colX.profiles, tableStartY);
+      this.doc.text('Cand.', colX.candidates, tableStartY);
+      this.doc.text('Éxito', colX.successRate, tableStartY);
+      this.doc.text('Match', colX.avgMatch, tableStartY);
+      this.doc.text('Cumpl.', colX.avgFulfillment, tableStartY);
+      this.doc.text('Estatus dom.', colX.dominant, tableStartY);
+      this.doc.text('Fecha límite', colX.deadline, tableStartY);
+
+      this.doc.setDrawColor(210, 216, 224);
+      this.doc.line(cardX + 3, tableStartY + 2, cardX + cardW - 3, tableStartY + 2);
+
+      let rowY = tableStartY + 8;
+      const end = Math.min(index + rowsPerPage, rows.length);
+
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFontSize(7);
+      this.doc.setTextColor(C.gray800.r, C.gray800.g, C.gray800.b);
+
+      if (rows.length === 0) {
+        this.doc.text('No hay clientes para mostrar.', cardX + 4, rowY);
+      }
+
+      for (let i = index; i < end; i++) {
+        const r = rows[i];
+
+        this.doc.text(this.fit(r.client, 36), colX.client, rowY);
+        this.doc.text(this.fit(r.industry, 23), colX.industry, rowY);
+        this.doc.text(this.fit(r.profiles, 16), colX.profiles, rowY);
+        this.doc.text(this.fit(r.candidates, 12), colX.candidates, rowY);
+        this.doc.text(this.fit(r.successRate, 12), colX.successRate, rowY);
+        this.doc.text(this.fit(r.avgMatch, 12), colX.avgMatch, rowY);
+        this.doc.text(this.fit(r.avgFulfillment, 13), colX.avgFulfillment, rowY);
+        this.doc.text(this.fit(r.dominantStatus, 20), colX.dominant, rowY);
+        this.doc.text(this.fit(r.nearestDeadline, 16), colX.deadline, rowY);
+
+        this.doc.setDrawColor(228, 232, 238);
+        this.doc.line(cardX + 3, rowY + 1.8, cardX + cardW - 3, rowY + 1.8);
+
+        rowY += 9;
+      }
+
+      index = end;
+
+      // Footer estilo portada
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.setFontSize(8);
+      this.doc.setTextColor(220, 227, 240);
+      this.doc.text('Bausen Reclutamiento • Documento confidencial', this.W / 2, this.H - 7, { align: 'center' });
+    }
+
+    return pageCount;
   }
 
   private drawExecutiveSummary(data: InternalReportData): void {
