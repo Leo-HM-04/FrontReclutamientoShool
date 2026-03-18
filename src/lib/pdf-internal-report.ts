@@ -560,12 +560,13 @@ class InternalReportPDF {
       String(p.candidates_count),
       `${p.fulfillment_rate}%`,
       p.days_remaining !== null ? `${p.days_remaining}d` : '-',
+      p.deadline ? safe(p.deadline) : '-',
       safe(p.assigned_to),
     ]);
 
     autoTable(this.doc, {
       startY: this.y,
-      head: [['#', 'Posición', 'Cliente', 'Estatus', 'Prioridad', 'Cand.', 'Cumpl.', 'Resta', 'Supervisor']],
+      head: [['#', 'Posición', 'Cliente', 'Estatus', 'Prioridad', 'Cand.', 'Cumpl.', 'Resta', 'Fecha límite', 'Supervisor']],
       body,
       theme: 'grid',
       styles: { fontSize: 6, cellPadding: 1.5, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
@@ -578,14 +579,15 @@ class InternalReportPDF {
       alternateRowStyles: { fillColor: [C.gray50.r, C.gray50.g, C.gray50.b] },
       columnStyles: {
         0: { cellWidth: 8, halign: 'center' },
-        1: { cellWidth: 35 },
-        2: { cellWidth: 30 },
-        3: { cellWidth: 22, halign: 'center' },
-        4: { cellWidth: 18, halign: 'center' },
-        5: { cellWidth: 12, halign: 'center' },
-        6: { cellWidth: 14, halign: 'center' },
-        7: { cellWidth: 14, halign: 'center' },
-        8: { cellWidth: 30 },
+        1: { cellWidth: 33 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 20, halign: 'center' },
+        4: { cellWidth: 17, halign: 'center' },
+        5: { cellWidth: 11, halign: 'center' },
+        6: { cellWidth: 12, halign: 'center' },
+        7: { cellWidth: 12, halign: 'center' },
+        8: { cellWidth: 18, halign: 'center' },
+        9: { cellWidth: 22 },
       },
       margin: { left: this.M, right: this.M },
       willDrawCell: (data) => {
