@@ -474,6 +474,9 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                               POSICIÓN ACTUAL
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              VACANTE / POSICIÓN APLICADA
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               UBICACIÓN
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -553,6 +556,9 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {candidate.current_position || '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {candidate.current_applied_position || 'Sin aplicación'}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm text-gray-900">{candidate.city || '-'}</div>
