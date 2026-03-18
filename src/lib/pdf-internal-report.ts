@@ -255,16 +255,11 @@ class InternalReportPDF {
   // GENERAR
   // ═══════════════════════════════════════════════════════════════════════
   public generate(data: InternalReportData): jsPDF {
-    this.includeCover = data.includeCover !== false;
-
-    if (this.includeCover) {
-      this.drawCoverPage(data);
-      this.doc.addPage();
-      this.page = 2;
-      this.y = this.M;
-    }
+    // Requisito actual: reporte interno SIN portada
+    this.includeCover = false;
 
     this.drawHeader();
+    this.drawExecutiveSummary(data);
     this.drawKPIs(data.kpis);
     this.drawStatusSummary(data.profiles_by_status, data.candidates_by_status, data.kpis);
     this.drawClientsSection(data.clients);
@@ -284,6 +279,56 @@ class InternalReportPDF {
     }
 
     return this.doc;
+  }
+
+  private drawExecutiveSummary(data: InternalReportData): void {
+    this.newPageIfNeeded(34);
+
+    const x = this.M;
+    const y = this.y;
+    const w = this.cw;
+    const h = 28;
+
+    const companiesWithActiveProfiles = (data.clients || []).filter(c => (c.active_profiles || 0) > 0).length;
+
+    const rows: Array<[string, string | number, string, string | number]> = [
+      ['Empresas (Clientes)', data.kpis.total_clients, 'Empresas con perfiles activos', companiesWithActiveProfiles],
+      ['Perfiles Totales', data.kpis.total_profiles, 'Perfiles Activos', data.kpis.active_profiles],
+      ['Perfiles Completados', data.kpis.completed_profiles, 'Cumplimiento Global', `${data.kpis.compliance_rate}%`],
+      ['Candidatos Totales', data.kpis.total_candidates, 'Contratados', data.kpis.hired_candidates],
+    ];
+
+    this.doc.setFillColor(C.white.r, C.white.g, C.white.b);
+    this.doc.roundedRect(x, y, w, h, 2, 2, 'F');
+    this.doc.setDrawColor(C.gray200.r, C.gray200.g, C.gray200.b);
+    this.doc.setLineWidth(0.3);
+    this.doc.roundedRect(x, y, w, h, 2, 2, 'S');
+
+    this.doc.setFont('helvetica', 'bold');
+    this.doc.setFontSize(8);
+    this.doc.setTextColor(C.gray800.r, C.gray800.g, C.gray800.b);
+    this.doc.text('RESUMEN GENERAL', x + 3, y + 5.5);
+
+    const leftX = x + 3;
+    const rightX = x + w / 2 + 2;
+    let rowY = y + 10;
+
+    rows.forEach(([leftLabel, leftValue, rightLabel, rightValue]) => {
+      this.doc.setFont('helvetica', 'bold');
+      this.doc.setFontSize(6.2);
+      this.doc.setTextColor(C.gray600.r, C.gray600.g, C.gray600.b);
+      this.doc.text(`${leftLabel}:`, leftX, rowY);
+      this.doc.text(`${rightLabel}:`, rightX, rowY);
+
+      this.doc.setFont('helvetica', 'normal');
+      this.doc.setTextColor(C.gray800.r, C.gray800.g, C.gray800.b);
+      this.doc.text(String(leftValue ?? 'N/D'), leftX + 30, rowY);
+      this.doc.text(String(rightValue ?? 'N/D'), rightX + 40, rowY);
+
+      rowY += 4.5;
+    });
+
+    this.y += h + 5;
   }
 
   private drawCoverPage(data: InternalReportData): void {
