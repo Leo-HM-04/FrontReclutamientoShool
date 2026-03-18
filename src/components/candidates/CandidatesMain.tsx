@@ -60,6 +60,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [applicationFilter, setApplicationFilter] = useState("all");
+  const [selectedCandidates, setSelectedCandidates] = useState<Set<number>>(new Set());
   
   // Pagination states
   const [candidatesPage, setCandidatesPage] = useState(1);
@@ -119,6 +120,52 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter(candidate => {
+      const matchesSearch = searchTerm === "" ||
+        `${candidate.first_name} ${candidate.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        candidate.email?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesStatus = statusFilter === "all" || candidate.latest_application_status === statusFilter;
+      const matchesApplication = applicationFilter === "all" ||
+        (candidate.candidate_profiles && candidate.candidate_profiles.some((app: any) => app.profile === parseInt(applicationFilter)));
+
+      return matchesSearch && matchesStatus && matchesApplication;
+    });
+  }, [candidates, searchTerm, statusFilter, applicationFilter]);
+
+  useEffect(() => {
+    // Mantener solo seleccionados que aún existan tras filtros/recargas
+    setSelectedCandidates(prev => {
+      const filteredIds = new Set(filteredCandidates.map((c) => c.id));
+      const next = new Set<number>();
+      prev.forEach((id) => {
+        if (filteredIds.has(id)) next.add(id);
+      });
+      return next;
+    });
+  }, [filteredCandidates]);
+
+  const handleSelectCandidate = (candidateId: number) => {
+    setSelectedCandidates(prev => {
+      const next = new Set(prev);
+      if (next.has(candidateId)) {
+        next.delete(candidateId);
+      } else {
+        next.add(candidateId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllCandidates = () => {
+    if (filteredCandidates.length > 0 && selectedCandidates.size === filteredCandidates.length) {
+      setSelectedCandidates(new Set());
+      return;
+    }
+    setSelectedCandidates(new Set(filteredCandidates.map((c) => c.id)));
   };
 
   const handleViewCandidate = (candidateId: number) => {
@@ -444,6 +491,23 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                     </p>
                   </div>
                 </div>
+
+                {/* Barra de selección */}
+                {selectedCandidates.size > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm font-medium text-blue-900">
+                        {selectedCandidates.size} candidato(s) seleccionado(s)
+                      </span>
+                      <button
+                        onClick={() => setSelectedCandidates(new Set())}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Limpiar selección
+                      </button>
+                    </div>
+                  </div>
+                )}
                 
                 {loading ? (
                   <div className="text-center py-12">
@@ -461,6 +525,21 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                       <table className="w-full">
                         <thead className="bg-gray-50 border-b border-gray-200">
                           <tr>
+                            <th className="px-4 py-3 text-left w-10">
+                              <button
+                                onClick={handleSelectAllCandidates}
+                                className="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110"
+                                style={{
+                                  borderColor: selectedCandidates.size === filteredCandidates.length && filteredCandidates.length > 0 ? '#3B82F6' : '#D1D5DB',
+                                  backgroundColor: selectedCandidates.size === filteredCandidates.length && filteredCandidates.length > 0 ? '#3B82F6' : 'transparent',
+                                }}
+                                title="Seleccionar todos"
+                              >
+                                {selectedCandidates.size === filteredCandidates.length && filteredCandidates.length > 0 && (
+                                  <i className="fas fa-check text-white text-[10px]" />
+                                )}
+                              </button>
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                               NOMBRE
                             </th>
@@ -492,19 +571,32 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {(() => {
-                            const filteredCandidates = candidates.filter(candidate => {
-                              const matchesSearch = searchTerm === "" || 
-                                `${candidate.first_name} ${candidate.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                candidate.email?.toLowerCase().includes(searchTerm.toLowerCase());
-                              const matchesStatus = statusFilter === "all" || candidate.latest_application_status === statusFilter;
-                              const matchesApplication = applicationFilter === "all" || 
-                                (candidate.candidate_profiles && candidate.candidate_profiles.some((app: any) => app.profile === parseInt(applicationFilter)));
-                              return matchesSearch && matchesStatus && matchesApplication;
-                            });
                             const startIndex = (candidatesPage - 1) * candidatesPerPage;
                             const paginatedCandidates = filteredCandidates.slice(startIndex, startIndex + candidatesPerPage);
                             return paginatedCandidates.map((candidate) => (
-                            <tr key={candidate.id} className="hover:bg-gray-50 cursor-pointer">
+                            <tr
+                              key={candidate.id}
+                              className={`group cursor-pointer transition-all duration-200 ${
+                                selectedCandidates.has(candidate.id)
+                                  ? 'bg-blue-50/70 hover:bg-blue-100/70'
+                                  : 'hover:bg-gray-50'
+                              }`}
+                              onClick={() => handleSelectCandidate(candidate.id)}
+                              title={selectedCandidates.has(candidate.id) ? 'Click para deseleccionar' : 'Click para seleccionar'}
+                            >
+                              <td className="px-4 py-4">
+                                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
+                                  selectedCandidates.has(candidate.id)
+                                    ? 'border-blue-500 bg-blue-500 scale-110'
+                                    : 'border-gray-300 group-hover:border-blue-400 group-hover:scale-105'
+                                }`}>
+                                  {selectedCandidates.has(candidate.id) ? (
+                                    <i className="fas fa-check text-white text-[10px]" />
+                                  ) : (
+                                    <i className="fas fa-plus text-gray-400 text-[9px] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                  )}
+                                </div>
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <div className="shrink-0 h-10 w-10">
@@ -602,27 +694,14 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                       </table>
                     </div>
                     {/* Pagination for candidates */}
-                    {(() => {
-                      const filteredCandidates = candidates.filter(candidate => {
-                        const matchesSearch = searchTerm === "" || 
-                          `${candidate.first_name} ${candidate.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          candidate.email?.toLowerCase().includes(searchTerm.toLowerCase());
-                        const matchesStatus = statusFilter === "all" || candidate.latest_application_status === statusFilter;
-                        const matchesApplication = applicationFilter === "all" || 
-                          (candidate.candidate_profiles && candidate.candidate_profiles.some((app: any) => app.profile === parseInt(applicationFilter)));
-                        return matchesSearch && matchesStatus && matchesApplication;
-                      });
-                      return (
-                        <Pagination
-                          currentPage={candidatesPage}
-                          totalItems={filteredCandidates.length}
-                          itemsPerPage={candidatesPerPage}
-                          onPageChange={setCandidatesPage}
-                          onItemsPerPageChange={setCandidatesPerPage}
-                          className="border-t border-gray-200 px-4"
-                        />
-                      );
-                    })()}
+                    <Pagination
+                      currentPage={candidatesPage}
+                      totalItems={filteredCandidates.length}
+                      itemsPerPage={candidatesPerPage}
+                      onPageChange={setCandidatesPage}
+                      onItemsPerPageChange={setCandidatesPerPage}
+                      className="border-t border-gray-200 px-4"
+                    />
                   </div>
                 )}
               </div>
