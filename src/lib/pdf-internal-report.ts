@@ -288,166 +288,152 @@ class InternalReportPDF {
   }
 
   private drawClientExecutiveSummaryPages(data: InternalReportData): number {
-    const candidatesByClient: Record<string, CandidateItem[]> = {};
+    const profileCandidateMap: Record<number, CandidateItem[]> = {};
+    const profileCandidateFallback: Record<string, CandidateItem[]> = {};
+
     (data.candidates || []).forEach((c) => {
-      const key = safe(c.client_name || 'N/D');
-      if (!candidatesByClient[key]) candidatesByClient[key] = [];
-      candidatesByClient[key].push(c);
+      if (c.profile_id) {
+        if (!profileCandidateMap[c.profile_id]) profileCandidateMap[c.profile_id] = [];
+        profileCandidateMap[c.profile_id].push(c);
+      }
+
+      const fallbackKey = `${safe(c.client_name || 'N/D')}::${safe(c.profile_title || 'N/D')}`;
+      if (!profileCandidateFallback[fallbackKey]) profileCandidateFallback[fallbackKey] = [];
+      profileCandidateFallback[fallbackKey].push(c);
     });
 
-    const profilesByClient: Record<string, ProfileItem[]> = {};
-    (data.profiles || []).forEach((p) => {
-      const key = safe(p.client_name || 'N/D');
-      if (!profilesByClient[key]) profilesByClient[key] = [];
-      profilesByClient[key].push(p);
-    });
+    const complianceLabel = (profile: ProfileItem): string => {
+      const st = (profile.status || '').toLowerCase();
+      if (st.includes('complet') || st.includes('hired') || st.includes('cerrad')) return 'Cumplido';
+      const remaining = profile.days_remaining;
+      if (remaining === null || remaining === undefined) return 'Sin fecha definida';
+      if (remaining < 0) return 'Atrasado';
+      if (remaining === 0) return 'Vence hoy';
+      if (remaining <= 7) return 'En riesgo';
+      return 'En tiempo';
+    };
 
-    const rows = (data.clients || [])
-      .map((client) => {
-        const clientName = safe(client.company_name || 'N/D');
-        const clientProfiles = profilesByClient[clientName] || [];
-        const clientCandidates = candidatesByClient[clientName] || [];
+    const details = [...(data.profiles || [])]
+      .sort((a, b) => {
+        const ar = a.days_remaining ?? 9999;
+        const br = b.days_remaining ?? 9999;
+        if (ar !== br) return ar - br;
+        return safe(a.client_name).localeCompare(safe(b.client_name));
+      })
+      .map((profile) => {
+        const fallbackKey = `${safe(profile.client_name || 'N/D')}::${safe(profile.position_title || 'N/D')}`;
+        const relatedCandidates = profileCandidateMap[profile.id] || profileCandidateFallback[fallbackKey] || [];
 
-        const avgMatch = clientCandidates.length
-          ? `${(clientCandidates.reduce((acc, c) => acc + Number(c.match_percentage || 0), 0) / clientCandidates.length).toFixed(1)}%`
+        const avgMatch = relatedCandidates.length
+          ? `${(relatedCandidates.reduce((acc, c) => acc + Number(c.match_percentage || 0), 0) / relatedCandidates.length).toFixed(1)}%`
           : 'N/D';
-
-        const avgFulfillment = clientProfiles.length
-          ? `${(clientProfiles.reduce((acc, p) => acc + Number(p.fulfillment_rate || 0), 0) / clientProfiles.length).toFixed(1)}%`
-          : 'N/D';
-
-        const nearestDeadlineProfile = [...clientProfiles]
-          .filter((p) => p.deadline)
-          .sort((a, b) => {
-            const ar = a.days_remaining ?? 9999;
-            const br = b.days_remaining ?? 9999;
-            return ar - br;
-          })[0];
-
-        const statusEntries = Object.entries(client.profiles_by_status || {}).sort((a, b) => b[1] - a[1]);
-        const dominantStatus = statusEntries.length ? statusLabel(statusEntries[0][0]) : 'N/D';
 
         return {
-          client: clientName,
-          industry: safe(client.industry || 'N/D'),
-          profiles: `${client.total_profiles}/${client.active_profiles}/${client.completed_profiles}`,
-          candidates: String(client.total_candidates ?? 0),
-          successRate: `${client.success_rate ?? 0}%`,
+          client: safe(profile.client_name || 'N/D'),
+          profile: safe(profile.position_title || 'N/D'),
+          profileStatus: safe(profile.status_display || statusLabel(profile.status || '') || 'N/D'),
+          deadline: safe(profile.deadline || 'Sin fecha'),
+          candidatesApplied: String(profile.candidates_count ?? relatedCandidates.length ?? 0),
           avgMatch,
-          avgFulfillment,
-          dominantStatus,
-          nearestDeadline: nearestDeadlineProfile?.deadline || 'N/D',
+          complianceVsDate: complianceLabel(profile),
+          fulfillmentRate: `${Number(profile.fulfillment_rate || 0).toFixed(1)}%`,
         };
-      })
-      .sort((a, b) => {
-        const an = Number(a.candidates || 0);
-        const bn = Number(b.candidates || 0);
-        return bn - an;
       });
 
-    const rowsPerPage = 11;
-    let pageCount = 0;
-    let index = 0;
+    const cardsPerPage = 5;
+    const totalPages = Math.max(1, Math.ceil(details.length / cardsPerPage));
 
-    while (index < rows.length || pageCount === 0) {
-      if (pageCount > 0) this.doc.addPage();
-      pageCount++;
+    for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
+      if (pageIdx > 0) this.doc.addPage();
 
-      // Fondo azul (mismo estilo visual de portada)
       this.doc.setFillColor(C.primary.r, C.primary.g, C.primary.b);
       this.doc.rect(0, 0, this.W, this.H, 'F');
 
-      // Encabezado de página resumen clientes
       this.doc.setFont('helvetica', 'bold');
       this.doc.setFontSize(22);
       this.doc.setTextColor(255, 255, 255);
-      this.doc.text('Resumen por Cliente', this.W / 2, 24, { align: 'center' });
+      this.doc.text('Detalles del Reporte', this.W / 2, 22, { align: 'center' });
 
       this.doc.setFont('helvetica', 'normal');
       this.doc.setFontSize(10);
-      this.doc.text('Reporte interno consolidado de empresas y perfiles', this.W / 2, 30, { align: 'center' });
+      this.doc.text('Resumen inicial con detalle de perfil por cliente', this.W / 2, 28, { align: 'center' });
 
-      // Tarjeta principal
-      const cardX = this.M;
-      const cardY = 36;
-      const cardW = this.cw;
-      const cardH = this.H - 50;
+      this.doc.setFillColor(255, 255, 255);
+      this.doc.roundedRect(this.M, 33, this.cw, this.H - 47, 4, 4, 'F');
+      this.doc.setDrawColor(224, 231, 255);
+      this.doc.setLineWidth(0.5);
+      this.doc.roundedRect(this.M, 33, this.cw, this.H - 47, 4, 4, 'S');
 
-      this.doc.setFillColor(245, 247, 250);
-      this.doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4, 'F');
-      this.doc.setDrawColor(220, 225, 232);
-      this.doc.setLineWidth(0.4);
-      this.doc.roundedRect(cardX, cardY, cardW, cardH, 4, 4, 'S');
+      let currentY = 40;
+      const start = pageIdx * cardsPerPage;
+      const end = Math.min(start + cardsPerPage, details.length);
 
-      const tableStartY = cardY + 9;
-      const colX = {
-        client: cardX + 4,
-        industry: cardX + 42,
-        profiles: cardX + 66,
-        candidates: cardX + 83,
-        successRate: cardX + 96,
-        avgMatch: cardX + 109,
-        avgFulfillment: cardX + 122,
-        dominant: cardX + 136,
-        deadline: cardX + 157,
-      };
-
-      this.doc.setFont('helvetica', 'bold');
-      this.doc.setFontSize(6.3);
-      this.doc.setTextColor(C.gray700.r, C.gray700.g, C.gray700.b);
-      this.doc.text('Cliente', colX.client, tableStartY);
-      this.doc.text('Industria', colX.industry, tableStartY);
-      this.doc.text('P/A/C', colX.profiles, tableStartY);
-      this.doc.text('Cand.', colX.candidates, tableStartY);
-      this.doc.text('Éxito', colX.successRate, tableStartY);
-      this.doc.text('Match', colX.avgMatch, tableStartY);
-      this.doc.text('Cumpl.', colX.avgFulfillment, tableStartY);
-      this.doc.text('Estatus dom.', colX.dominant, tableStartY);
-      this.doc.text('Fecha límite', colX.deadline, tableStartY);
-
-      this.doc.setDrawColor(210, 216, 224);
-      this.doc.line(cardX + 3, tableStartY + 2, cardX + cardW - 3, tableStartY + 2);
-
-      let rowY = tableStartY + 8;
-      const end = Math.min(index + rowsPerPage, rows.length);
-
-      this.doc.setFont('helvetica', 'normal');
-      this.doc.setFontSize(7);
-      this.doc.setTextColor(C.gray800.r, C.gray800.g, C.gray800.b);
-
-      if (rows.length === 0) {
-        this.doc.text('No hay clientes para mostrar.', cardX + 4, rowY);
+      if (details.length === 0) {
+        this.doc.setFont('helvetica', 'normal');
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(C.gray700.r, C.gray700.g, C.gray700.b);
+        this.doc.text('No hay perfiles disponibles para mostrar.', this.W / 2, 52, { align: 'center' });
       }
 
-      for (let i = index; i < end; i++) {
-        const r = rows[i];
+      for (let i = start; i < end; i++) {
+        const card = details[i];
+        const cardX = this.M + 3;
+        const cardW = this.cw - 6;
+        const cardH = 41;
 
-        this.doc.text(this.fit(r.client, 36), colX.client, rowY);
-        this.doc.text(this.fit(r.industry, 23), colX.industry, rowY);
-        this.doc.text(this.fit(r.profiles, 16), colX.profiles, rowY);
-        this.doc.text(this.fit(r.candidates, 12), colX.candidates, rowY);
-        this.doc.text(this.fit(r.successRate, 12), colX.successRate, rowY);
-        this.doc.text(this.fit(r.avgMatch, 12), colX.avgMatch, rowY);
-        this.doc.text(this.fit(r.avgFulfillment, 13), colX.avgFulfillment, rowY);
-        this.doc.text(this.fit(r.dominantStatus, 20), colX.dominant, rowY);
-        this.doc.text(this.fit(r.nearestDeadline, 16), colX.deadline, rowY);
+        this.doc.setFillColor(248, 250, 252);
+        this.doc.roundedRect(cardX, currentY, cardW, cardH, 3, 3, 'F');
+        this.doc.setDrawColor(226, 232, 240);
+        this.doc.setLineWidth(0.35);
+        this.doc.roundedRect(cardX, currentY, cardW, cardH, 3, 3, 'S');
 
-        this.doc.setDrawColor(228, 232, 238);
-        this.doc.line(cardX + 3, rowY + 1.8, cardX + cardW - 3, rowY + 1.8);
+        this.doc.setFillColor(235, 244, 255);
+        this.doc.roundedRect(cardX, currentY, cardW, 7, 3, 3, 'F');
 
-        rowY += 9;
+        this.doc.setFont('helvetica', 'bold');
+        this.doc.setFontSize(8.5);
+        this.doc.setTextColor(C.primary.r, C.primary.g, C.primary.b);
+        this.doc.text(this.fit(`${card.client} • ${card.profile}`, cardW - 8), cardX + 3, currentY + 5);
+
+        const leftX = cardX + 3;
+        const rightX = cardX + cardW / 2 + 2;
+        const drawField = (label: string, value: string, x: number, y: number, maxW: number) => {
+          this.doc.setFont('helvetica', 'bold');
+          this.doc.setFontSize(6.8);
+          this.doc.setTextColor(C.gray600.r, C.gray600.g, C.gray600.b);
+          this.doc.text(`${label}:`, x, y);
+
+          this.doc.setFont('helvetica', 'normal');
+          this.doc.setTextColor(C.gray800.r, C.gray800.g, C.gray800.b);
+          this.doc.text(this.fit(value || 'N/D', maxW), x + 28, y);
+        };
+
+        const row1 = currentY + 12;
+        drawField('Cliente', card.client, leftX, row1, 56);
+        drawField('Perfil', card.profile, rightX, row1, 50);
+
+        const row2 = currentY + 18;
+        drawField('Estatus del Perfil', card.profileStatus, leftX, row2, 56);
+        drawField('Fecha Cumplimiento', card.deadline, rightX, row2, 50);
+
+        const row3 = currentY + 24;
+        drawField('Candidatos Aplicados', card.candidatesApplied, leftX, row3, 56);
+        drawField('Match Promedio', card.avgMatch, rightX, row3, 50);
+
+        const row4 = currentY + 30;
+        drawField('Cumplimiento vs Fecha', card.complianceVsDate, leftX, row4, 56);
+        drawField('Cumplimiento Perfil', card.fulfillmentRate, rightX, row4, 50);
+
+        currentY += cardH + 3.5;
       }
 
-      index = end;
-
-      // Footer estilo portada
       this.doc.setFont('helvetica', 'normal');
       this.doc.setFontSize(8);
       this.doc.setTextColor(220, 227, 240);
-      this.doc.text('Bausen Reclutamiento • Documento confidencial', this.W / 2, this.H - 7, { align: 'center' });
+      this.doc.text(`Bausen Reclutamiento • Documento confidencial • ${pageIdx + 1}/${totalPages}`, this.W / 2, this.H - 7, { align: 'center' });
     }
 
-    return pageCount;
+    return totalPages;
   }
 
   private drawExecutiveSummary(data: InternalReportData): void {
