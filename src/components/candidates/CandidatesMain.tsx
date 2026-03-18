@@ -61,6 +61,10 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [applicationFilter, setApplicationFilter] = useState("all");
   const [selectedCandidates, setSelectedCandidates] = useState<Set<number>>(new Set());
+  const [showBulkApplyModal, setShowBulkApplyModal] = useState(false);
+  const [selectedProfileForBulkApply, setSelectedProfileForBulkApply] = useState<string>("");
+  const [bulkApplyNotes, setBulkApplyNotes] = useState("");
+  const [bulkApplying, setBulkApplying] = useState(false);
   
   // Pagination states
   const [candidatesPage, setCandidatesPage] = useState(1);
@@ -166,6 +170,58 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
       return;
     }
     setSelectedCandidates(new Set(filteredCandidates.map((c) => c.id)));
+  };
+
+  const availableProfiles = useMemo(() => {
+    const nonFinalStatuses = new Set(['completed', 'cancelled']);
+    const filtered = profiles.filter((p: any) => !nonFinalStatuses.has(String(p.status || '').toLowerCase()));
+    return filtered.length > 0 ? filtered : profiles;
+  }, [profiles]);
+
+  const handleBulkApplyToProfile = async () => {
+    const profileId = Number(selectedProfileForBulkApply);
+    if (!profileId) {
+      await showAlert('Selecciona una vacante para continuar.');
+      return;
+    }
+
+    const candidateIds = Array.from(selectedCandidates);
+    if (candidateIds.length === 0) {
+      await showAlert('Selecciona al menos un candidato.');
+      return;
+    }
+
+    try {
+      setBulkApplying(true);
+      const response: any = await apiClient.bulkAssignCandidatesToProfile({
+        candidate_ids: candidateIds,
+        profile_id: profileId,
+        notes: bulkApplyNotes,
+        skip_existing: true,
+      });
+
+      const createdCount = Number(response?.created_count || 0);
+      const skippedCount = Array.isArray(response?.skipped_existing_candidate_ids)
+        ? response.skipped_existing_candidate_ids.length
+        : 0;
+      const missingCount = Array.isArray(response?.missing_candidate_ids)
+        ? response.missing_candidate_ids.length
+        : 0;
+
+      const message = `Aplicaciones creadas: ${createdCount}. Omitidos por ya existentes: ${skippedCount}. No encontrados: ${missingCount}.`;
+      await showSuccess(message);
+
+      setShowBulkApplyModal(false);
+      setSelectedProfileForBulkApply("");
+      setBulkApplyNotes("");
+      setSelectedCandidates(new Set());
+      await loadData();
+    } catch (error) {
+      console.error('Error en asignación masiva de candidatos:', error);
+      await showError('No se pudo aplicar candidatos a la vacante seleccionada.');
+    } finally {
+      setBulkApplying(false);
+    }
   };
 
   const handleViewCandidate = (candidateId: number) => {
@@ -504,6 +560,15 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                         className="text-sm text-blue-600 hover:text-blue-800"
                       >
                         Limpiar selección
+                      </button>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setShowBulkApplyModal(true)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        <i className="fas fa-briefcase mr-2" />
+                        Aplicar a vacante
                       </button>
                     </div>
                   </div>
@@ -1117,6 +1182,76 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
                 setTimeout(() => setSuccessMessage(''), 3000);
               }}
             />
+
+            {/* Modal: Aplicación masiva a vacante */}
+            {showBulkApplyModal && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
+                  <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">Aplicar candidatos a vacante</h3>
+                    <button
+                      onClick={() => {
+                        if (bulkApplying) return;
+                        setShowBulkApplyModal(false);
+                      }}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <i className="fas fa-times" />
+                    </button>
+                  </div>
+
+                  <div className="px-6 py-5 space-y-4">
+                    <div className="text-sm text-gray-700">
+                      Se aplicarán <span className="font-semibold">{selectedCandidates.size}</span> candidato(s) a la vacante seleccionada.
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Vacante / Perfil</label>
+                      <select
+                        value={selectedProfileForBulkApply}
+                        onChange={(e) => setSelectedProfileForBulkApply(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Seleccionar vacante...</option>
+                        {availableProfiles.map((profile: any) => (
+                          <option key={profile.id} value={profile.id}>
+                            {profile.position_title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Notas (opcional)</label>
+                      <textarea
+                        value={bulkApplyNotes}
+                        onChange={(e) => setBulkApplyNotes(e.target.value)}
+                        rows={3}
+                        placeholder="Escribe una nota para esta asignación masiva..."
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowBulkApplyModal(false)}
+                      disabled={bulkApplying}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleBulkApplyToProfile}
+                      disabled={bulkApplying}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {bulkApplying ? 'Aplicando...' : 'Aplicar candidatos'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* HISTORY */}
             {currentView === "history" && (

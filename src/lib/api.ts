@@ -291,6 +291,21 @@ class ApiClient {
   }
 
   /**
+   * Asignación masiva de candidatos a una vacante/perfil
+   */
+  async bulkAssignCandidatesToProfile(payload: {
+    candidate_ids: number[];
+    profile_id: number;
+    notes?: string;
+    skip_existing?: boolean;
+  }) {
+    return this.makeRequest('/candidates/candidates/bulk_assign_to_profile/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
    * Update candidate application
    */
   async updateCandidateApplication(id: number, applicationData: any) {
