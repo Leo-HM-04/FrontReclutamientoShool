@@ -258,10 +258,8 @@ class InternalReportPDF {
   public generate(data: InternalReportData): jsPDF {
     // Requisito actual: reporte interno SIN portada
     this.includeCover = false;
-    this.introPages = this.drawClientExecutiveSummaryPages(data);
-
-    this.doc.addPage();
-    this.page = this.introPages + 1;
+    this.introPages = 0;
+    this.page = 1;
     this.y = this.M;
 
     this.drawHeader();
@@ -270,18 +268,18 @@ class InternalReportPDF {
     this.drawStatusSummary(data.profiles_by_status, data.candidates_by_status, data.kpis);
     this.drawClientsSection(data.clients);
     this.drawProfilesSection(data.profiles);
-    this.drawCandidatesSection(data.candidates);
     this.drawProfilesStatusHistory(data.profiles);
     this.drawStalledSection(data.stalled_profiles, data.stalled_clients);
+    this.drawCandidatesSection(data.candidates);
+    this.drawClientExecutiveSummaryPages(data);
 
     // Footer + watermark en todas las páginas
     const totalPages = this.doc.getNumberOfPages();
-    const firstContentPage = this.introPages + 1;
-    const totalContentPages = Math.max(totalPages - this.introPages, 1);
+    const totalContentPages = Math.max(totalPages, 1);
 
-    for (let i = firstContentPage; i <= totalPages; i++) {
+    for (let i = 1; i <= totalPages; i++) {
       this.doc.setPage(i);
-      this.drawFooter(i - firstContentPage + 1, totalContentPages);
+      this.drawFooter(i, totalContentPages);
       this.drawWatermark();
     }
 
@@ -345,19 +343,20 @@ class InternalReportPDF {
     const totalPages = Math.max(1, Math.ceil(details.length / cardsPerPage));
 
     for (let pageIdx = 0; pageIdx < totalPages; pageIdx++) {
-      if (pageIdx > 0) this.doc.addPage();
+      this.doc.addPage();
 
-      this.doc.setFillColor(C.primary.r, C.primary.g, C.primary.b);
+      this.doc.setFillColor(C.white.r, C.white.g, C.white.b);
       this.doc.rect(0, 0, this.W, this.H, 'F');
 
       this.doc.setFont('helvetica', 'bold');
       this.doc.setFontSize(22);
-      this.doc.setTextColor(255, 255, 255);
+      this.doc.setTextColor(C.primary.r, C.primary.g, C.primary.b);
       this.doc.text('Detalles del Reporte', this.W / 2, 22, { align: 'center' });
 
       this.doc.setFont('helvetica', 'normal');
       this.doc.setFontSize(10);
-      this.doc.text('Resumen inicial con detalle de perfil por cliente', this.W / 2, 28, { align: 'center' });
+      this.doc.setTextColor(C.gray700.r, C.gray700.g, C.gray700.b);
+      this.doc.text('Resumen con detalle de perfil por cliente', this.W / 2, 28, { align: 'center' });
 
       this.doc.setFillColor(255, 255, 255);
       this.doc.roundedRect(this.M, 33, this.cw, this.H - 47, 4, 4, 'F');
@@ -430,7 +429,7 @@ class InternalReportPDF {
 
       this.doc.setFont('helvetica', 'normal');
       this.doc.setFontSize(8);
-      this.doc.setTextColor(220, 227, 240);
+      this.doc.setTextColor(C.gray500.r, C.gray500.g, C.gray500.b);
       this.doc.text(`Bausen Reclutamiento • Documento confidencial • ${pageIdx + 1}/${totalPages}`, this.W / 2, this.H - 7, { align: 'center' });
     }
 
@@ -925,7 +924,7 @@ class InternalReportPDF {
       safe(c.client_name),
       safe(c.candidate_status_display || statusLabel(c.candidate_status || '')),
       safe(c.application_status_display),
-      `${c.match_percentage}%`,
+      Number(c.match_percentage || 0) > 0 ? `${Number(c.match_percentage || 0)}%` : 'ND',
       String(c.overall_rating ?? '-'),
       String(c.years_experience),
       shortDate(c.applied_at),
@@ -936,6 +935,7 @@ class InternalReportPDF {
       head: [['#', 'Candidato', 'Contacto', 'Posición actual', 'Perfil aplicado', 'Cliente', 'Estatus candidato', 'Estatus aplicación', 'Match', 'Rating', 'Exp.', 'Fecha apl.']],
       body,
       theme: 'grid',
+      rowPageBreak: 'avoid',
       styles: { fontSize: 5, cellPadding: 1.1, textColor: [C.gray800.r, C.gray800.g, C.gray800.b], overflow: 'linebreak' },
       headStyles: {
         fillColor: [C.primary.r, C.primary.g, C.primary.b],
