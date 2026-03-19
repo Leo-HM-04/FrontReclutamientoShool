@@ -271,6 +271,7 @@ class InternalReportPDF {
     this.drawClientsSection(data.clients);
     this.drawProfilesSection(data.profiles);
     this.drawCandidatesSection(data.candidates);
+    this.drawProfilesStatusHistory(data.profiles);
     this.drawStalledSection(data.stalled_profiles, data.stalled_clients);
 
     // Footer + watermark en todas las páginas
@@ -838,7 +839,9 @@ class InternalReportPDF {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.y = (this.doc as any).lastAutoTable.finalY + 3;
+  }
 
+  private drawProfilesStatusHistory(profiles: ProfileItem[]): void {
     // Historial de cambios de estado (solo perfiles con historial)
     const profilesWithHistory = profiles.filter(p => p.status_history && p.status_history.length > 0);
     if (profilesWithHistory.length > 0) {
@@ -898,44 +901,75 @@ class InternalReportPDF {
     if (!candidates.length) return;
     this.sectionTitle(`CANDIDATOS (${candidates.length} registros)`);
 
+    const shortDate = (value: string): string => {
+      const raw = safe(value);
+      if (!raw) return '-';
+      if (raw.includes('T')) return raw.split('T')[0];
+      if (raw.length > 10 && raw.includes('-')) return raw.slice(0, 10);
+      return raw;
+    };
+
+    const contact = (c: CandidateItem): string => {
+      const e = safe(c.email);
+      const p = safe(c.phone);
+      if (e && p) return `${e}\n${p}`;
+      return e || p || 'N/D';
+    };
+
     const body = candidates.map((c, i) => [
       String(i + 1),
       safe(c.full_name),
+      contact(c),
+      safe(c.current_position || '-'),
       safe(c.profile_title),
       safe(c.client_name),
+      safe(c.candidate_status_display || statusLabel(c.candidate_status || '')),
       safe(c.application_status_display),
       `${c.match_percentage}%`,
+      String(c.overall_rating ?? '-'),
       String(c.years_experience),
-      safe(c.applied_at),
+      shortDate(c.applied_at),
     ]);
 
     autoTable(this.doc, {
       startY: this.y,
-      head: [['#', 'Candidato', 'Perfil', 'Cliente', 'Estatus', 'Match', 'Exp.', 'Fecha']],
+      head: [['#', 'Candidato', 'Contacto', 'Posición actual', 'Perfil aplicado', 'Cliente', 'Estatus candidato', 'Estatus aplicación', 'Match', 'Rating', 'Exp.', 'Fecha apl.']],
       body,
       theme: 'grid',
-      styles: { fontSize: 5.5, cellPadding: 1.2, textColor: [C.gray800.r, C.gray800.g, C.gray800.b] },
+      styles: { fontSize: 5, cellPadding: 1.1, textColor: [C.gray800.r, C.gray800.g, C.gray800.b], overflow: 'linebreak' },
       headStyles: {
         fillColor: [C.primary.r, C.primary.g, C.primary.b],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 5.5,
+        fontSize: 4.9,
       },
       alternateRowStyles: { fillColor: [C.gray50.r, C.gray50.g, C.gray50.b] },
       columnStyles: {
-        0: { cellWidth: 8, halign: 'center' },
-        1: { cellWidth: 32 },
-        2: { cellWidth: 32 },
-        3: { cellWidth: 28 },
-        4: { cellWidth: 24, halign: 'center' },
-        5: { cellWidth: 14, halign: 'center' },
-        6: { cellWidth: 12, halign: 'center' },
-        7: { cellWidth: 22, halign: 'center' },
+        0: { cellWidth: 6, halign: 'center' },
+        1: { cellWidth: 22 },
+        2: { cellWidth: 21 },
+        3: { cellWidth: 17 },
+        4: { cellWidth: 21 },
+        5: { cellWidth: 16 },
+        6: { cellWidth: 17, halign: 'center' },
+        7: { cellWidth: 17, halign: 'center' },
+        8: { cellWidth: 10, halign: 'center' },
+        9: { cellWidth: 10, halign: 'center' },
+        10: { cellWidth: 8, halign: 'center' },
+        11: { cellWidth: 13, halign: 'center' },
       },
       margin: { left: this.M, right: this.M },
       willDrawCell: (data) => {
         if (data.section !== 'body') return;
-        if (data.column.index === 4) {
+        if (data.column.index === 6) {
+          const cand = candidates[data.row.index];
+          if (cand) {
+            const sc = statusColor(cand.candidate_status);
+            data.cell.styles.textColor = [sc.r, sc.g, sc.b];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        if (data.column.index === 7) {
           const cand = candidates[data.row.index];
           if (cand) {
             const sc = statusColor(cand.application_status);
@@ -943,12 +977,21 @@ class InternalReportPDF {
             data.cell.styles.fontStyle = 'bold';
           }
         }
-        if (data.column.index === 5) {
+        if (data.column.index === 8) {
           const cand = candidates[data.row.index];
           if (cand) {
             const mc = cand.match_percentage >= 70 ? C.success
               : cand.match_percentage >= 40 ? C.warning : C.gray500;
             data.cell.styles.textColor = [mc.r, mc.g, mc.b];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        if (data.column.index === 9) {
+          const cand = candidates[data.row.index];
+          if (cand) {
+            const rating = Number(cand.overall_rating || 0);
+            const rc = rating >= 4 ? C.success : rating >= 2.5 ? C.warning : C.gray500;
+            data.cell.styles.textColor = [rc.r, rc.g, rc.b];
             data.cell.styles.fontStyle = 'bold';
           }
         }
