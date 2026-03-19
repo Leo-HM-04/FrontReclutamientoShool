@@ -427,10 +427,6 @@ class InternalReportPDF {
         currentY += cardH + 3.5;
       }
 
-      this.doc.setFont('helvetica', 'normal');
-      this.doc.setFontSize(8);
-      this.doc.setTextColor(C.gray500.r, C.gray500.g, C.gray500.b);
-      this.doc.text(`Bausen Reclutamiento • Documento confidencial • ${pageIdx + 1}/${totalPages}`, this.W / 2, this.H - 7, { align: 'center' });
     }
 
     return totalPages;
