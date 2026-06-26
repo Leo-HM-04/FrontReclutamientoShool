@@ -49,7 +49,7 @@ interface PublishedPlatform {
   platform: string;
   url: string;
   published_date: string;
-  published_by: number;
+  published_by: string;
   status: string;
 }
 
@@ -259,7 +259,7 @@ export default function ProfilesStatusDashboard() {
             platform: platformForm.platform,
             url: platformForm.url,
             published_date: new Date().toISOString(),
-            published_by: parseInt(localStorage.getItem('userId') || '0'),
+            published_by: localStorage.getItem('userId') || '',
             status: 'active',
           };
           
@@ -400,7 +400,7 @@ export default function ProfilesStatusDashboard() {
         platform: platformForm.platform,
         url: platformForm.url,
         published_date: new Date().toISOString(),
-        published_by: parseInt(localStorage.getItem('userId') || '0'),
+        published_by: localStorage.getItem('userId') || '',
         status: 'active',
       };
       

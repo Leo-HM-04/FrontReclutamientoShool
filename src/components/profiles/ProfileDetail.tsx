@@ -7,14 +7,14 @@ import { getProfile, approveProfile, changeProfileStatus } from "@/lib/api";
 import AutoRecommendModal from "./AutoRecommendModal";
 
 interface ProfileDetailProps {
-  profileId: number;
+  profileId: string | number;
   onBack?: () => void;
 }
 
 interface Profile {
-  id: number;
+  id: string | number;
   position_title: string;
-  client: number;
+  client: string | number;
   client_name?: string;
   status: string;
   priority: string;

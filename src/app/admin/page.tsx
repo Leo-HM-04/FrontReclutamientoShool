@@ -103,7 +103,7 @@ const [profileFilters, setProfileFilters] = useState({
 
 // Profile Form State
 const [profileForm, setProfileForm] = useState({
-  client: 0,
+  client: '',
   position_title: '',
   department: '',
   location: '',
@@ -671,7 +671,7 @@ const [profileForm, setProfileForm] = useState({
     if (mode === 'edit' && profile) {
       setSelectedProfile(profile);
       setProfileForm({
-        client: profile.client || 0,
+        client: profile.client || '',
         position_title: profile.position_title || '',
         department: profile.department || '',
         location: profile.location || '',
@@ -693,7 +693,7 @@ const [profileForm, setProfileForm] = useState({
     } else {
       setSelectedProfile(null);
       setProfileForm({
-        client: 0,
+        client: '',
         position_title: '',
         department: '',
         location: '',
@@ -721,7 +721,7 @@ const [profileForm, setProfileForm] = useState({
     setShowProfileModal(false);
     setSelectedProfile(null);
     setProfileForm({
-      client: 0,
+      client: '',
       position_title: '',
       department: '',
       location: '',
@@ -2845,11 +2845,11 @@ const getPriorityDisplay = (priority: string) => {
                         </label>
                         <select
                         value={profileForm.client}
-                        onChange={(e) => setProfileForm({...profileForm, client: parseInt(e.target.value) || 0})}
+                        onChange={(e) => setProfileForm({...profileForm, client: e.target.value})}
                         required
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                       >
-                        <option value="0">Seleccionar cliente...</option>
+                        <option value="">Seleccionar cliente...</option>
                         {clients.map((client) => (
                           <option key={client.id} value={client.id}>
                             {client.company_name || client.name}

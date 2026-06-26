@@ -25,6 +25,8 @@ import ShareLinkModal from '@/components/ShareLinkModal';
 import ShareDocumentLinkModal from '@/components/ShareDocumentLinkModal';
 import EmailManagement from '@/components/EmailManagement';
 import DocumentShareLinksDashboard from '@/components/DocumentShareLinksDashboard';
+import AnalysisDashboard from '@/components/AnalysisDashboard';
+import DataQualityDashboard from '@/components/DataQualityDashboard';
 import NextImage from "next/image";
 import { HybridMetricsDashboard } from "@/components/ui/AIMethodBadge";
 
@@ -338,7 +340,7 @@ export default function Page() {
   // ====== State principal (equivalente a directorApp) ======
   // Intentar restaurar la vista desde localStorage, si no existe usar "dashboard"
   const [currentView, setCurrentView] = useState<
-    "dashboard" | "processes" | "candidates" | "clients" | "team" | "approvals" | "reports" | "documents" | "applications" | "notes" | "history" | "tasks" | "client-list" | "client-contacts" | "client-progress" | "evaluations" | "profiles" | "profiles-status" | "candidates-status" | "shortlisted-candidates" | "selected-candidates" | "individual-reports" | "email-management" | "document-links"
+    "dashboard" | "processes" | "candidates" | "clients" | "team" | "approvals" | "reports" | "documents" | "applications" | "notes" | "history" | "tasks" | "client-list" | "client-contacts" | "client-progress" | "evaluations" | "profiles" | "profiles-status" | "candidates-status" | "shortlisted-candidates" | "selected-candidates" | "individual-reports" | "email-management" | "document-links" | "analysis" | "data-quality"
   >("dashboard");
 
   // Restaurar vista guardada al montar el componente (PRIMERO)
@@ -529,7 +531,7 @@ export default function Page() {
   };
 
   // Estado para manejar navegación desde aplicaciones a perfiles
-  const [profileToOpen, setProfileToOpen] = useState<{ id: number | null, action: 'view' | 'edit' | null }>({
+  const [profileToOpen, setProfileToOpen] = useState<{ id: string | null, action: 'view' | 'edit' | null }>({
     id: null,
     action: null
   });
@@ -583,9 +585,9 @@ export default function Page() {
         setProfilesInitialSubView((subview as ProfileView) || null);
       }
       if (profileId) {
-        setProfileToOpen({ id: parseInt(profileId), action: 'view' });
+        setProfileToOpen({ id: profileId, action: 'view' });
       } else if (editProfileId) {
-        setProfileToOpen({ id: parseInt(editProfileId), action: 'edit' });
+        setProfileToOpen({ id: editProfileId, action: 'edit' });
       }
 
       // Limpiar los parámetros URL después de usarlos
@@ -1555,7 +1557,8 @@ export default function Page() {
       const data = await response.json();
       // Extraer token del share_url y construir URL correcta
       const shareToken = data.share_url.split('/').pop();
-      const correctedUrl = `${window.location.origin}/reclutamiento/public/profile-progress/${shareToken}`;
+      const base = process.env.NODE_ENV === 'production' ? '/reclutamiento' : '';
+      const correctedUrl = `${window.location.origin}${base}/public/profile-progress/${shareToken}`;
       setShareLink(correctedUrl);
       setSelectedProfileForShare({
         profileId: data.profile_id,
@@ -1588,7 +1591,8 @@ export default function Page() {
       const data = await response.json();
       // Extraer token del share_url y construir URL correcta
       const shareToken = data.share_url.split('/').pop();
-      const correctedUrl = `${window.location.origin}/reclutamiento/public/profile-progress/${shareToken}`;
+      const base = process.env.NODE_ENV === 'production' ? '/reclutamiento' : '';
+      const correctedUrl = `${window.location.origin}${base}/public/profile-progress/${shareToken}`;
       // Abrir en una nueva pestaña
       window.open(correctedUrl, '_blank');
     } catch (error) {
@@ -2599,6 +2603,36 @@ export default function Page() {
                     >
                       <i className="fas fa-envelope mr-3 w-5" />
                       <span className="flex-1 text-left">Gestión de Correos</span>
+                    </button>
+                  </li>
+                  <li>
+                    {/* 13. ANÁLISIS (3 análisis con PySpark) */}
+                    <button
+                      onClick={() => {
+                        setCurrentView("analysis");
+                        if (window.innerWidth < 1024) {
+                          setSidebarOpen(false);
+                        }
+                      }}
+                      className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("analysis")}`}
+                    >
+                      <i className="fas fa-chart-pie mr-3 w-5" />
+                      <span className="flex-1 text-left">Análisis</span>
+                    </button>
+                  </li>
+                  <li>
+                    {/* 14. CALIDAD DE DATOS */}
+                    <button
+                      onClick={() => {
+                        setCurrentView("data-quality");
+                        if (window.innerWidth < 1024) {
+                          setSidebarOpen(false);
+                        }
+                      }}
+                      className={`sidebar-item flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all w-full ${getNavItemClass("data-quality")}`}
+                    >
+                      <i className="fas fa-database mr-3 w-5" />
+                      <span className="flex-1 text-left">Calidad de Datos</span>
                     </button>
                   </li>
 
@@ -5167,6 +5201,12 @@ export default function Page() {
 
           {/* DOCUMENT SHARE LINKS */}
           {currentView === "document-links" && <DocumentShareLinksDashboard />}
+
+          {/* ANÁLISIS UNIFICADO (PySpark — 3 algoritmos) */}
+          {currentView === "analysis" && <AnalysisDashboard />}
+
+          {/* CALIDAD DE DATOS — scans, imports, KDD */}
+          {currentView === "data-quality" && <DataQualityDashboard />}
 
           {/* LISTA DE CONTACTOS */}
           {

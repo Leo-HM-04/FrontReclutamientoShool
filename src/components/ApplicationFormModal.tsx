@@ -138,8 +138,8 @@ export default function ApplicationFormModal({
 
       // Preparar datos para enviar al backend
       const applicationData = {
-        candidate: parseInt(formData.candidato),
-        profile: parseInt(formData.perfil),
+        candidate: formData.candidato,
+        profile: formData.perfil,
         status: statusMap[formData.estadoAplicacion] || 'applied',
         match_percentage: formData.porcentajeCoincidencia ? parseInt(formData.porcentajeCoincidencia) : null,
         overall_rating: formData.calificacionGeneral ? parseFloat(formData.calificacionGeneral) : null,

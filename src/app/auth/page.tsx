@@ -218,12 +218,12 @@ export default function LoginPage() {
         {/* Logo Bausen */}
         <div className="text-center">
           <img 
-            src="/reclutamiento/bausen-logo.png" 
+            src="/bausen-logo.png" 
             alt="Bausen Logo" 
             className="mx-auto h-16 w-auto mb-3"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
-              console.log('Error loading logo from /reclutamiento/bausen-logo.png');
+              console.log('Error loading logo from /bausen-logo.png');
             }}
           />
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Sistema de Reclutamiento</h2>
@@ -408,6 +408,16 @@ export default function LoginPage() {
           <p className="text-xs text-gray-600">
             ¿Necesitas ayuda? Contacta al administrador del sistema
           </p>
+        </div>
+
+        {/* Emergency restore link */}
+        <div className="text-center mt-2">
+          <a
+            href="/emergency-restore"
+            className="text-xs text-red-600 hover:text-red-800 underline"
+          >
+            ⚠ Restauración de emergencia (base de datos perdida)
+          </a>
         </div>
 
         {/* Footer */}

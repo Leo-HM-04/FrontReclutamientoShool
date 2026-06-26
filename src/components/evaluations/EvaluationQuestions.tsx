@@ -120,7 +120,7 @@ export default function EvaluationQuestions() {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesTemplate =
-      selectedTemplate === "all" || question.template === parseInt(selectedTemplate);
+      selectedTemplate === "all" || String(question.template) === selectedTemplate;
     return matchesSearch && matchesTemplate;
   });
 
@@ -326,7 +326,7 @@ export default function EvaluationQuestions() {
                 }
 
                 const data = {
-                  template: parseInt(formData.get("template") as string),
+                  template: formData.get("template") as string,
                   question_text: formData.get("question_text"),
                   question_type: questionType,
                   options: options,

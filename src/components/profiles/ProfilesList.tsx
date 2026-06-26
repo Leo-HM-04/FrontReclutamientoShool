@@ -5,9 +5,9 @@ import { getProfiles } from "@/lib/api";
 import Pagination from "../ui/Pagination";
 
 interface Profile {
-  id: number;
+  id: string | number;
   position_title: string;
-  client: number;
+  client: string | number;
   client_name?: string;
   status: string;
   priority: string;
@@ -26,10 +26,10 @@ interface Profile {
 
 interface ProfilesListProps {
   filterStatus?: string;
-  onViewProfile?: (profileId: number) => void;
-  onEditProfile?: (profileId: number) => void;
-  onDeleteProfile?: (profileId: number) => void;
-  highlightId?: number | undefined;
+  onViewProfile?: (profileId: string | number) => void;
+  onEditProfile?: (profileId: string | number) => void;
+  onDeleteProfile?: (profileId: string | number) => void;
+  highlightId?: string | number | undefined;
 }
 
 export default function ProfilesList({ filterStatus, onViewProfile, onEditProfile, onDeleteProfile, highlightId }: ProfilesListProps) {
@@ -38,7 +38,7 @@ export default function ProfilesList({ filterStatus, onViewProfile, onEditProfil
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState(filterStatus || "");
   const [priorityFilter, setPriorityFilter] = useState("");
-  const [activeHighlight, setActiveHighlight] = useState<number | null>(null);
+  const [activeHighlight, setActiveHighlight] = useState<string | number | null>(null);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);

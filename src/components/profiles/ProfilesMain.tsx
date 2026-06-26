@@ -39,16 +39,16 @@ type ProfileView =
 
 interface ProfilesMainProps {
   onClose?: () => void;
-  initialProfileId?: number | null;
+  initialProfileId?: string | number | null;
   initialAction?: 'view' | 'edit';
   initialSubView?: ProfileView;
-  initialHighlightId?: number | null;
+  initialHighlightId?: string | number | null;
 }
 
 export default function ProfilesMain({ onClose, initialProfileId, initialAction, initialSubView, initialHighlightId }: ProfilesMainProps) {
   const { showAlert, showConfirm } = useModal();
   const [currentView, setCurrentView] = useState<ProfileView>("profiles-list");
-  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | number | null>(null);
   const [showCVAnalysis, setShowCVAnalysis] = useState(false); // NUEVO
   const [showProfileGeneration, setShowProfileGeneration] = useState(false); // NUEVO
   const [successMessage, setSuccessMessage] = useState<string>(""); // NUEVO
@@ -152,7 +152,7 @@ export default function ProfilesMain({ onClose, initialProfileId, initialAction,
       : "text-gray-700 hover:bg-gray-50 border-l-4 border-transparent";
   };
 
-  const handleViewProfile = (profileId: number) => {
+  const handleViewProfile = (profileId: string | number) => {
     setSelectedProfileId(profileId);
     setCurrentView("profile-detail");
   };
@@ -162,12 +162,12 @@ export default function ProfilesMain({ onClose, initialProfileId, initialAction,
     setCurrentView("profiles-list");
   };
 
-  const handleEditProfile = (profileId: number) => {
+  const handleEditProfile = (profileId: string | number) => {
   setSelectedProfileId(profileId);
   setCurrentView("profile-create"); // Reutilizamos el formulario en modo edición
 };
 
-const handleDeleteProfile = async (profileId: number) => {
+const handleDeleteProfile = async (profileId: string | number) => {
   const confirmed = await showConfirm("¿Estás seguro de que deseas eliminar este perfil? Esta acción no se puede deshacer.");
   if (!confirmed) {
     return;

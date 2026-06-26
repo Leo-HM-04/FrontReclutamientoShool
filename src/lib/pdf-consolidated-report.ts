@@ -43,10 +43,10 @@ const COLORS = {
 // INTERFACES
 // ════════════════════════════════════════════════════════════════════════════
 export interface ProfileData {
-  id: number;
+  id: string;
   position_title: string;
   client_name: string;
-  client_id: number;
+  client_id: string;
   status: string;
   priority: string;
   created_at: string;
@@ -73,7 +73,7 @@ export interface ProfileData {
 }
 
 export interface ClientData {
-  id: number;
+  id: string;
   company_name: string;
   industry: string;
   contact_name: string;
@@ -89,12 +89,12 @@ export interface ClientData {
 }
 
 export interface CandidateData {
-  id: number;
+  id: string;
   full_name: string;
   email: string;
   phone: string;
   status: string;
-  profile_id: number;
+  profile_id: string;
   profile_title: string;
   client_name: string;
   matching_score: number;
@@ -108,9 +108,9 @@ export interface CandidateData {
 export interface ConsolidatedReportData {
   filter?: {
     type: 'all' | 'client' | 'profile';
-    clientId?: number;
+    clientId?: string;
     clientName?: string;
-    profileId?: number;
+    profileId?: string;
     profileTitle?: string;
   };
   summary: {

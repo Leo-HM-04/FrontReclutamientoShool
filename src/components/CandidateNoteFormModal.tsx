@@ -78,7 +78,7 @@ export default function CandidateNoteFormModal({ isOpen, onClose, onSuccess }: C
       setSubmitting(true);
 
       const noteData = {
-        candidate: parseInt(noteForm.candidato),
+        candidate: noteForm.candidato,
         note: noteForm.nota,
         is_important: noteForm.notaImportante,
       };

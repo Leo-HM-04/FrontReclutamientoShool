@@ -5,7 +5,7 @@ import { useModal } from '@/context/ModalContext';
 import { apiClient } from "@/lib/api";
 
 interface Client {
-  id: number;
+  id: string;
   company_name: string;
   industry: string;
   contact_name: string;
@@ -18,7 +18,7 @@ interface SharedLink {
   expires_at?: string | null;
   created_at?: string | null;
   used_at?: string | null;
-  client: { id: number; company_name: string };
+  client: { id: string; company_name: string };
   status: 'pending' | 'used' | 'expired' | 'in_progress' | 'completed' | string;
 }
 
@@ -73,11 +73,12 @@ export default function ShareProfileForm() {
 
     setLoading(true);
     try {
-      const response: any = await apiClient.generateClientShareLink(parseInt(selectedClient), {
-        duration_hours: parseInt(duration)
+      const response: any = await apiClient.generateClientShareLink(selectedClient, {
+        duration_hours: parseInt(duration, 10)
       });
 
-      const linkUrl = response.share_url || `${window.location.origin}/reclutamiento/public/profile-create/${response.token}`;
+      const base = process.env.NODE_ENV === 'production' ? '/reclutamiento' : '';
+      const linkUrl = response.share_url || `${window.location.origin}${base}/public/profile-create/${response.token}`;
 
       // Copiar al portapapeles
       await navigator.clipboard.writeText(linkUrl);
@@ -90,7 +91,7 @@ export default function ShareProfileForm() {
         share_url: response.share_url || linkUrl,
         expires_at: response.expires_at || null,
         created_at: response.created_at || new Date().toISOString(),
-        client: response.client || { id: parseInt(selectedClient), company_name: clients.find(c => c.id === parseInt(selectedClient))?.company_name || '' },
+        client: response.client || { id: selectedClient, company_name: clients.find(c => c.id === selectedClient)?.company_name || '' },
         status: 'pending'
       };
 
@@ -109,7 +110,8 @@ export default function ShareProfileForm() {
   };
 
   const copyLink = async (token: string) => {
-    const linkUrl = `${window.location.origin}/reclutamiento/public/profile-create/${token}`;
+    const base = process.env.NODE_ENV === 'production' ? '/reclutamiento' : '';
+    const linkUrl = `${window.location.origin}${base}/public/profile-create/${token}`;
     try {
       await navigator.clipboard.writeText(linkUrl);
       await showAlert('Link copiado al portapapeles');
@@ -367,7 +369,7 @@ export default function ShareProfileForm() {
                       )}
                   </div>
 
-                  <a href={`${window.location.origin}/reclutamiento/public/profile-create/${link.token}`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 break-words">{`${window.location.origin}/reclutamiento/public/profile-create/${link.token}`}</a>
+                  <a href={`${window.location.origin}${process.env.NODE_ENV === 'production' ? '/reclutamiento' : ''}/public/profile-create/${link.token}`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 break-words">{`${window.location.origin}${process.env.NODE_ENV === 'production' ? '/reclutamiento' : ''}/public/profile-create/${link.token}`}</a>
                   <div className="text-xs text-gray-500 mt-1">Expira: {formatDate(link.expires_at)}{link.used_at ? ` • Usado: ${formatDate(link.used_at)}` : ''}</div>
 
                 </div>
@@ -382,7 +384,7 @@ export default function ShareProfileForm() {
                   </button>
 
                   <a
-                    href={`${window.location.origin}/reclutamiento/public/profile-create/${link.token}`}
+                    href={`${window.location.origin}${process.env.NODE_ENV === 'production' ? '/reclutamiento' : ''}/public/profile-create/${link.token}`}
                     target="_blank"
                     rel="noreferrer"
                     className="px-3 py-1 text-sm bg-orange-600 text-white rounded hover:bg-orange-700"

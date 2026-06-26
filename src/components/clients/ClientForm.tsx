@@ -130,7 +130,7 @@ export default function ClientForm({ clientId, onSuccess }: ClientFormProps) {
       if (formData.address_state) submitData.address_state = formData.address_state;
       if (formData.address_zip) submitData.address_zip = formData.address_zip;
       if (formData.notes) submitData.notes = formData.notes;
-      if (formData.assigned_to) submitData.assigned_to = parseInt(formData.assigned_to);
+      if (formData.assigned_to) submitData.assigned_to = formData.assigned_to;
 
       console.log('📤 Datos a enviar:', submitData);
 

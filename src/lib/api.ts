@@ -29,7 +29,7 @@ interface LoginResponse {
   access: string;
   refresh: string;
   user: {
-    id: number;
+    id: string | number;
     email: string;
     first_name: string;
     last_name: string;
@@ -89,6 +89,17 @@ class ApiClient {
       const response = await fetch(url, config);
       
       if (!response.ok) {
+        // Sesión expirada o inválida → limpiar y redirigir al login
+        if (response.status === 401) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('userRole');
+          if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
+            window.location.href = '/auth';
+          }
+        }
+
         let errorData: any = null;
         try {
           errorData = await response.json();
@@ -201,7 +212,7 @@ class ApiClient {
   /**
    * Get candidate by ID
    */
-  async getCandidate(id: number) {
+  async getCandidate(id: string | number) {
     return this.makeRequest(`/candidates/candidates/${id}/`);
   }
 
@@ -218,7 +229,7 @@ class ApiClient {
   /**
    * Update candidate
    */
-  async updateCandidate(id: number, candidateData: any) {
+  async updateCandidate(id: string | number, candidateData: any) {
     return this.makeRequest(`/candidates/candidates/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(candidateData),
@@ -228,7 +239,7 @@ class ApiClient {
   /**
    * Delete candidate
    */
-  async deleteCandidate(id: number) {
+  async deleteCandidate(id: string | number) {
     return this.makeRequest(`/candidates/candidates/${id}/`, {
       method: 'DELETE',
     });
@@ -247,11 +258,11 @@ class ApiClient {
     return this.makeRequest(`/notifications/unread/`);
   }
 
-  async markNotificationRead(id: number) {
+  async markNotificationRead(id: string | number) {
     return this.makeRequest(`/notifications/${id}/mark_as_read/`, { method: 'POST' });
   }
 
-  async markNotificationUnread(id: number) {
+  async markNotificationUnread(id: string | number) {
     return this.makeRequest(`/notifications/${id}/mark_as_unread/`, { method: 'POST' });
   }
 
@@ -276,7 +287,7 @@ class ApiClient {
   /**
    * Get application by ID
    */
-  async getCandidateApplication(id: number) {
+  async getCandidateApplication(id: string | number) {
     return this.makeRequest(`/candidates/applications/${id}/`);
   }
 
@@ -294,8 +305,8 @@ class ApiClient {
    * Asignación masiva de candidatos a una vacante/perfil
    */
   async bulkAssignCandidatesToProfile(payload: {
-    candidate_ids: number[];
-    profile_id: number;
+    candidate_ids: (string | number)[];
+    profile_id: string | number;
     notes?: string;
     skip_existing?: boolean;
   }) {
@@ -308,7 +319,7 @@ class ApiClient {
   /**
    * Update candidate application
    */
-  async updateCandidateApplication(id: number, applicationData: any) {
+  async updateCandidateApplication(id: string | number, applicationData: any) {
     return this.makeRequest(`/candidates/applications/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(applicationData),
@@ -318,7 +329,7 @@ class ApiClient {
   /**
    * Delete candidate application
    */
-  async deleteCandidateApplication(id: number) {
+  async deleteCandidateApplication(id: string | number) {
     return this.makeRequest(`/candidates/applications/${id}/`, {
       method: 'DELETE',
     });
@@ -339,7 +350,7 @@ class ApiClient {
   /**
    * Get document by ID
    */
-  async getCandidateDocument(id: number) {
+  async getCandidateDocument(id: string | number) {
     return this.makeRequest(`/candidates/documents/${id}/`);
   }
 
@@ -371,7 +382,7 @@ class ApiClient {
   /**
    * Delete candidate document
    */
-  async deleteCandidateDocument(id: number) {
+  async deleteCandidateDocument(id: string | number) {
     return this.makeRequest(`/candidates/documents/${id}/`, {
       method: 'DELETE',
     });
@@ -438,7 +449,7 @@ class ApiClient {
   /**
    * Get note by ID
    */
-  async getCandidateNote(id: number) {
+  async getCandidateNote(id: string | number) {
     return this.makeRequest(`/candidates/notes/${id}/`);
   }
 
@@ -455,7 +466,7 @@ class ApiClient {
   /**
    * Update candidate note
    */
-  async updateCandidateNote(id: number, noteData: any) {
+  async updateCandidateNote(id: string | number, noteData: any) {
     return this.makeRequest(`/candidates/notes/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(noteData),
@@ -465,7 +476,7 @@ class ApiClient {
   /**
    * Delete candidate note
    */
-  async deleteCandidateNote(id: number) {
+  async deleteCandidateNote(id: string | number) {
     return this.makeRequest(`/candidates/notes/${id}/`, {
       method: 'DELETE',
     });
@@ -491,7 +502,7 @@ class ApiClient {
    * Get AI services stats with hybrid metrics
    */
   async getAIHybridStats(): Promise<any> {
-    return this.makeRequest<any>('/api/ai-services/logs/stats/');
+    return this.makeRequest<any>('/ai-services/logs/stats/');
   }
 
   // ====== CONTACTS ENDPOINTS ======
@@ -507,7 +518,7 @@ class ApiClient {
   /**
    * Get single contact by ID
    */
-  async getContact(id: number): Promise<any> {
+  async getContact(id: string | number): Promise<any> {
     return this.makeRequest<any>(`/clients/contacts/${id}/`);
   }
 
@@ -527,7 +538,7 @@ class ApiClient {
   /**
    * Update contact
    */
-  async updateContact(id: number, contactData: any): Promise<any> {
+  async updateContact(id: string | number, contactData: any): Promise<any> {
     return this.makeRequest<any>(`/clients/contacts/${id}/`, {
       method: 'PUT',
       body: JSON.stringify(contactData),
@@ -537,7 +548,7 @@ class ApiClient {
   /**
    * Delete contact
    */
-  async deleteContact(id: number): Promise<any> {
+  async deleteContact(id: string | number): Promise<any> {
     return this.makeRequest<any>(`/clients/contacts/${id}/`, {
       method: 'DELETE',
     });
@@ -573,7 +584,7 @@ class ApiClient {
   /**
    * Get single profile by ID
    */
-  async getProfile(id: number): Promise<any> {
+  async getProfile(id: string | number): Promise<any> {
     return this.makeRequest<any>(`/profiles/profiles/${id}/`);
   }
 
@@ -590,7 +601,7 @@ class ApiClient {
   /**
    * Update profile
    */
-  async updateProfile(id: number, profileData: Partial<Profile>): Promise<Profile> {
+  async updateProfile(id: string | number, profileData: Partial<Profile>): Promise<Profile> {
     return this.makeRequest<Profile>(`/profiles/profiles/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(profileData),
@@ -600,7 +611,7 @@ class ApiClient {
   /**
    * Delete profile
    */
-  async deleteProfile(id: number): Promise<void> {
+  async deleteProfile(id: string | number): Promise<void> {
     return this.makeRequest<void>(`/profiles/profiles/${id}/`, {
       method: 'DELETE',
     });
@@ -610,7 +621,7 @@ class ApiClient {
    * Approve or reject profile
    */
   async approveProfile(
-    id: number,
+    id: string | number,
     data: { approved: boolean; feedback?: string }
   ): Promise<any> {
     return this.makeRequest<any>(`/profiles/profiles/${id}/approve/`, {
@@ -623,7 +634,7 @@ class ApiClient {
    * Change profile status
    */
   async changeProfileStatus(
-    id: number,
+    id: string | number,
     data: { status: string; notes?: string }
   ): Promise<any> {
     return this.makeRequest<any>(`/profiles/profiles/${id}/change_status/`, {
@@ -647,15 +658,15 @@ class ApiClient {
    * @param useAI - Whether to use AI analysis (default: true)
    */
   async getAutoRecommendations(
-    profileId: number,
+    profileId: string | number,
     limit: number = 5,
     useAI: boolean = true
   ): Promise<{
-    profile_id: number;
+    profile_id: string | number;
     profile_title: string;
     candidates_analyzed: number;
     recommendations: Array<{
-      candidate_id: number;
+      candidate_id: string | number;
       candidate_name: string;
       candidate_email: string;
       current_position: string;
@@ -736,7 +747,7 @@ class ApiClient {
   /**
    * Delete profile document
    */
-  async deleteProfileDocument(id: number) {
+  async deleteProfileDocument(id: string | number) {
     return this.makeRequest(`/profiles/documents/${id}/`, {
       method: 'DELETE',
     });
@@ -792,7 +803,7 @@ class ApiClient {
   /**
    * Get single client by ID
    */
-  async getClient(id: number): Promise<any> {
+  async getClient(id: string | number): Promise<any> {
     return this.makeRequest<any>(`/clients/${id}/`);
   }
 
@@ -809,7 +820,7 @@ class ApiClient {
   /**
    * Update client
    */
-  async updateClient(id: number, clientData: Partial<Client>): Promise<Client> {
+  async updateClient(id: string | number, clientData: Partial<Client>): Promise<Client> {
     return this.makeRequest<Client>(`/clients/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(clientData),
@@ -819,7 +830,7 @@ class ApiClient {
   /**
    * Delete client
    */
-  async deleteClient(id: number): Promise<void> {
+  async deleteClient(id: string | number): Promise<void> {
     return this.makeRequest<void>(`/clients/${id}/`, {
       method: 'DELETE',
     });
@@ -828,7 +839,7 @@ class ApiClient {
   /**
    * Generate share link for a client (to create profiles)
    */
-  async generateClientShareLink(clientId: number, options?: { duration_hours?: number }): Promise<any> {
+  async generateClientShareLink(clientId: string | number, options?: { duration_hours?: number }): Promise<any> {
     const body = options ? JSON.stringify(options) : '{}';
     return this.makeRequest<any>(`/clients/${clientId}/generate_share_link/`, {
       method: 'POST',
@@ -846,7 +857,7 @@ class ApiClient {
   /**
    * Revoke a specific shared link for a client
    */
-  async revokeClientSharedLink(clientId: number, token: string): Promise<any> {
+  async revokeClientSharedLink(clientId: string | number, token: string): Promise<any> {
     return this.makeRequest<any>(`/clients/${clientId}/revoke_shared_link/`, {
       method: 'POST',
       body: JSON.stringify({ token }),
@@ -893,7 +904,7 @@ class ApiClient {
   /**
    * Delete a contract
    */
-  async deleteClientContract(id: number): Promise<void> {
+  async deleteClientContract(id: string | number): Promise<void> {
     return this.makeRequest<void>(`/client-contracts/${id}/`, {
       method: 'DELETE',
     });
@@ -912,7 +923,7 @@ class ApiClient {
   /**
    * Get single user by ID
    */
-  async getUser(id: number): Promise<User> {
+  async getUser(id: string | number): Promise<User> {
     return this.makeRequest<User>(`/accounts/users/${id}/`);
   }
 
@@ -929,7 +940,7 @@ class ApiClient {
   /**
    * Update user
    */
-  async updateUser(id: number, userData: UpdateUserData): Promise<User> {
+  async updateUser(id: string | number, userData: UpdateUserData): Promise<User> {
     return this.makeRequest<User>(`/accounts/users/${id}/`, {
       method: 'PATCH',
       body: JSON.stringify(userData),
@@ -939,7 +950,7 @@ class ApiClient {
   /**
    * Delete user (soft delete - set inactive)
    */
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string | number): Promise<void> {
     return this.makeRequest<void>(`/accounts/users/${id}/`, {
       method: 'DELETE',
     });
@@ -948,7 +959,7 @@ class ApiClient {
   /**
    * Toggle user active status
    */
-  async toggleUserStatus(id: number, isActive: boolean): Promise<User> {
+  async toggleUserStatus(id: string | number, isActive: boolean): Promise<User> {
     return this.updateUser(id, { is_active: isActive });
   }
 
@@ -963,7 +974,7 @@ class ApiClient {
   /**
    * Get activities for specific user
    */
-  async getUserActivityById(userId: number): Promise<UserActivity[]> {
+  async getUserActivityById(userId: string | number): Promise<UserActivity[]> {
     return this.makeRequest<UserActivity[]>(`/accounts/users/${userId}/activities/`);
   }
 
@@ -1078,7 +1089,7 @@ class ApiClient {
   /**
    * Get single CV analysis by ID
    */
-  async getCVAnalysis(id: number): Promise<any> {
+  async getCVAnalysis(id: string | number): Promise<any> {
     return this.makeRequest<any>(`/ai-services/cv-analysis/${id}/`);
   }
 
@@ -1107,7 +1118,7 @@ class ApiClient {
   /**
    * Get single profile generation by ID
    */
-  async getProfileGeneration(id: number): Promise<any> {
+  async getProfileGeneration(id: string | number): Promise<any> {
     return this.makeRequest<any>(`/ai-services/profile-generation/${id}/`);
   }
 
@@ -1115,8 +1126,8 @@ class ApiClient {
    * Calculate candidate-profile matching with AI
    */
   async calculateMatching(data: {
-    candidate_id: number;
-    profile_id: number;
+    candidate_id: string | number;
+    profile_id: string | number;
   }): Promise<any> {
     return this.makeRequest<any>('/ai-services/matching/calculate/', {
       method: 'POST',
@@ -1170,7 +1181,7 @@ class ApiClient {
 // ====== TYPE DEFINITIONS ======
 
 export interface User {
-  id: number;
+  id: string | number;
   email: string;
   first_name: string;
   last_name: string;
@@ -1185,7 +1196,7 @@ export interface User {
 }
 
 export interface UserActivity {
-  id: number;
+  id: string | number;
   user: number;
   user_email: string;
   user_name: string;
@@ -1196,7 +1207,7 @@ export interface UserActivity {
 }
 
 export interface Client {
-  id: number;
+  id: string | number;
   company_name: string;
   rfc: string;
   industry: string;
@@ -1210,35 +1221,35 @@ export interface Client {
   address_state: string;
   address_zip: string;
   address_country?: string;
-  assigned_to?: number;
+  assigned_to?: string | number;
   assigned_to_name?: string;
   is_active?: boolean;
   notes?: string;
   created_at: string;
   updated_at: string;
-  created_by?: number;
+  created_by?: string | number;
   created_by_name?: string;
   full_address?: string;
   active_profiles_count?: number;
 }
 
 export interface Profile {
-  id: number;
-  client: number;
+  id: string | number;
+  client: string | number;
   client_name: string;
   position_title: string;
   status: string;
   status_display: string;
   priority: string;
   service_type: string;
-  assigned_to?: number;
+  assigned_to?: string | number;
   assigned_to_name?: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface Candidate {
-  id: number;
+  id: string | number;
   first_name: string;
   last_name: string;
   full_name: string;
@@ -1311,33 +1322,33 @@ export const apiClient = new ApiClient();
 export const getProfiles = (params?: Record<string, string>) =>
   apiClient.getProfiles(params);
 
-export const getProfile = (id: number) =>
+export const getProfile = (id: string | number) =>
   apiClient.getProfile(id);
 
 export const approveProfile = (
-  id: number,
+  id: string | number,
   data: { approved: boolean; feedback?: string }
 ) => apiClient.approveProfile(id, data);
 
 export const changeProfileStatus = (
-  id: number,
+  id: string | number,
   data: { status: string; notes?: string }
 ) => apiClient.changeProfileStatus(id, data);
 
 export const createProfile = (profileData: Partial<Profile>) =>
   apiClient.createProfile(profileData);
 
-export const updateProfile = (id: number, profileData: Partial<Profile>) =>
+export const updateProfile = (id: string | number, profileData: Partial<Profile>) =>
   apiClient.updateProfile(id, profileData);
 
-export const deleteProfile = (id: number) =>
+export const deleteProfile = (id: string | number) =>
   apiClient.deleteProfile(id);
 
 export const getProfileStats = () =>
   apiClient.getProfileStats();
 
 export const getAutoRecommendations = (
-  profileId: number,
+  profileId: string | number,
   limit: number = 5,
   useAI: boolean = true
 ) => apiClient.getAutoRecommendations(profileId, limit, useAI);
@@ -1355,32 +1366,32 @@ export const getProfileHistory = (profileId: number) =>
 export const getCandidates = (params?: any) =>
   apiClient.getCandidates(params);
 
-export const getCandidate = (id: number) =>
+export const getCandidate = (id: string | number) =>
   apiClient.getCandidate(id);
 
 export const createCandidate = (candidateData: any) =>
   apiClient.createCandidate(candidateData);
 
-export const updateCandidate = (id: number, candidateData: any) =>
+export const updateCandidate = (id: string | number, candidateData: any) =>
   apiClient.updateCandidate(id, candidateData);
 
-export const deleteCandidate = (id: number) =>
+export const deleteCandidate = (id: string | number) =>
   apiClient.deleteCandidate(id);
 
 // Clients exports
 export const getClients = (params?: Record<string, string>) =>
   apiClient.getClients(params);
 
-export const getClient = (id: number) =>
+export const getClient = (id: string | number) =>
   apiClient.getClient(id);
 
 export const createClient = (clientData: any) =>
   apiClient.createClient(clientData);
 
-export const updateClient = (id: number, clientData: any) =>
+export const updateClient = (id: string | number, clientData: any) =>
   apiClient.updateClient(id, clientData);
 
-export const deleteClient = (id: number) =>
+export const deleteClient = (id: string | number) =>
   apiClient.deleteClient(id);
 
 
@@ -1391,7 +1402,7 @@ export const analyzeCVWithAI = (formData: FormData) =>
 export const getCVAnalyses = (params?: Record<string, string>) =>
   apiClient.getCVAnalyses(params);
 
-export const getCVAnalysis = (id: number) =>
+export const getCVAnalysis = (id: string | number) =>
   apiClient.getCVAnalysis(id);
 
 export const generateProfileFromTranscription = (data: {
@@ -1403,10 +1414,10 @@ export const generateProfileFromTranscription = (data: {
 export const getProfileGenerations = (params?: Record<string, string>) =>
   apiClient.getProfileGenerations(params);
 
-export const getProfileGeneration = (id: number) =>
+export const getProfileGeneration = (id: string | number) =>
   apiClient.getProfileGeneration(id);
 
-export const calculateMatching = (data: { candidate_id: number; profile_id: number }) =>
+export const calculateMatching = (data: { candidate_id: string | number; profile_id: string | number }) =>
   apiClient.calculateMatching(data);
 
 export const getMatchings = (params?: Record<string, string>) =>
@@ -1424,12 +1435,12 @@ export const getBulkUploadStatus = (taskId: string) =>
 // ============================================================
 
 export interface DocumentShareLink {
-  id: number;
+  id: string | number;
   token: string;
   candidate: number;
   candidate_name?: string;  // Campo del SummarySerializer
   candidate_info?: {
-    id: number;
+    id: string | number;
     first_name: string;
     last_name: string;
     full_name: string;
@@ -1494,7 +1505,7 @@ export const getDocumentShareLinks = async (params?: Record<string, string>): Pr
 /**
  * Obtiene un document share link por ID
  */
-export const getDocumentShareLink = async (id: number): Promise<DocumentShareLink> => {
+export const getDocumentShareLink = async (id: string | number): Promise<DocumentShareLink> => {
   const response = await fetch(`${API_BASE_URL}/documents/share-links/${id}/`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)}`,
@@ -1526,7 +1537,7 @@ export const createDocumentShareLink = async (data: DocumentShareLinkCreate): Pr
 /**
  * Revoca un document share link
  */
-export const revokeDocumentShareLink = async (id: number): Promise<{ message: string; link: DocumentShareLink }> => {
+export const revokeDocumentShareLink = async (id: string | number): Promise<{ message: string; link: DocumentShareLink }> => {
   const response = await fetch(`${API_BASE_URL}/documents/share-links/${id}/revoke/`, {
     method: 'POST',
     headers: {
@@ -1540,7 +1551,7 @@ export const revokeDocumentShareLink = async (id: number): Promise<{ message: st
 /**
  * Elimina un document share link
  */
-export const deleteDocumentShareLink = async (id: number): Promise<void> => {
+export const deleteDocumentShareLink = async (id: string | number): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/documents/share-links/${id}/`, {
     method: 'DELETE',
     headers: {
@@ -1608,7 +1619,7 @@ export const uploadPublicDocument = async (
   file: File
 ): Promise<{
   message: string;
-  document: { id: number; type: string; type_label: string; filename: string };
+  document: { id: string | number; type: string; type_label: string; filename: string };
   progress: number;
   is_complete: boolean;
   pending_documents: Array<{ type: string; label: string }>;

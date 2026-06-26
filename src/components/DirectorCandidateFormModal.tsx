@@ -222,10 +222,7 @@ export default function DirectorCandidateFormModal({ isOpen, onClose, onSuccess 
         candidateData.status = statusMap[candidateForm.estadoCandidato] || 'new';
       }
       if (candidateForm.asignadoA && candidateForm.asignadoA !== '') {
-        const assignedId = parseInt(candidateForm.asignadoA);
-        if (!isNaN(assignedId)) {
-          candidateData.assigned_to = assignedId;
-        }
+        candidateData.assigned_to = candidateForm.asignadoA;
       }
       if (candidateForm.fuenteReclutamiento) {
         candidateData.source = candidateForm.fuenteReclutamiento.trim();

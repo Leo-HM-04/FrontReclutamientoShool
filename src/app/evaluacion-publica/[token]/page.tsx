@@ -98,7 +98,7 @@ export default function PublicEvaluationPage() {
         body: JSON.stringify({
           candidate_info: candidateInfo,
           answers: Object.entries(answers).map(([questionId, answer]) => ({
-            question_id: parseInt(questionId),
+            question_id: questionId,
             answer_text: answer
           }))
         })

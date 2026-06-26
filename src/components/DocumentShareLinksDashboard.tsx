@@ -45,8 +45,8 @@ export default function DocumentShareLinksPage() {
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
-  const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | number | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | number | null>(null);
   
   // Toast notification state
   const [toast, setToast] = useState<{
@@ -96,7 +96,7 @@ export default function DocumentShareLinksPage() {
   // HANDLERS
   // ============================================================
 
-  const handleRevoke = async (id: number) => {
+  const handleRevoke = async (id: string | number) => {
     setActionLoading(id);
     try {
       await revokeDocumentShareLink(id);
@@ -110,7 +110,7 @@ export default function DocumentShareLinksPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     setActionLoading(id);
     try {
       await deleteDocumentShareLink(id);

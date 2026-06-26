@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { getAutoRecommendations } from "@/lib/api";
 
 interface RecommendedCandidate {
-  candidate_id: number;
+  candidate_id: string | number;
   candidate_name: string;
   candidate_email: string;
   current_position: string;
@@ -24,7 +24,7 @@ interface RecommendedCandidate {
 }
 
 interface RecommendationResult {
-  profile_id: number;
+  profile_id: string | number;
   profile_title: string;
   candidates_analyzed: number;
   recommendations: RecommendedCandidate[];
@@ -35,11 +35,11 @@ interface RecommendationResult {
 }
 
 interface AutoRecommendModalProps {
-  profileId: number;
+  profileId: string | number;
   profileTitle: string;
   isOpen: boolean;
   onClose: () => void;
-  onViewCandidate?: (candidateId: number) => void;
+  onViewCandidate?: (candidateId: string | number) => void;
 }
 
 export default function AutoRecommendModal({
@@ -54,7 +54,7 @@ export default function AutoRecommendModal({
   const [error, setError] = useState<string | null>(null);
   const [useAI, setUseAI] = useState(true);
   const [limit, setLimit] = useState(5);
-  const [expandedCandidate, setExpandedCandidate] = useState<number | null>(null);
+  const [expandedCandidate, setExpandedCandidate] = useState<string | number | null>(null);
 
   useEffect(() => {
     if (isOpen && !result) {

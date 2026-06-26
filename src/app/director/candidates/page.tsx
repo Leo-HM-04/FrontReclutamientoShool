@@ -194,7 +194,7 @@ export default function NotesPage() {
 
     // Filtrar por candidato
     if (candidateFilter) {
-      filtered = filtered.filter(note => note.candidate === parseInt(candidateFilter));
+      filtered = filtered.filter(note => String(note.candidate) === candidateFilter);
     }
 
     // Filtrar por importancia
@@ -569,7 +569,7 @@ function NoteFormModal({ candidates, existingNote, onClose, onSuccess }: NoteFor
       console.log(existingNote ? '💾 Actualizando nota...' : '📝 Creando nota...');
 
       const noteData = {
-        candidate: parseInt(formData.candidate),
+        candidate: formData.candidate,
         note: formData.note.trim(),
         is_important: formData.is_important
       };

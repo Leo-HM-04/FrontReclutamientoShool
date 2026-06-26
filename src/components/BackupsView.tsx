@@ -71,6 +71,14 @@ interface VerifyResult {
   error?: string;
 }
 
+interface EmergencyFile {
+  file_name: string;
+  size_bytes: number;
+  size_display: string;
+  modified: number;
+  is_valid_zip: boolean;
+}
+
 // ═══════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════
@@ -168,6 +176,13 @@ export default function BackupsView() {
 
   // Restore
   const [restoreConfirmText, setRestoreConfirmText] = useState('');
+
+  // Emergency restore
+  const [showEmergencyModal, setShowEmergencyModal] = useState(false);
+  const [emergencyFiles, setEmergencyFiles] = useState<EmergencyFile[]>([]);
+  const [emergencySelectedFile, setEmergencySelectedFile] = useState('');
+  const [emergencyConfirmText, setEmergencyConfirmText] = useState('');
+  const [emergencyLoading, setEmergencyLoading] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -378,6 +393,48 @@ export default function BackupsView() {
     setShowRestoreModal(true);
   };
 
+  const openEmergencyRestore = async () => {
+    setEmergencyLoading(true);
+    setEmergencyConfirmText('');
+    setEmergencySelectedFile('');
+    try {
+      const res = await apiFetch('/backups/emergency/files/');
+      const data = await res.json();
+      setEmergencyFiles(data.files || []);
+      setShowEmergencyModal(true);
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setEmergencyLoading(false);
+    }
+  };
+
+  const handleEmergencyRestore = async () => {
+    if (!emergencySelectedFile) {
+      showToast('Selecciona un archivo de respaldo.', 'error');
+      return;
+    }
+    try {
+      setEmergencyLoading(true);
+      const res = await apiFetch('/backups/emergency/restore/', {
+        method: 'POST',
+        body: JSON.stringify({
+          file_name: emergencySelectedFile,
+          confirmation: emergencyConfirmText,
+        }),
+      });
+      const data = await res.json();
+      showToast(`Restauración de emergencia completada: ${data.records_count} registros en ${data.tables_count} colecciones.`, 'success');
+      setShowEmergencyModal(false);
+      loadBackups();
+      loadStats();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    } finally {
+      setEmergencyLoading(false);
+    }
+  };
+
   // ─────────────────────────────────────────────────────────
   // FORMAT HELPERS
   // ─────────────────────────────────────────────────────────
@@ -415,13 +472,24 @@ export default function BackupsView() {
           <h2 className="text-2xl font-bold text-gray-900">Respaldos de Base de Datos</h2>
           <p className="text-sm text-gray-500 mt-1">Gestiona, exporta y restaura respaldos del sistema</p>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
-        >
-          <i className="fas fa-plus mr-2"></i>
-          Nuevo Respaldo
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={openEmergencyRestore}
+            disabled={emergencyLoading}
+            title="Restaurar desde archivo ZIP sin requerir registros en BD (modo emergencia)"
+            className="inline-flex items-center px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition shadow-sm disabled:opacity-50"
+          >
+            <i className="fas fa-exclamation-triangle mr-2"></i>
+            Restaurar Emergencia
+          </button>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition shadow-sm"
+          >
+            <i className="fas fa-plus mr-2"></i>
+            Nuevo Respaldo
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -950,6 +1018,103 @@ export default function BackupsView() {
                 className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
               >
                 Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════
+          MODAL: RESTAURACIÓN DE EMERGENCIA
+          ═════════════════════════════════════════════════════ */}
+      {showEmergencyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setShowEmergencyModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-red-200 bg-red-50 rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <i className="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-red-900">Restauración de Emergencia</h3>
+                  <p className="text-xs text-red-600 mt-0.5">Restaura desde archivo ZIP sin requerir registros en la base de datos</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-5">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                <i className="fas fa-info-circle mr-1.5"></i>
+                Usa esta opción cuando la base de datos fue borrada completamente y no hay registros de respaldos.
+                Los archivos ZIP en disco son suficientes para restaurar.
+              </div>
+
+              {emergencyFiles.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">No hay archivos de respaldo disponibles en disco.</div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Selecciona el archivo de respaldo</label>
+                  <div className="space-y-2 max-h-52 overflow-y-auto">
+                    {emergencyFiles.map(f => (
+                      <label
+                        key={f.file_name}
+                        className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition ${
+                          emergencySelectedFile === f.file_name ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="emergency_file"
+                          value={f.file_name}
+                          checked={emergencySelectedFile === f.file_name}
+                          onChange={() => setEmergencySelectedFile(f.file_name)}
+                          className="text-red-600"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-800 truncate">{f.file_name}</div>
+                          <div className="text-xs text-gray-500">{f.size_display} &bull; {new Date(f.modified * 1000).toLocaleString('es-MX')}</div>
+                        </div>
+                        {!f.is_valid_zip && <span className="text-xs text-red-500 font-medium">Inválido</span>}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Escribe <span className="font-mono font-bold text-red-600">CONFIRMAR</span> para continuar
+                </label>
+                <input
+                  type="text"
+                  value={emergencyConfirmText}
+                  onChange={e => setEmergencyConfirmText(e.target.value)}
+                  placeholder="CONFIRMAR"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 font-mono"
+                />
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700">
+                <i className="fas fa-radiation mr-1.5"></i>
+                <strong>Advertencia:</strong> Esto sobreescribirá permanentemente TODOS los datos actuales en las colecciones restauradas.
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => setShowEmergencyModal(false)}
+                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleEmergencyRestore}
+                disabled={emergencyLoading || emergencyConfirmText !== 'CONFIRMAR' || !emergencySelectedFile}
+                className="px-5 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                {emergencyLoading ? (
+                  <><i className="fas fa-spinner fa-spin mr-2"></i>Restaurando...</>
+                ) : (
+                  <><i className="fas fa-bolt mr-2"></i>Restaurar Ahora</>
+                )}
               </button>
             </div>
           </div>

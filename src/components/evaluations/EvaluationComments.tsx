@@ -94,7 +94,7 @@ export default function EvaluationComments() {
     const matchesSearch = comment.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
       comment.user_name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesEvaluation =
-      filterEvaluation === "all" || comment.evaluation === parseInt(filterEvaluation);
+      filterEvaluation === "all" || String(comment.evaluation) === filterEvaluation;
     const matchesType =
       filterType === "all" ||
       (filterType === "internal" && comment.is_internal) ||
@@ -286,7 +286,7 @@ export default function EvaluationComments() {
                   const formData = new FormData(e.currentTarget);
 
                   const data = {
-                    evaluation: parseInt(formData.get("evaluation") as string),
+                    evaluation: formData.get("evaluation") as string,
                     comment: formData.get("comment"),
                     is_internal: formData.get("is_internal") === "on",
                   };

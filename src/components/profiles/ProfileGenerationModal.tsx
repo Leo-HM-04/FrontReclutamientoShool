@@ -70,7 +70,7 @@ export default function ProfileGenerationModal({
       };
 
       if (selectedClient) {
-        data.client_id = parseInt(selectedClient);
+        data.client_id = selectedClient;
       }
 
       const result = await generateProfileFromTranscription(data);

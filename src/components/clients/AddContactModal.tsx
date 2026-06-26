@@ -36,7 +36,7 @@ export default function AddContactModal({ clients, onClose, onSuccess }: AddCont
       setSubmitting(true);
 
       const contactData = {
-        client: parseInt(formData.client),
+        client: formData.client,
         name: formData.name,
         position: formData.position,
         email: formData.email,

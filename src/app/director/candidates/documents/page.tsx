@@ -2,6 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useModal } from '@/context/ModalContext';
+import ProfessionalLicenseVerificationSummary, {
+  getProfessionalLicenseStatusClass,
+  getProfessionalLicenseStatusDescription,
+  type ProfessionalLicenseVerificationData,
+} from '@/components/candidates/ProfessionalLicenseVerificationSummary';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faFolderOpen,
@@ -64,6 +69,7 @@ interface Document {
   description: string;
   ai_extracted_text?: string;
   ai_parsed_data?: any;
+  professional_license_verification?: ProfessionalLicenseVerificationData | null;
   uploaded_by: number;
   uploaded_by_name: string;
   uploaded_at: string;
@@ -232,7 +238,7 @@ export default function DocumentsPage() {
 
     // Filtrar por candidato
     if (candidateFilter) {
-      filtered = filtered.filter(doc => doc.candidate === parseInt(candidateFilter));
+      filtered = filtered.filter(doc => String(doc.candidate) === candidateFilter);
     }
 
     // Filtrar por tipo de documento
@@ -491,6 +497,18 @@ export default function DocumentsPage() {
                             <div className="text-sm font-medium text-gray-900">
                               {document.original_filename}
                             </div>
+                            {document.professional_license_verification && (
+                              <span
+                                title={
+                                  document.professional_license_verification.evidence_summary ||
+                                  getProfessionalLicenseStatusDescription(document.professional_license_verification.status)
+                                }
+                                className={`mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium ${getProfessionalLicenseStatusClass(document.professional_license_verification.status)}`}
+                              >
+                                <FontAwesomeIcon icon={faCertificate} className="text-[10px]" />
+                                Cédula: {document.professional_license_verification.status_display || 'En verificación'}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -895,6 +913,23 @@ function DocumentDetailModal({ document, candidateName, onClose }: DocumentDetai
                   {JSON.stringify(document.ai_parsed_data, null, 2)}
                 </pre>
               </div>
+            </div>
+          )}
+
+          {/* Verificación de Cédula Profesional (OCR + consulta oficial SEP/RNP) */}
+          {document.document_type === 'cedula_profesional' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center gap-2">
+                <FontAwesomeIcon icon={faCertificate} className="text-orange-600" />
+                Análisis de Cédula Profesional
+              </label>
+              <ProfessionalLicenseVerificationSummary
+                verification={document.professional_license_verification}
+                showComparisonDetails
+                title="Verificación oficial SEP/RNP"
+                description="Extracción OCR de la cédula y cotejo automático contra el Registro Nacional de Profesionistas."
+                emptyLabel="La verificación aún no se ha inicializado para esta cédula."
+              />
             </div>
           )}
 

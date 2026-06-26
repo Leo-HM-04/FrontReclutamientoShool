@@ -134,7 +134,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
 
       const matchesStatus = statusFilter === "all" || candidate.latest_application_status === statusFilter;
       const matchesApplication = applicationFilter === "all" ||
-        (candidate.candidate_profiles && candidate.candidate_profiles.some((app: any) => app.profile === parseInt(applicationFilter)));
+        (candidate.candidate_profiles && candidate.candidate_profiles.some((app: any) => String(app.profile) === applicationFilter));
 
       return matchesSearch && matchesStatus && matchesApplication;
     });
@@ -179,7 +179,7 @@ export default function CandidatesMain({ onClose }: CandidatesMainProps) {
   }, [profiles]);
 
   const handleBulkApplyToProfile = async () => {
-    const profileId = Number(selectedProfileForBulkApply);
+    const profileId = selectedProfileForBulkApply;
     if (!profileId) {
       await showAlert('Selecciona una vacante para continuar.');
       return;

@@ -24,6 +24,15 @@ const nextConfig: NextConfig = {
 
     return config;
   },
+
+  turbopack: {
+    rules: {
+      '*.txt': {
+        loaders: ['raw-loader'],
+        as: '*.js',
+      },
+    },
+  },
 };
 
 export default nextConfig;

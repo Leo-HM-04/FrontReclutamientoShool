@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import ProfilesList from '../components/profiles/ProfilesList';
 import * as api from '../lib/api';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 vi.mock('@/lib/api');
 

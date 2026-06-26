@@ -5,19 +5,19 @@ import { useModal } from '@/context/ModalContext';
 import { createProfile, updateProfile, getProfile, getClients, apiClient } from "@/lib/api";
 import ShareLinkModal from '@/components/ShareLinkModal';
 interface ProfileFormProps {
-  profileId?: number;
+  profileId?: string | number;
   onSuccess?: () => void;
   onNavigateToShareForm?: () => void;
 }
 
 interface Client {
-  id: number;
+  id: string | number;
   company_name: string;
   name?: string;
 }
 
 interface User {
-  id: number;
+  id: string | number;
   full_name: string;
   email: string;
   role: string;
@@ -31,7 +31,7 @@ export default function ProfileForm({ profileId, onSuccess, onNavigateToShareFor
   const { showAlert } = useModal();
 
   // Compartir enlace público
-  const [createdProfileId, setCreatedProfileId] = useState<number | undefined>(profileId);
+  const [createdProfileId, setCreatedProfileId] = useState<string | number | undefined>(profileId);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareLink, setShareLink] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
@@ -276,7 +276,7 @@ ${formData.benefits || 'No especificados'}
 
     // Preparar datos para el backend
     const submitData = {
-      client: parseInt(formData.client as any),
+      client: formData.client,
       position_title: formData.position_title,
       position_description: position_description,
       department: formData.department || '',
@@ -311,7 +311,7 @@ ${formData.benefits || 'No especificados'}
       priority: formData.priority || 'medium',
       deadline: formData.deadline_date || null,
       desired_start_date: formData.expected_start_date || null,
-      assigned_to: formData.assigned_to ? parseInt(formData.assigned_to as any) : undefined,
+      assigned_to: formData.assigned_to ? formData.assigned_to : undefined,
       internal_notes: formData.internal_notes || '',
       published_platforms: platformsText
         .split(',')
@@ -343,12 +343,12 @@ ${formData.benefits || 'No especificados'}
 };
 
   // Compartir formulario: crear link público (crea borrador si no existe) y mostrar modal
-  const ensureProfileExists = async () : Promise<number> => {
+  const ensureProfileExists = async () : Promise<string | number> => {
     // Si ya existe profile en backend, devolverlo
     if (createdProfileId) return createdProfileId;
 
     // Si no hay cliente seleccionado, crear o reutilizar un cliente temporal "Cliente Público (Formulario)"
-    let clientId: number | undefined = formData.client ? parseInt(formData.client as any) : undefined;
+    let clientId: string | number | undefined = formData.client ? (formData.client as any) : undefined;
     if (!clientId) {
       try {
         // Buscar cliente temporal existente
@@ -548,7 +548,8 @@ ${formData.benefits || 'No especificados'}
 
       const data = await response.json();
       // Usar la ruta pública para que el cliente CREE nuevos perfiles
-      const createLink = `${window.location.origin}/reclutamiento/public/profile-create/${data.token}`;
+      const base = process.env.NODE_ENV === 'production' ? '/reclutamiento' : '';
+      const createLink = `${window.location.origin}${base}/public/profile-create/${data.token}`;
       setShareLink(createLink);
       setShareProfileTitle(formData.position_title || 'Formulario de Perfil');
       setShareClientName(data.company_name || data.client_name || '');

@@ -20,6 +20,9 @@ import {
   faFolderOpen,
   faChartLine,
   faLink,
+  faCalendarCheck,
+  faGlobe,
+  faDatabase,
 } from '@fortawesome/free-solid-svg-icons';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +45,9 @@ const navigation = {
     { name: 'Aplicaciones', href: '/director/candidates/applications', icon: faBriefcase },
     { name: 'Documentos', href: '/director/candidates/documents', icon: faFolderOpen },
     { name: 'Notas', href: '/director/candidates/notes', icon: faStickyNote },
+    { name: 'Reuniones', href: '/director/reuniones', icon: faCalendarCheck },
+    { name: 'Talento Externo', href: '/director/talento-externo', icon: faGlobe },
+    { name: 'Análisis ETL', href: '/director/analisis-etl', icon: faDatabase },
     { name: 'Avance de Cliente', href: '/director/client-progress', icon: faChartLine },
     { name: 'Procesos', href: '/director/processes', icon: faBriefcase },
     { name: 'Reportes', href: '/director/reports', icon: faChartBar },

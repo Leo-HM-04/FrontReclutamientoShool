@@ -362,8 +362,8 @@ export default function CandidateEvaluations() {
                   expiresAt.setDate(expiresAt.getDate() + daysToExpire);
 
                   const data = {
-                    template: parseInt(formData.get("template") as string),
-                    candidate: parseInt(formData.get("candidate") as string),
+                    template: formData.get("template") as string,
+                    candidate: formData.get("candidate") as string,
                     expires_at: expiresAt.toISOString(),
                   };
 

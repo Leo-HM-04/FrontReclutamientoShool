@@ -41,10 +41,10 @@ import { downloadExtendedConsolidatedReportPDF, generateExtendedConsolidatedRepo
 // ═══════════════════════════════════════════════════════════════════
 
 interface ProfileDetail {
-  id: number;
+  id: string;
   position_title: string;
   client_name: string;
-  client_id: number;
+  client_id: string;
   status: string;
   priority: string;
   created_at: string;
@@ -85,14 +85,14 @@ interface ProfileDetail {
 }
 
 interface CandidateDetail {
-  id: number;
+  id: string;
   full_name: string;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   status: string;
-  profile_id: number;
+  profile_id: string;
   profile_title: string;
   client_name: string;
   source: string;
@@ -114,7 +114,7 @@ interface CandidateDetail {
 }
 
 interface ClientDetail {
-  id: number;
+  id: string;
   company_name: string;
   industry: string;
   contact_name: string;
@@ -133,7 +133,7 @@ interface ClientDetail {
   avg_days_to_fill: number;
   profiles_by_status: Record<string, number>;
   profiles_list: {
-    id: number;
+    id: string;
     position_title: string;
     status: string;
     priority: string;
@@ -169,14 +169,14 @@ export default function FullConsolidatedReport({ onBack }: Props) {
   const [exporting, setExporting] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [activeTab, setActiveTab] = useState<'summary' | 'profiles' | 'clients' | 'candidates' | 'profile-candidates'>('summary');
-  const [expandedProfiles, setExpandedProfiles] = useState<Set<number>>(new Set());
-  const [expandedClients, setExpandedClients] = useState<Set<number>>(new Set());
-  const [expandedCandidates, setExpandedCandidates] = useState<Set<number>>(new Set());
+  const [expandedProfiles, setExpandedProfiles] = useState<Set<string>>(new Set());
+  const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
+  const [expandedCandidates, setExpandedCandidates] = useState<Set<string>>(new Set());
   const reportRef = useRef<HTMLDivElement>(null);
-  
+
   // Filtros
-  const [selectedProfileFilter, setSelectedProfileFilter] = useState<number | null>(null);
-  const [selectedClientFilter, setSelectedClientFilter] = useState<number | null>(null);
+  const [selectedProfileFilter, setSelectedProfileFilter] = useState<string | null>(null);
+  const [selectedClientFilter, setSelectedClientFilter] = useState<string | null>(null);
 
   // Perfiles disponibles en el dropdown (filtrados por cliente si aplica)
   const availableProfiles = data
@@ -211,8 +211,8 @@ export default function FullConsolidatedReport({ onBack }: Props) {
     }
 
     // 3) Filtrar candidatos basado en los perfiles resultantes
-    const profileIds = new Set(filteredProfiles.map(p => Number(p.id)));
-    const filteredCandidates = data.candidates.filter(c => profileIds.has(Number(c.profile_id)));
+    const profileIds = new Set(filteredProfiles.map(p => String(p.id)));
+    const filteredCandidates = data.candidates.filter(c => profileIds.has(String(c.profile_id)));
 
     return { profiles: filteredProfiles, clients: filteredClients, candidates: filteredCandidates };
   };
@@ -226,7 +226,7 @@ export default function FullConsolidatedReport({ onBack }: Props) {
     loadConsolidatedData();
   }, []);
 
-  const toggleProfile = (id: number) => {
+  const toggleProfile = (id: string) => {
     setExpandedProfiles(prev => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -235,7 +235,7 @@ export default function FullConsolidatedReport({ onBack }: Props) {
     });
   };
 
-  const toggleClient = (id: number) => {
+  const toggleClient = (id: string) => {
     setExpandedClients(prev => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -244,7 +244,7 @@ export default function FullConsolidatedReport({ onBack }: Props) {
     });
   };
 
-  const toggleCandidate = (id: number) => {
+  const toggleCandidate = (id: string) => {
     setExpandedCandidates(prev => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -367,8 +367,8 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
       let profileReport: ProfileReportData | null = null;
       let profileCandidates: ProfileCandidatesData | null = null;
 
-      try { profileReport = await getProfileReport(Number(p.id)); } catch (e) { /* ok, fallback */ }
-      try { profileCandidates = await getProfileCandidates(Number(p.id)); } catch (e) { /* ok, fallback */ }
+      try { profileReport = await getProfileReport(p.id); } catch (e) { /* ok, fallback */ }
+      try { profileCandidates = await getProfileCandidates(p.id); } catch (e) { /* ok, fallback */ }
 
       const rp = profileReport?.profile;   // <-- puede ser undefined, ok
       const rpClient = profileReport?.client ?? null;
@@ -377,7 +377,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
 
       const client =
         rpClient ||
-        clientsList.find((c: any) => Number(c.id) === Number(p.client_id || p.client)) ||
+        clientsList.find((c: any) => String(c.id) === String(p.client_id || p.client)) ||
         null;
 
       const candidatesRaw = profileCandidates?.candidates || [];
@@ -386,7 +386,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
         const { city, state } = parseLocation(c.location);
 
         // IMPORTANTE: id único -> usa application_id (evita duplicados en React)
-        const uniqueId = Number(c.application_id || c.candidate_id || `${p.id}${Math.random().toString().slice(2, 8)}`);
+        const uniqueId = String(c.application_id || c.candidate_id || `${p.id}${Math.random().toString().slice(2, 8)}`);
 
         return {
           id: uniqueId,
@@ -396,7 +396,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
           email: c.email || 'N/A',
           phone: c.phone || 'N/A',
           status: normalizeCandidateStatus(c.status),
-          profile_id: Number(p.id),
+          profile_id: String(p.id),
           profile_title: (rp?.position_title || p.position_title || 'Sin perfil') as string,
           client_name: client?.company_name || 'N/A',
           source: 'Directo',
@@ -437,10 +437,10 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
       })();
 
     const profileDetail: ProfileDetail = {
-      id: Number(p.id),
+      id: String(p.id),
       position_title: rp?.position_title || p.position_title || 'Sin título',
       client_name: client?.company_name || p.client_name || 'N/A',
-      client_id: Number(client?.id || p.client_id || p.client || 0),
+      client_id: String(client?.id || p.client_id || p.client || ''),
 
       status: rp?.status || p.status || 'draft',
       priority: (rp?.priority as any) || p.priority || 'medium',
@@ -500,7 +500,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
 
     // 4) Clients detallados (usando profilesDetailed + allCandidates)
     const clientsDetailed: ClientDetail[] = clientsList.map((c: any) => {
-      const clientProfiles = profilesDetailed.filter(p => Number(p.client_id) === Number(c.id));
+      const clientProfiles = profilesDetailed.filter(p => String(p.client_id) === String(c.id));
       const clientCandidates = allCandidates.filter(cd => clientProfiles.some(p => p.id === cd.profile_id));
 
       const pb: Record<string, number> = {};
@@ -511,7 +511,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
       const successRate = total > 0 ? Math.round((completed / total) * 100) : 0;
 
       return {
-        id: Number(c.id),
+        id: String(c.id),
         company_name: c.company_name || 'Sin nombre',
         industry: c.industry || 'N/A',
         contact_name: c.contact_name || c.primary_contact_name || 'N/A',
@@ -579,7 +579,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
   const buildReportData = (
     filteredData: { profiles: ProfileDetail[]; clients: ClientDetail[]; candidates: CandidateDetail[] },
     fullData: ConsolidatedData,
-    filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string },
+    filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: string; clientName?: string; profileId?: string; profileTitle?: string },
     successRate: number,
   ) => {
     return {
@@ -602,7 +602,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
         }, {} as Record<string, number>),
       },
       profiles: filteredData.profiles.map(p => {
-        const profileCandidates = filteredData.candidates.filter(c => Number(c.profile_id) === Number(p.id));
+        const profileCandidates = filteredData.candidates.filter(c => String(c.profile_id) === String(p.id));
         const matchScores = profileCandidates.map(c => c.matching_score || 0);
         const matchAvg = matchScores.length > 0 ? Math.round(matchScores.reduce((a, b) => a + b, 0) / matchScores.length) : 0;
         const topMatch = matchScores.length > 0 ? Math.max(...matchScores) : 0;
@@ -733,7 +733,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
         : 0;
       
       // Determinar tipo de filtro aplicado (soporta ambos simultáneamente)
-      let filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string } = { type: 'all' };
+      let filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: string; clientName?: string; profileId?: string; profileTitle?: string } = { type: 'all' };
       
       if (selectedClientFilter && selectedProfileFilter) {
         const client = data.clients.find(c => c.id === selectedClientFilter);
@@ -816,7 +816,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
         ? Math.round((data.summary.profiles_completed / data.summary.total_profiles) * 100)
         : 0;
 
-      let filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: number; clientName?: string; profileId?: number; profileTitle?: string } = { type: 'all' };
+      let filterInfo: { type: 'all' | 'client' | 'profile' | 'client_profile'; clientId?: string; clientName?: string; profileId?: string; profileTitle?: string } = { type: 'all' };
       if (selectedClientFilter && selectedProfileFilter) {
         const client = data.clients.find(c => c.id === selectedClientFilter);
         const profile = data.profiles.find(p => p.id === selectedProfileFilter);
@@ -1041,7 +1041,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             <select
               value={selectedClientFilter || ''}
               onChange={(e) => {
-                setSelectedClientFilter(e.target.value ? parseInt(e.target.value) : null);
+                setSelectedClientFilter(e.target.value || null);
                 setSelectedProfileFilter(null);
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1058,7 +1058,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             <select
               value={selectedProfileFilter || ''}
               onChange={(e) => {
-                setSelectedProfileFilter(e.target.value ? parseInt(e.target.value) : null);
+                setSelectedProfileFilter(e.target.value || null);
                 // NO limpiar el filtro de cliente → mantiene la jerarquía cascada
               }}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -2122,7 +2122,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
               </h3>
               <select
                 value={selectedProfileFilter || ''}
-                onChange={(e) => setSelectedProfileFilter(e.target.value ? parseInt(e.target.value) : null)}
+                onChange={(e) => setSelectedProfileFilter(e.target.value || null)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">-- Seleccionar un perfil --</option>
@@ -2137,7 +2137,7 @@ const mapWithConcurrency = async <T, R>(items: T[], limit: number, fn: (item: T,
             {/* Información del Perfil Seleccionado */}
             {selectedProfileFilter && (() => {
               const profile = data.profiles.find(p => p.id === selectedProfileFilter);
-              const profileCandidates = data.candidates.filter(c => Number(c.profile_id) === Number(selectedProfileFilter));
+              const profileCandidates = data.candidates.filter(c => String(c.profile_id) === String(selectedProfileFilter));
 
               
               if (!profile) return null;

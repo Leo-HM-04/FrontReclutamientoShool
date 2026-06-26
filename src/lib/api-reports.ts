@@ -27,7 +27,7 @@ function getAuthHeaders() {
 // 1. REPORTE DE PERFIL INDIVIDUAL
 // ════════════════════════════════════════════════════════════════════
 
-export async function getProfileReport(profileId: number) {
+export async function getProfileReport(profileId: string | number) {
   try {
     const response = await fetch(
       `${API_URL}/director/reports/profile/${profileId}/`,
@@ -52,7 +52,7 @@ export async function getProfileReport(profileId: number) {
 // 2. CANDIDATOS DE UN PERFIL
 // ════════════════════════════════════════════════════════════════════
 
-export async function getProfileCandidates(profileId: number, statusFilter?: string) {
+export async function getProfileCandidates(profileId: string | number, statusFilter?: string) {
   try {
     let url = `${API_URL}/director/reports/profile/${profileId}/candidates/`;
     
@@ -80,7 +80,7 @@ export async function getProfileCandidates(profileId: number, statusFilter?: str
 // 3. TIMELINE DE PERFIL
 // ════════════════════════════════════════════════════════════════════
 
-export async function getProfileTimeline(profileId: number) {
+export async function getProfileTimeline(profileId: string | number) {
   try {
     const response = await fetch(
       `${API_URL}/director/reports/profile/${profileId}/timeline/`,
@@ -105,7 +105,7 @@ export async function getProfileTimeline(profileId: number) {
 // 4. REPORTE COMPLETO DE CANDIDATO
 // ════════════════════════════════════════════════════════════════════
 
-export async function getCandidateFullReport(candidateId: number) {
+export async function getCandidateFullReport(candidateId: string | number) {
   try {
     const response = await fetch(
       `${API_URL}/director/reports/candidate/${candidateId}/`,
@@ -130,7 +130,7 @@ export async function getCandidateFullReport(candidateId: number) {
 // 5. REPORTE COMPLETO DE CLIENTE
 // ════════════════════════════════════════════════════════════════════
 
-export async function getClientFullReport(clientId: number) {
+export async function getClientFullReport(clientId: string | number) {
   try {
     const response = await fetch(
       `${API_URL}/director/reports/client/${clientId}/`,
@@ -634,7 +634,7 @@ export function formatPercentage(value: number, decimals: number = 1): string {
 // ENVIAR REPORTE POR CORREO
 // ════════════════════════════════════════════════════════════════════
 
-export async function sendProfileReportEmail(profileId: number, pdfBlob: Blob, pdfFilename: string, message?: string) {
+export async function sendProfileReportEmail(profileId: string | number, pdfBlob: Blob, pdfFilename: string, message?: string) {
   try {
     const token = localStorage.getItem('authToken');
     const formData = new FormData();
@@ -665,7 +665,7 @@ export async function sendProfileReportEmail(profileId: number, pdfBlob: Blob, p
   }
 }
 
-export async function sendCandidateReportEmail(candidateId: number, pdfBlob: Blob, pdfFilename: string, message?: string) {
+export async function sendCandidateReportEmail(candidateId: string | number, pdfBlob: Blob, pdfFilename: string, message?: string) {
   try {
     const token = localStorage.getItem('authToken');
     const formData = new FormData();
@@ -696,7 +696,7 @@ export async function sendCandidateReportEmail(candidateId: number, pdfBlob: Blo
   }
 }
 
-export async function sendClientReportEmail(clientId: number, pdfBlob: Blob, pdfFilename: string, message?: string) {
+export async function sendClientReportEmail(clientId: string | number, pdfBlob: Blob, pdfFilename: string, message?: string) {
   try {
     const token = localStorage.getItem('authToken');
     const formData = new FormData();
@@ -735,8 +735,8 @@ export async function sendConsolidatedReportEmail(
   pdfBlob: Blob,
   pdfFilename: string,
   options: {
-    clientId?: number;
-    profileId?: number;
+    clientId?: string;
+    profileId?: string;
     filterType: 'all' | 'client' | 'profile' | 'client_profile';
     message?: string;
   }

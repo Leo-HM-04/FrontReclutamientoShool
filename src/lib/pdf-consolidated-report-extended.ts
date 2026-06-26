@@ -66,7 +66,7 @@ const COLORS = {
 
 // Candidato individual para el reporte de perfil
 export interface ProfileCandidateData {
-  id: number;
+  id: string;
   name: string;
   email: string;
   applied_date: string;
@@ -141,10 +141,10 @@ export interface ProcessTimelineReport {
 }
 
 export interface ProfileDetailData {
-  id: number;
+  id: string;
   position_title: string;
   client_name: string;
-  client_id: number;
+  client_id: string;
   status: string;
   priority: string;
   service_type?: string;
@@ -187,7 +187,7 @@ export interface ProfileDetailData {
 }
 
 export interface ClientDetailData {
-  id: number;
+  id: string;
   company_name: string;
   industry: string;
   contact_name: string;
@@ -207,7 +207,7 @@ export interface ClientDetailData {
   avg_days_to_complete?: number | null;
   profiles_by_status: Record<string, number>;
   profiles_list?: Array<{
-    id: number;
+    id: string;
     position_title: string;
     status: string;
     priority: string;
@@ -218,12 +218,12 @@ export interface ClientDetailData {
 }
 
 export interface CandidateData {
-  id: number;
+  id: string;
   full_name: string;
   email: string;
   phone: string;
   status: string;
-  profile_id: number;
+  profile_id: string;
   profile_title: string;
   client_name: string;
   matching_score: number;
@@ -241,9 +241,9 @@ export interface CandidateData {
 export interface ExtendedConsolidatedReportData {
   filter?: {
     type: 'all' | 'client' | 'profile' | 'client_profile';
-    clientId?: number;
+    clientId?: string;
     clientName?: string;
-    profileId?: number;
+    profileId?: string;
     profileTitle?: string;
   };
   summary: {
@@ -588,10 +588,10 @@ class ExtendedConsolidatedReportPDF {
   }
 
   // 2) Fallback: filtra del listado global (BLINDADO contra string/number)
-  const pid = Number(profile.id);
+  const pid = String(profile.id);
 
   const global = (this.data.candidates || []).filter((c) => {
-    const cpid = Number((c as any).profile_id); // por si viene string
+    const cpid = String((c as any).profile_id); // por si viene number
     return cpid === pid;
   });
 
@@ -612,7 +612,7 @@ class ExtendedConsolidatedReportPDF {
     }
 
     return {
-      id: Number(c.id),
+      id: String(c.id),
       name: sanitizePDFText(c.full_name),
       email: sanitizePDFText(c.email),
       applied_date: applied,

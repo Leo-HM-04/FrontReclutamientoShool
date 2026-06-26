@@ -419,7 +419,7 @@ export default function CVAnalysisModal({ isOpen, onClose, onSuccess }: CVAnalys
             </div>
           ) : (
             /* ===== FORMULARIO DE ANÁLISIS ===== */
-            <form ref={formRef} onSubmit={handleSubmit} className="p-6 lg:p-8">
+            <form ref={formRef} onSubmit={handleSubmit} noValidate className="p-6 lg:p-8">
               {/* Processing status */}
               {loading && processingStatus && (
                 <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-5">
@@ -456,7 +456,6 @@ export default function CVAnalysisModal({ isOpen, onClose, onSuccess }: CVAnalys
                     value={selectedCandidate}
                     onChange={(e) => setSelectedCandidate(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
                     disabled={loading}
                   >
                     <option value="">Seleccionar candidato...</option>
@@ -498,10 +497,10 @@ export default function CVAnalysisModal({ isOpen, onClose, onSuccess }: CVAnalys
                     </div>
                     <input
                       type="file"
-                      accept=".pdf,.doc,.docx"
+                      name="document_file"
+                      accept=".pdf,.docx"
                       onChange={handleFileChange}
                       className="hidden"
-                      required
                       disabled={loading}
                     />
                   </label>
