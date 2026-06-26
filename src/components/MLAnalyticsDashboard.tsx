@@ -131,8 +131,8 @@ export default function MLAnalyticsDashboard() {
       } else {
         setRegressionData(data);
       }
-    } catch (e: any) {
-      setErrorReg(e.message);
+    } catch (e: unknown) {
+      setErrorReg(e instanceof Error ? e.message : 'Error desconocido');
     } finally {
       setLoadingReg(false);
     }
@@ -153,8 +153,8 @@ export default function MLAnalyticsDashboard() {
       } else {
         setTreeData(data);
       }
-    } catch (e: any) {
-      setErrorTree(e.message);
+    } catch (e: unknown) {
+      setErrorTree(e instanceof Error ? e.message : 'Error desconocido');
     } finally {
       setLoadingTree(false);
     }
@@ -551,7 +551,7 @@ export default function MLAnalyticsDashboard() {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="bg-blue-50 rounded-lg p-4">
-                    <p className="text-sm text-gray-600">Cuando dice <strong>"Recomendado"</strong>, acierta el</p>
+                    <p className="text-sm text-gray-600">Cuando dice <strong>«Recomendado»</strong>, acierta el</p>
                     <p className="text-3xl font-bold text-blue-700">{(treeData.precision * 100).toFixed(0)}%</p>
                     <p className="text-xs text-gray-400 mt-1">de las veces</p>
                   </div>
